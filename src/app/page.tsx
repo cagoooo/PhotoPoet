@@ -69,9 +69,7 @@ export default function Home() {
         return;
       }
       try {
-        // Proxy the image through a service to handle CORS.
-        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
+        const response = await fetch(url, {mode: 'cors'});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -107,9 +105,9 @@ export default function Home() {
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
         <CardHeader className="p-6">
-          <CardTitle className="text-2xl font-semibold tracking-tight">PhotoPoet</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">{"詠圖詩人：以圖入詩，妙筆生花"}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            上傳一張照片，讓 AI 生成一首受其啟發的詩。
+            {"上傳您的獨特照片，讓AI為您創作一首意境深遠的繁體中文詩詞。"}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
