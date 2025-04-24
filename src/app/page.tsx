@@ -69,7 +69,8 @@ export default function Home() {
         return;
       }
       try {
-        const response = await fetch(url, {mode: 'cors'});
+        // Proxy the image through the /api/proxy endpoint to handle CORS.
+        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -94,7 +95,7 @@ export default function Home() {
           title: '錯誤',
           description:
             error.message ||
-            '無法從 URL 取得圖片，請重試。 確定該網址可以公開存取且支援 CORS。',
+            '無法從 URL 取得圖片，請重試。 確定該網址可以公開存取。',
         });
       }
     },
@@ -105,9 +106,9 @@ export default function Home() {
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
         <CardHeader className="p-6">
-          <CardTitle className="text-2xl font-semibold tracking-tight">{"詠圖詩人：以圖入詩，妙筆生花"}</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">{"詠圖詩人：捕捉瞬間，賦予詩意"}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            {"上傳您的獨特照片，讓AI為您創作一首意境深遠的繁體中文詩詞。"}
+            {"上傳一張照片，讓AI為你創作一首獨一無二的繁體中文詩詞。"}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
