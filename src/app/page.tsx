@@ -142,7 +142,7 @@ export default function Home() {
                   src={photo}
                   alt="Uploaded"
                   className="object-cover w-full h-full"
-                  style={{maxHeight: '200px', maxWidth: '200px'}}
+                  style={{maxHeight: '100%', maxWidth: '100%'}}
                 />
               </div>
             )}
