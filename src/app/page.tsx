@@ -8,7 +8,6 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
-import {toast} from '@/hooks/use-toast';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -70,39 +69,32 @@ export default function Home() {
         return;
       }
       try {
-        try {
-          const response = await fetch(url, {mode: 'no-cors'});
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          //Need to proxy the image if CORS is enabled
-          const blob = await response.blob();
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPhoto(reader.result as string);
-            setPoem(null); // Clear previous poem
-          };
-          reader.onerror = () => {
-            toast({
-              title: '錯誤',
-              description: '從 URL 讀取圖片失敗，請重試。',
-            });
-          };
-          reader.readAsDataURL(blob);
-        } catch (corsError: any) {
-          console.error('CORS error:', corsError);
+        // Attempt to fetch the image with CORS disabled.
+        const response = await fetch(url, {mode: 'cors'});
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Need to proxy the image if CORS is enabled
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPhoto(reader.result as string);
+          setPoem(null); // Clear previous poem
+        };
+        reader.onerror = () => {
           toast({
             title: '錯誤',
-            description:
-              corsError.message ||
-              '無法從 URL 取得圖片，這可能是因為 CORS 政策。',
+            description: '從 URL 讀取圖片失敗，請重試。',
           });
-        }
+        };
+        reader.readAsDataURL(blob);
       } catch (error: any) {
         console.error('URL submission error:', error);
         toast({
           title: '錯誤',
-          description: error.message || '無法從 URL 取得圖片，請重試。',
+          description:
+            error.message ||
+            '無法從 URL 取得圖片，請重試。 確定該網址可以公開存取且支援 CORS。',
         });
       }
     },
