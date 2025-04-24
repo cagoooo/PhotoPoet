@@ -69,12 +69,14 @@ export default function Home() {
         return;
       }
       try {
-        // Attempt to fetch the image with CORS disabled.
-        const response = await fetch(url, {mode: 'cors'});
+        // Proxy the image through a service to handle CORS.
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        const response = await fetch(proxyUrl);
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        // Need to proxy the image if CORS is enabled
+
         const blob = await response.blob();
         const reader = new FileReader();
         reader.onloadend = () => {
