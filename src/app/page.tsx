@@ -70,23 +70,34 @@ export default function Home() {
         return;
       }
       try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPhoto(reader.result as string);
-          setPoem(null); // Clear previous poem
-        };
-        reader.onerror = () => {
+        try {
+          const response = await fetch(url, {mode: 'no-cors'});
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          //Need to proxy the image if CORS is enabled
+          const blob = await response.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPhoto(reader.result as string);
+            setPoem(null); // Clear previous poem
+          };
+          reader.onerror = () => {
+            toast({
+              title: '錯誤',
+              description: '從 URL 讀取圖片失敗，請重試。',
+            });
+          };
+          reader.readAsDataURL(blob);
+        } catch (corsError: any) {
+          console.error('CORS error:', corsError);
           toast({
             title: '錯誤',
-            description: '從 URL 讀取圖片失敗，請重試。',
+            description:
+              corsError.message ||
+              '無法從 URL 取得圖片，這可能是因為 CORS 政策。',
           });
-        };
-        reader.readAsDataURL(blob);
+        }
       } catch (error: any) {
         console.error('URL submission error:', error);
         toast({
