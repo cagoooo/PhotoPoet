@@ -19,8 +19,8 @@ export default function Home() {
   const handleGeneratePoem = useCallback(async () => {
     if (!photo) {
       toast({
-        title: 'Error',
-        description: 'Please submit a photo first.',
+        title: '錯誤',
+        description: '請先上傳一張照片。',
       });
       return;
     }
@@ -32,8 +32,8 @@ export default function Home() {
     } catch (error: any) {
       console.error('Poem generation error:', error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to generate poem. Please try again.',
+        title: '錯誤',
+        description: error.message || '生成詩詞失敗，請重試。',
       });
     } finally {
       setLoading(false);
@@ -54,8 +54,8 @@ export default function Home() {
       };
       reader.onerror = () => {
         toast({
-          title: 'Error',
-          description: 'Failed to read the image. Please try again.',
+          title: '錯誤',
+          description: '讀取圖片失敗，請重試。',
         });
       };
       reader.readAsDataURL(file);
@@ -82,16 +82,16 @@ export default function Home() {
         };
         reader.onerror = () => {
           toast({
-            title: 'Error',
-            description: 'Failed to read the image from URL. Please try again.',
+            title: '錯誤',
+            description: '從 URL 讀取圖片失敗，請重試。',
           });
         };
         reader.readAsDataURL(blob);
       } catch (error: any) {
         console.error('URL submission error:', error);
         toast({
-          title: 'Error',
-          description: error.message || 'Failed to fetch image from URL. Please try again.',
+          title: '錯誤',
+          description: error.message || '無法從 URL 取得圖片，請重試。',
         });
       }
     },
@@ -104,7 +104,7 @@ export default function Home() {
         <CardHeader className="p-6">
           <CardTitle className="text-2xl font-semibold tracking-tight">PhotoPoet</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Upload a photo and let AI generate a poem inspired by it.
+            上傳一張照片，讓 AI 生成一首受其啟發的詩。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -112,7 +112,7 @@ export default function Home() {
             {/* Photo Upload */}
             <div className="flex flex-col gap-2">
               <label htmlFor="photo-upload" className="text-sm font-medium leading-none">
-                Upload Photo:
+                上傳照片：
               </label>
               <Input
                 id="photo-upload"
@@ -126,12 +126,12 @@ export default function Home() {
             {/* URL Submission */}
             <div className="flex flex-col gap-2">
               <label htmlFor="photo-url" className="text-sm font-medium leading-none">
-                Or submit a Photo URL:
+                或提交照片網址：
               </label>
               <Input
                 id="photo-url"
                 type="url"
-                placeholder="Enter image URL"
+                placeholder="請輸入圖片網址"
                 onBlur={handleURLSubmission}
               />
             </div>
@@ -148,12 +148,12 @@ export default function Home() {
             )}
 
             <Button onClick={handleGeneratePoem} disabled={loading} className="w-full">
-              {loading ? 'Generating...' : 'Generate Poem'}
+              {loading ? '生成中...' : '生成詩詞'}
             </Button>
 
             {poem && (
               <div className="fade-in">
-                <h2 className="text-xl font-semibold tracking-tight mt-4">Generated Poem:</h2>
+                <h2 className="text-xl font-semibold tracking-tight mt-4">生成的詩詞：</h2>
                 <Textarea
                   value={poem}
                   readOnly
