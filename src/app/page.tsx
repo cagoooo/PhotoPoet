@@ -123,13 +123,15 @@ export default function Home() {
 
     const shareText = `詠圖詩人：\n\n我為這張照片創作了一首詩：\n\n${poem}\n\n圖片連結：${photo}`;
 
+    const shareData = {
+      title: '詠圖詩人',
+      text: shareText,
+      url: photo, // Consider if sharing the photo URL is appropriate
+    };
+
     if (navigator.share) {
       navigator
-        .share({
-          title: '詠圖詩人',
-          text: shareText,
-          url: photo, // Consider if sharing the photo URL is appropriate
-        })
+        .share(shareData)
         .then(() => {
           toast({
             title: '分享成功！',
@@ -138,11 +140,36 @@ export default function Home() {
         })
         .catch((error) => {
           console.error('分享失敗:', error);
-          toast({
-            title: '分享失敗',
-            description:
-              '分享時發生錯誤，請檢查您的瀏覽器設定或稍後再試。',
-          });
+          if (error.name === 'AbortError') {
+            toast({
+              title: '分享取消',
+              description: '分享已取消。',
+            });
+          } else if (error.name === 'SecurityError') {
+            // Handle permission issues (e.g., user denied sharing)
+            navigator.clipboard
+              .writeText(shareText)
+              .then(() => {
+                toast({
+                  title: '權限錯誤',
+                  description: '因權限問題無法使用分享功能，內容已複製到剪貼簿。',
+                });
+              })
+              .catch(() => {
+                toast({
+                  title: '分享失敗',
+                  description: '分享失敗，且無法複製到剪貼簿，請稍後再試。',
+                });
+              });
+          }
+          else {
+            toast({
+              title: '分享失敗',
+              description:
+                '分享時發生錯誤，請檢查您的瀏覽器設定或稍後再試。',
+            });
+          }
+
         });
     } else {
       // Fallback for browsers that don't support the share API.
