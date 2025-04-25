@@ -137,8 +137,8 @@ export default function Home() {
     }
   };
 
-  const handleShare = useCallback(async () => {
-    if (!photo || !poem) {
+  const handleCopy = useCallback(() => {
+    if (!poem) {
       toast({
         title: '錯誤！',
         description: '請先上傳照片並生成詩詞。',
@@ -146,58 +146,29 @@ export default function Home() {
       return;
     }
   
-    const shareText = `✨ 靈感之詩，翩然降臨 ✨\n${poem}\n\n用「詠圖詩人」為您的照片創作獨特詩詞！`;
-  
-    // Check if the share API is available.
-    if (navigator.share) {
-      try {
-        // Convert the base64 image to a Blob.
-        const response = await fetch(photo);
-        const blob = await response.blob();
-        // Create a File object from the Blob.
-        const file = new File([blob], "image.jpg", { type: blob.type });
-  
-        // Share the image and text.
-        await navigator.share({
-          title: "詠圖詩人",
-          text: shareText,
-          files: [file],
-        });
+    navigator.clipboard.writeText(poem)
+      .then(() => {
         toast({
-          title: '分享成功！',
-          description: '感謝您分享您的詩意照片！',
+          title: '複製成功！',
+          description: '詩詞已複製到剪貼簿。',
         });
-      } catch (error: any) {
-        console.error('分享失敗：', error);
-        if (error.name === 'SecurityError' || error.message.includes('Permission denied')) {
-          toast({
-            title: '分享失敗！',
-            description: '請檢查瀏覽器權限設定，允許網頁分享。',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: '分享失敗！',
-            description: '無法分享，請稍後再試。',
-            variant: 'destructive',
-          });
-        }
-      }
-    } else {
-      toast({
-        title: '分享失敗！',
-        description: '您的瀏覽器不支援分享功能。',
-        variant: 'destructive',
+      })
+      .catch(err => {
+        console.error('複製失敗：', err);
+        toast({
+          title: '複製失敗！',
+          description: '無法複製詩詞，請稍後再試。',
+          variant: 'destructive',
+        });
       });
-    }
-  }, [photo, poem]);
+  }, [poem]);
 
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
-            ✨ 詩意湧現，靈感綻放 ✨
+            ✨ 靈感之詩，翩然降臨 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
             讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
@@ -278,8 +249,8 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
-                <Button variant="secondary" className="mt-4 w-full" onClick={handleShare} disabled={!poem}>
-                  分享
+                <Button variant="secondary" className="mt-4 w-full" onClick={handleCopy} disabled={!poem}>
+                 複製
                 </Button>
               </div>
             )}
@@ -289,3 +260,4 @@ export default function Home() {
     </div>
   );
 }
+
