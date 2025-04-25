@@ -4,7 +4,7 @@ import { generatePoem, GeneratePoemInput } from '@/ai/flows/generate-poem';
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '6mb', // Set desired value here
+      sizeLimit: '10mb', // Set desired value here
     },
   },
 };
