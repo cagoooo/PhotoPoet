@@ -142,7 +142,7 @@ export default function Home() {
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center">
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2">
-            詠圖詩人
+            📸 詩意快門 🖋️
           </h1>
           <CardDescription className="text-md text-gray-700">
             讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
