@@ -9,7 +9,6 @@ import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
-import {Share2} from 'lucide-react';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -113,92 +112,12 @@ export default function Home() {
     [toast]
   );
 
-  const handleShare = useCallback(() => {
-    if (!photo || !poem) {
-      toast({
-        title: '錯誤',
-        description: '請先上傳照片並生成詩詞。',
-      });
-      return;
-    }
-
-    const shareText = `詠圖詩人：\n\n我為這張照片創作了一首詩：\n\n${poem}\n\n圖片連結：${photo}`;
-
-    const shareData = {
-      title: '詠圖詩人',
-      text: shareText,
-      url: photo, // Consider if sharing the photo URL is appropriate
-    };
-
-    if (navigator.share) {
-      navigator
-        .share(shareData)
-        .then(() => {
-          toast({
-            title: '分享成功！',
-            description: '感謝您的分享。',
-          });
-        })
-        .catch((error) => {
-          console.error('分享失敗:', error);
-          if (error.name === 'AbortError') {
-            toast({
-              title: '分享取消',
-              description: '分享已取消。',
-            });
-          } else if (error.name === 'SecurityError') {
-            // Handle permission issues (e.g., user denied sharing)
-            navigator.clipboard
-              .writeText(shareText)
-              .then(() => {
-                toast({
-                  title: '權限錯誤',
-                  description: '因權限問題無法使用分享功能，內容已複製到剪貼簿。',
-                });
-              })
-              .catch(() => {
-                toast({
-                  title: '分享失敗',
-                  description: '分享失敗，且無法複製到剪貼簿，請稍後再試。',
-                });
-              });
-          }
-          else {
-            toast({
-              title: '分享失敗',
-              description:
-                '分享時發生錯誤，請檢查您的瀏覽器設定或稍後再試。',
-            });
-          }
-
-        });
-    } else {
-      // Fallback for browsers that don't support the share API.
-      navigator.clipboard
-        .writeText(shareText)
-        .then(() => {
-          toast({
-            title: '複製成功！',
-            description: '詩詞和圖片連結已複製到剪貼簿，您可以手動分享。',
-          });
-        })
-        .catch((err) => {
-          console.error('無法複製到剪貼簿:', err);
-          toast({
-            title: '分享失敗',
-            description:
-              '您的瀏覽器不支持分享功能，也無法複製到剪貼簿，請嘗試其他方式分享。',
-          });
-        });
-    }
-  }, [photo, poem, toast]);
-
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
         <CardHeader className="p-6">
           <CardTitle className="text-2xl font-semibold tracking-tight">
-            詠圖詩人：讓 AI 點綴您的照片，譜寫出獨一無二的詩意篇章
+            詠圖詩人：讓 AI 為您的照片譜寫動人詩篇
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。</CardDescription>
@@ -258,15 +177,6 @@ export default function Home() {
                   )}
                   style={{animation: 'fadeIn 1s ease-in-out'}}
                 />
-                <Button
-                  variant="secondary"
-                  className="mt-4 w-full"
-                  onClick={handleShare}
-                  disabled={loading}
-                >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  分享
-                </Button>
               </div>
             )}
           </div>
@@ -276,3 +186,4 @@ export default function Home() {
     </div>
   );
 }
+
