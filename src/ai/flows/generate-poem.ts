@@ -42,7 +42,7 @@ const prompt = ai.definePrompt({
   },
   output: {
     schema: z.object({
-      poem: z.string().describe('A poem generated from the image.'),
+      poem: z.string().describe('A poem generated from the image, in Traditional Chinese.'),
     }),
   },
   prompt: `You are a poet. Given the photo, write a poem that reflects its content, mood, and key elements. The poem must be in traditional Chinese.\n\nPhoto: {{media url=photoDataUri}}`,
