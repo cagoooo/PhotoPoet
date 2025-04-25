@@ -135,10 +135,16 @@ export default function Home() {
         })
         .catch(error => {
           console.error('Sharing error:', error);
-          toast({
-            title: '分享失敗',
-            description: '分享時發生錯誤，請稍後再試。',
-          });
+          if (error.name === 'SecurityError' || error.message.includes('Permission denied')) {
+            alert(
+              '分享失敗：您的瀏覽器設定可能阻止了自動分享。請嘗試複製詩詞和圖片連結手動分享。'
+            );
+          } else {
+            toast({
+              title: '分享失敗',
+              description: '分享時發生錯誤，請稍後再試。',
+            });
+          }
         });
     } else {
       toast({
