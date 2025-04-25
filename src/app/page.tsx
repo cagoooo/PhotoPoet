@@ -153,22 +153,28 @@ export default function Home() {
     };
 
     if (navigator.share) {
-      navigator
-        .share(shareData)
-        .then(() => {
+      try {
+        await navigator.share(shareData);
+        toast({
+          title: '分享成功！',
+          description: '感謝您分享您的詩意照片！',
+        });
+      } catch (error: any) {
+        console.error('分享失敗：', error);
+        if (error.name === 'SecurityError' || error.message.includes('Permission denied')) {
           toast({
-            title: '分享成功！',
-            description: '感謝您分享您的詩意照片！',
+            title: '分享失敗！',
+            description: '請檢查瀏覽器權限設定，允許網頁分享。',
+            variant: 'destructive',
           });
-        })
-        .catch((error) => {
-          console.error('分享失敗：', error);
+        } else {
           toast({
             title: '分享失敗！',
             description: '無法分享，請稍後再試。',
             variant: 'destructive',
           });
-        });
+        }
+      }
     } else {
       toast({
         title: '分享失敗！',
@@ -177,6 +183,7 @@ export default function Home() {
       });
     }
   }, [photo, poem]);
+
 
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
