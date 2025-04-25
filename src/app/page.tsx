@@ -41,7 +41,7 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/generate', { // Ensure the correct path is used
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
