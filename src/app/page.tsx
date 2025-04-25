@@ -71,14 +71,17 @@ export default function Home() {
       if (!url) {
         return;
       }
+
       setLoading(true);
       try {
-        // Proxy the image through the /api/proxy endpoint to handle CORS.
-        const encodedURL = encodeURIComponent(url);
-        const response = await fetch(`/api/proxy?url=${encodedURL}`);
+        // Check if the URL is an absolute URL
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          throw new Error('請輸入有效的圖片網址 (http:// 或 https:// 開頭)。');
+        }
+        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`圖片網址載入失敗: ${response.status} ${response.statusText}`);
         }
 
         const blob = await response.blob();
@@ -118,41 +121,47 @@ export default function Home() {
       return;
     }
 
-    const shareData = {
-      title: '詠圖詩人',
-      text: `我為這張照片創作了一首詩：\n\n${poem}`,
-      url: photo,
-    };
+    const shareText = `詠圖詩人：\n\n我為這張照片創作了一首詩：\n\n${poem}\n\n圖片連結：${photo}`;
 
     if (navigator.share) {
       navigator
-        .share(shareData)
+        .share({
+          title: '詠圖詩人',
+          text: shareText,
+          url: photo, // Consider if sharing the photo URL is appropriate
+        })
         .then(() => {
           toast({
             title: '分享成功！',
             description: '感謝您的分享。',
           });
         })
-        .catch(error => {
-          console.error('Sharing error:', error);
-          if (error.name === 'SecurityError' || error.message.includes('Permission denied')) {
-            toast({
-              variant: 'destructive',
-              title: '分享失敗',
-              description: '您的瀏覽器設定可能阻止了自動分享。請嘗試複製詩詞和圖片連結手動分享。',
-            });
-          } else {
-            toast({
-              title: '分享失敗',
-              description: '分享時發生錯誤，請稍後再試。',
-            });
-          }
+        .catch((error) => {
+          console.error('分享失敗:', error);
+          toast({
+            title: '分享失敗',
+            description:
+              '分享時發生錯誤，請檢查您的瀏覽器設定或稍後再試。',
+          });
         });
     } else {
-      toast({
-        title: '分享失敗',
-        description: '您的瀏覽器不支持分享功能，請嘗試複製詩詞和圖片連結。',
-      });
+      // Fallback for browsers that don't support the share API.
+      navigator.clipboard
+        .writeText(shareText)
+        .then(() => {
+          toast({
+            title: '複製成功！',
+            description: '詩詞和圖片連結已複製到剪貼簿，您可以手動分享。',
+          });
+        })
+        .catch((err) => {
+          console.error('無法複製到剪貼簿:', err);
+          toast({
+            title: '分享失敗',
+            description:
+              '您的瀏覽器不支持分享功能，也無法複製到剪貼簿，請嘗試其他方式分享。',
+          });
+        });
     }
   }, [photo, poem, toast]);
 
@@ -160,10 +169,11 @@ export default function Home() {
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
         <CardHeader className="p-6">
-          <CardTitle className="text-2xl font-semibold tracking-tight">{"詠圖詩人：讓 AI 為您的照片譜寫動人詩篇"}</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            {"詠圖詩人：讓 AI 點綴您的照片，譜寫出獨一無二的詩意篇章"}
+          </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {"上傳一張照片，讓AI為你創作一首獨一無二的繁體中文詩詞。"}
-          </CardDescription>
+            {"上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。"}</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid gap-4">
@@ -189,18 +199,17 @@ export default function Home() {
               <Input
                 id="photo-url"
                 type="url"
-                placeholder="請輸入圖片網址"
+                placeholder="請輸入圖片網址 (http:// 或 https:// 開頭)"
                 onBlur={(e) => handleURLSubmission(e.target.value)}
               />
             </div>
 
             {photo && (
-              <div className="flex justify-center items-center rounded-md border border-muted aspect-square overflow-hidden">
+              <div className="flex justify-center items-center rounded-md border border-muted overflow-hidden">
                 <img
                   src={photo}
                   alt="Uploaded"
-                  className="object-cover w-full h-full"
-                  style={{maxHeight: '100%', maxWidth: '100%'}}
+                  className="object-contain max-h-96 max-w-full"
                 />
               </div>
             )}
@@ -232,6 +241,7 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
+      {/* Toast component for displaying notifications */}
     </div>
   );
 }
