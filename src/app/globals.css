@@ -136,3 +136,47 @@ body {
   background-size: 500% auto;
   animation: rainbow 5s linear infinite;
 }
+
+/* Multicolored poem lines */
+.multicolored-poem {
+  text-align: center;
+  white-space: pre-line;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 1s ease-in-out;
+}
+
+.poem-line {
+  display: block; /* Ensures each line is on a new line */
+}
+
+.poem-line:nth-child(1) {
+  color: #ef5350; /* Red */
+}
+
+.poem-line:nth-child(2) {
+  color: #f48fb1; /* Pink */
+}
+
+.poem-line:nth-child(3) {
+  color: #7e57c2; /* Purple */
+}
+
+.poem-line:nth-child(4) {
+  color: #2196f3; /* Blue */
+}
+
+.poem-line:nth-child(5) {
+  color: #26a69a; /* Teal */
+}
+
+.poem-line:nth-child(6) {
+  color: #43a047; /* Green */
+}
+
+.poem-line:nth-child(7) {
+  color: #eeff41; /* Yellow */
+}
+
+.poem-line:nth-child(8) {
+  color: #f9a825; /* Amber */
+}

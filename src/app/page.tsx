@@ -172,11 +172,13 @@ export default function Home() {
             {poem && (
               <div className="mt-4">
                 <h2 className="text-xl font-semibold tracking-tight mt-4 text-center">生成的詩詞：</h2>
-                <Textarea
-                  value={poem}
-                  readOnly
-                  className="mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none poem-text"
-                />
+                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none multicolored-poem">
+                  {poem.split('\n').map((line, index) => (
+                    <span key={index} className="poem-line">
+                      {line}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
