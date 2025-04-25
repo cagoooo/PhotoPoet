@@ -96,6 +96,17 @@ export default function Home() {
         let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
         if (response.status === 404) {
           errorMessage = '讀取圖片失敗！找不到該圖片網址。';
+        } else {
+          try {
+            const errorBody = await response.json();
+            if (errorBody && errorBody.error) {
+              errorMessage = `讀取圖片失敗！${errorBody.error}`;
+            } else {
+              errorMessage = `讀取圖片失敗！未知錯誤。`;
+            }
+          } catch (e) {
+            errorMessage = `讀取圖片失敗！無法解析錯誤訊息。`;
+          }
         }
         throw new Error(errorMessage);
       }

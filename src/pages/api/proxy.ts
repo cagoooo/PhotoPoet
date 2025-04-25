@@ -1,18 +1,22 @@
-/ src/pages/api/proxy.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type {NextApiRequest, NextApiResponse} from 'next';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { url } = req.query;
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const {url} = req.query;
 
   if (!url || typeof url !== 'string') {
-    return res.status(400).json({ error: 'URL parameter is required' });
+    return res.status(400).json({error: 'URL parameter is required'});
   }
 
   try {
     const imageResponse = await fetch(url);
 
     if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`);
+      return res
+        .status(imageResponse.status)
+        .json({error: 'Failed to fetch image'});
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -22,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).send(Buffer.from(imageBuffer));
   } catch (error: any) {
     console.error('Proxy error:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch image' });
+    res.status(500).json({error: error.message || 'Failed to fetch image'});
   }
 }
 
