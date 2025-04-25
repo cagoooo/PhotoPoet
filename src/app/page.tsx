@@ -145,16 +145,24 @@ export default function Home() {
       });
       return;
     }
-
+  
     const shareText = `✨ 靈感之詩，翩然降臨 ✨\n${poem}\n\n用「詠圖詩人」為您的照片創作獨特詩詞！`;
-    const shareData = {
-      title: '詠圖詩人',
-      text: shareText,
-    };
-
+  
+    // Check if the share API is available.
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        // Convert the base64 image to a Blob.
+        const response = await fetch(photo);
+        const blob = await response.blob();
+        // Create a File object from the Blob.
+        const file = new File([blob], "image.jpg", { type: blob.type });
+  
+        // Share the image and text.
+        await navigator.share({
+          title: "詠圖詩人",
+          text: shareText,
+          files: [file],
+        });
         toast({
           title: '分享成功！',
           description: '感謝您分享您的詩意照片！',
@@ -183,7 +191,6 @@ export default function Home() {
       });
     }
   }, [photo, poem]);
-
 
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
