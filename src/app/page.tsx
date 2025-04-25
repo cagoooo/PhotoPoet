@@ -137,12 +137,53 @@ export default function Home() {
     }
   };
 
+  const handleShare = useCallback(async () => {
+    if (!photo || !poem) {
+      toast({
+        title: '錯誤！',
+        description: '請先上傳照片並生成詩詞。',
+      });
+      return;
+    }
+
+    const shareText = `✨ 靈感之詩，翩然降臨 ✨\n${poem}\n\n用「詠圖詩人」為您的照片創作獨特詩詞！`;
+    const shareData = {
+      title: '詠圖詩人',
+      text: shareText,
+    };
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => {
+          toast({
+            title: '分享成功！',
+            description: '感謝您分享您的詩意照片！',
+          });
+        })
+        .catch((error) => {
+          console.error('分享失敗：', error);
+          toast({
+            title: '分享失敗！',
+            description: '無法分享，請稍後再試。',
+            variant: 'destructive',
+          });
+        });
+    } else {
+      toast({
+        title: '分享失敗！',
+        description: '您的瀏覽器不支援分享功能。',
+        variant: 'destructive',
+      });
+    }
+  }, [photo, poem]);
+
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
-            📸 詩意快門 🖋️
+            ✨ 詩意湧現，靈感綻放 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
             讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
@@ -223,6 +264,9 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
+                <Button variant="secondary" className="mt-4 w-full" onClick={handleShare} disabled={!poem}>
+                  分享
+                </Button>
               </div>
             )}
           </div>
