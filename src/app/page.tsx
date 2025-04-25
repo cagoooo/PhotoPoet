@@ -141,7 +141,7 @@ export default function Home() {
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
+          <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
             📸 詩意快門 🖋️
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
