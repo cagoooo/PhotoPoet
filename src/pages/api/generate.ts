@@ -1,4 +1,3 @@
-/ src/pages/api/generate.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generatePoem, GeneratePoemInput } from '@/ai/flows/generate-poem';
 
