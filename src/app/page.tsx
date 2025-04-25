@@ -198,10 +198,10 @@ export default function Home() {
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
         <CardHeader className="p-6">
           <CardTitle className="text-2xl font-semibold tracking-tight">
-            {"詠圖詩人：讓 AI 點綴您的照片，譜寫出獨一無二的詩意篇章"}
+            詠圖詩人：讓 AI 點綴您的照片，譜寫出獨一無二的詩意篇章
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {"上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。"}</CardDescription>
+            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid gap-4">
