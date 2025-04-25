@@ -126,7 +126,7 @@ export default function Home() {
             詠圖詩人
           </h1>
           <CardDescription className="text-md text-gray-700">
-            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。
+            讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -161,13 +161,13 @@ export default function Home() {
               </div>
             </div>
             {photo && (
-              <div className="flex justify-center items-center rounded-md border border-muted overflow-hidden">
+              <div className="flex justify-center items-center rounded-md border border-muted overflow-hidden" style={{ height: '300px' }}>
                 <Image
                   src={photo}
                   alt="Uploaded"
                   width={500}
                   height={500}
-                  style={{objectFit: 'contain', width: '100%', height: '100%'}}
+                  style={{ objectFit: 'contain', width: '100%', height: '100%' }}
                 />
               </div>
             )}
@@ -181,7 +181,7 @@ export default function Home() {
             {poem && (
               <div className="mt-4">
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
-                  ✨ 詩意湧現，靈感綻放 ✨
+                  ✨ 靈感之詩，翩然降臨 ✨
                 </h2>
                 <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none multicolored-poem poem-text">
                   {poem.split('\n').map((line, index) => (

@@ -15,13 +15,13 @@ body {
     --card-foreground: 220 30% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 30% 10%;
-    --primary: 220 50% 50%;
+    --primary: 210 100% 60%; /* Soft, desaturated blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 25% 90%;
+    --secondary: 150 50% 70%; /* Soft, desaturated green */
     --secondary-foreground: 220 30% 10%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 220 20% 45.1%;
-    --accent: 20 50% 50%;
+    --accent: 30 70% 50%; /* Warm, earthy tone like terracotta */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -50,13 +50,13 @@ body {
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 220 50% 50%;
+    --primary: 210 80% 40%; /* Darker, desaturated blue */
     --primary-foreground: 0 0% 9%;
-    --secondary: 220 25% 15%;
+    --secondary: 150 30% 30%; /* Darker, desaturated green */
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 20 50% 50%;
+    --accent: 30 50% 30%; /* Darker, earthy tone */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -181,3 +181,4 @@ body {
 .poem-line:nth-child(8) {
   color: #f9a825; /* Amber */
 }
+

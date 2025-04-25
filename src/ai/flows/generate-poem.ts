@@ -45,7 +45,7 @@ const prompt = ai.definePrompt({
       poem: z.string().describe('A poem generated from the image, in Traditional Chinese.'),
     }),
   },
-  prompt: `You are a poet. Given the photo, write a poem that reflects its content, mood, and key elements. The poem must be in traditional Chinese.\n\nPhoto: {{media url=photoDataUri}}`,
+  prompt: `你是一位詩人。 根據照片，創作一首反映其內容、氣氛和關鍵元素的詩。 這首詩必須是繁體中文。\n\nPhoto: {{media url=photoDataUri}}`,
 });
 
 const generatePoemFlow = ai.defineFlow<
