@@ -1,7 +1,13 @@
 'use client';
 
 import {useState, useCallback} from 'react';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle, // Correct import
+} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
@@ -48,9 +54,14 @@ export default function Home() {
         },
         body: JSON.stringify({photo}),
       });
+      console.log('Response Status:', response.status); // Log the status
+      console.log('Response Headers:', response.headers); // Log the headers
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorBody = await response.text();
+        console.error('Error Body:', errorBody); // Log the error body
+
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
       }
 
       const data = await response.json();
