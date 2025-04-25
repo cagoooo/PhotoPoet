@@ -6,7 +6,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle, // Correct import
 } from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
@@ -54,14 +53,17 @@ export default function Home() {
         },
         body: JSON.stringify({photo}),
       });
-      console.log('Response Status:', response.status); // Log the status
-      console.log('Response Headers:', response.headers); // Log the headers
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('Error Body:', errorBody); // Log the error body
-
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+        let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
+        if (response.status === 404) {
+          errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
+        } else {
+          const errorBody = await response.text();
+          console.error('Error Body:', errorBody);
+          errorMessage += `, 詳細訊息: ${errorBody}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -91,7 +93,11 @@ export default function Home() {
       const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
+        if (response.status === 404) {
+          errorMessage = '讀取圖片失敗！找不到該圖片網址。';
+        }
+        throw new Error(errorMessage);
       }
 
       const blob = await response.blob();
@@ -105,7 +111,7 @@ export default function Home() {
       console.error('Error fetching image:', error);
       toast({
         title: '圖片讀取失敗！',
-        description: '無法從提供的網址讀取圖片。請檢查網址是否正確。',
+        description: error.message || '無法從提供的網址讀取圖片。請檢查網址是否正確。',
       });
     } finally {
       setIsGenerating(false);
@@ -115,12 +121,12 @@ export default function Home() {
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
-        <CardHeader className="p-6 text-center text-sky-600">
-          <CardTitle className="rainbow-text text-3xl font-extrabold tracking-tight mb-2">
+        <CardHeader className="p-6 text-center">
+          <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2">
             詠圖詩人
-          </CardTitle>
+          </h1>
           <CardDescription className="text-md text-gray-700">
-            讓 AI 為您的照片譜寫動人詩篇
+            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -155,13 +161,13 @@ export default function Home() {
               </div>
             </div>
             {photo && (
-              <div className="flex justify-center items-center rounded-md border border-muted aspect-square overflow-hidden">
+              <div className="flex justify-center items-center rounded-md border border-muted overflow-hidden">
                 <Image
                   src={photo}
                   alt="Uploaded"
-                  width={300}
-                  height={300}
-                  style={{objectFit: 'cover', width: '100%', height: '100%'}}
+                  width={500}
+                  height={500}
+                  style={{objectFit: 'contain', width: '100%', height: '100%'}}
                 />
               </div>
             )}
@@ -175,7 +181,7 @@ export default function Home() {
             {poem && (
               <div className="mt-4">
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
-                  ✨ 靈感湧現，詩意綻放 ✨
+                  ✨ 詩意湧現，靈感綻放 ✨
                 </h2>
                 <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none multicolored-poem poem-text">
                   {poem.split('\n').map((line, index) => (
