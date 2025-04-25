@@ -14,12 +14,14 @@ import {toast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
 import Image from 'next/image';
 import {cn} from '@/lib/utils';
+import {Check} from 'lucide-react';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [poem, setPoem] = useState<string>('');
   const [url, setUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -152,6 +154,8 @@ export default function Home() {
           title: '複製成功！',
           description: '詩詞已複製到剪貼簿。',
         });
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
       })
       .catch(err => {
         console.error('複製失敗：', err);
@@ -250,7 +254,13 @@ export default function Home() {
                   ))}
                 </div>
                 <Button variant="secondary" className="mt-4 w-full" onClick={handleCopy} disabled={!poem}>
-                 複製
+                  {isCopied ? (
+                    <>
+                      已複製 <Check className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    '複製'
+                  )}
                 </Button>
               </div>
             )}
@@ -260,4 +270,3 @@ export default function Home() {
     </div>
   );
 }
-
