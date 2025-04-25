@@ -136,9 +136,11 @@ export default function Home() {
         .catch(error => {
           console.error('Sharing error:', error);
           if (error.name === 'SecurityError' || error.message.includes('Permission denied')) {
-            alert(
-              '分享失敗：您的瀏覽器設定可能阻止了自動分享。請嘗試複製詩詞和圖片連結手動分享。'
-            );
+            toast({
+              variant: 'destructive',
+              title: '分享失敗',
+              description: '您的瀏覽器設定可能阻止了自動分享。請嘗試複製詩詞和圖片連結手動分享。',
+            });
           } else {
             toast({
               title: '分享失敗',
