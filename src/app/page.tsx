@@ -41,7 +41,7 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch('/api/generate', { // Ensure the correct path is used
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,6 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      // Attempt to fetch the image with CORS enabled.
       const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
 
       if (!response.ok) {
