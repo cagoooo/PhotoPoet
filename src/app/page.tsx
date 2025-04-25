@@ -68,6 +68,10 @@ export default function Home() {
   const handleURLSubmission = useCallback(
     async (url: string) => {
       if (!url) {
+        toast({
+          title: '錯誤',
+          description: '請輸入圖片網址。',
+        });
         return;
       }
 
@@ -115,8 +119,8 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
-        <CardHeader className="p-6">
-          <CardTitle className="text-2xl font-semibold tracking-tight">
+        <CardHeader className="p-6 text-center">
+          <CardTitle className="text-2xl font-semibold tracking-tight rainbow-text">
             詠圖詩人：讓 AI 為您的照片譜寫動人詩篇
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -156,7 +160,7 @@ export default function Home() {
                 <img
                   src={photo}
                   alt="Uploaded"
-                  className="object-contain max-h-96 max-w-full"
+                  className="object-cover h-96 w-full"
                 />
               </div>
             )}
@@ -166,16 +170,12 @@ export default function Home() {
             </Button>
 
             {poem && (
-              <div className="fade-in">
-                <h2 className="text-xl font-semibold tracking-tight mt-4">生成的詩詞：</h2>
+              <div className="mt-4">
+                <h2 className="text-xl font-semibold tracking-tight mt-4 text-center">生成的詩詞：</h2>
                 <Textarea
                   value={poem}
                   readOnly
-                  className={cn(
-                    "mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none poem-text",
-                    "poem-text"
-                  )}
-                  style={{animation: 'fadeIn 1s ease-in-out'}}
+                  className="mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none poem-text"
                 />
               </div>
             )}
@@ -186,4 +186,3 @@ export default function Home() {
     </div>
   );
 }
-

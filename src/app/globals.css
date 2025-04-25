@@ -8,7 +8,7 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 220 30% 10%;
     --card: 0 0% 100%;
     --card-foreground: 220 30% 10%;
@@ -104,4 +104,35 @@ body {
   text-align: center;
   white-space: pre-line; /* Preserve line breaks */
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Rainbow color animation */
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.rainbow-text {
+  background: linear-gradient(
+    to right,
+    #ef5350,
+    #f48fb1,
+    #7e57c2,
+    #2196f3,
+    #26a69a,
+    #43a047,
+    #eeff41,
+    #f9a825,
+    #ff5722
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 500% auto;
+  animation: rainbow 5s linear infinite;
 }
