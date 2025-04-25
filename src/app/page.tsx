@@ -78,6 +78,7 @@ export default function Home() {
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           throw new Error('請輸入有效的圖片網址 (http:// 或 https:// 開頭)。');
         }
+
         const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
 
         if (!response.ok) {
@@ -251,7 +252,10 @@ export default function Home() {
                 <Textarea
                   value={poem}
                   readOnly
-                  className="mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none"
+                  className={cn(
+                    "mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none poem-text",
+                    "poem-text"
+                  )}
                   style={{animation: 'fadeIn 1s ease-in-out'}}
                 />
                 <Button

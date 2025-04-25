@@ -99,3 +99,9 @@ body {
   }
 }
 
+/* Style for poem text */
+.poem-text {
+  text-align: center;
+  white-space: pre-line; /* Preserve line breaks */
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+}
