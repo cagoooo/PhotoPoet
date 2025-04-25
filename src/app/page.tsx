@@ -8,12 +8,15 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
+import {useRouter} from 'next/navigation';
+import {Share2} from 'lucide-react';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [poem, setPoem] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const {toast} = useToast();
+  const router = useRouter();
 
   const handleGeneratePoem = useCallback(async () => {
     if (!photo) {
@@ -37,7 +40,8 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [photo, toast]);
+    router.refresh(); // Refresh the route to clear the promises
+  }, [photo, toast, router]);
 
   const handlePhotoUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,8 +67,7 @@ export default function Home() {
   );
 
   const handleURLSubmission = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const url = event.target.value;
+    async (url: string) => {
       if (!url) {
         return;
       }
@@ -106,6 +109,45 @@ export default function Home() {
     [toast]
   );
 
+  const handleShare = useCallback(() => {
+    if (!photo || !poem) {
+      toast({
+        title: '錯誤',
+        description: '請先上傳照片並生成詩詞。',
+      });
+      return;
+    }
+
+    const shareData = {
+      title: '詠圖詩人',
+      text: `我為這張照片創作了一首詩：\n\n${poem}`,
+      url: photo,
+    };
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => {
+          toast({
+            title: '分享成功！',
+            description: '感謝您的分享。',
+          });
+        })
+        .catch(error => {
+          console.error('Sharing error:', error);
+          toast({
+            title: '分享失敗',
+            description: '分享時發生錯誤，請稍後再試。',
+          });
+        });
+    } else {
+      toast({
+        title: '分享失敗',
+        description: '您的瀏覽器不支持分享功能，請嘗試複製詩詞和圖片連結。',
+      });
+    }
+  }, [photo, poem, toast]);
+
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-8 bg-background">
       <Card className="w-full max-w-2xl bg-card shadow-md rounded-lg overflow-hidden">
@@ -140,7 +182,7 @@ export default function Home() {
                 id="photo-url"
                 type="url"
                 placeholder="請輸入圖片網址"
-                onBlur={handleURLSubmission}
+                onBlur={(e) => handleURLSubmission(e.target.value)}
               />
             </div>
 
@@ -168,6 +210,15 @@ export default function Home() {
                   className="mt-2 min-h-[150px] bg-secondary/50 rounded-md border-none shadow-sm resize-none"
                   style={{animation: 'fadeIn 1s ease-in-out'}}
                 />
+                <Button
+                  variant="secondary"
+                  className="mt-4 w-full"
+                  onClick={handleShare}
+                  disabled={loading}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  分享
+                </Button>
               </div>
             )}
           </div>
