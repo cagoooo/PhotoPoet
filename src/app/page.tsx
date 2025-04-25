@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useRef} from 'react';
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {toast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
 import Image from 'next/image';
+import {cn} from '@/lib/utils';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -20,6 +21,7 @@ export default function Home() {
   const [url, setUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -129,6 +131,12 @@ export default function Home() {
     }
   }, [url, router]);
 
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
@@ -146,7 +154,21 @@ export default function Home() {
               <label htmlFor="upload" className="block text-sm font-medium text-gray-700">
                 上傳你的照片：
               </label>
-              <Input type="file" id="upload" accept="image/*" onChange={handleFileChange} className="mt-1" />
+              <Button
+                variant="outline"
+                className="mt-1 w-full"
+                onClick={handleUploadClick}
+              >
+                選擇照片
+              </Button>
+              <Input
+                type="file"
+                id="upload"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                ref={fileInputRef}
+              />
             </div>
             <div>
               <label htmlFor="url" className="block text-sm font-medium text-gray-700">
