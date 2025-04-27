@@ -332,7 +332,8 @@ export default function Home() {
             '#f9a825', // Amber
         ];
 
-        ctx.lineWidth = 5; // Set the width of the stroke
+        //Increased stroke width for better visibility on mobile
+        ctx.lineWidth = isMobile ? 8 : 5; // Set the width of the stroke
 
         for (let i = lines.length - 1; i >= 0; i--) {
             const color = poemColors[i % poemColors.length];
@@ -345,7 +346,7 @@ export default function Home() {
 
         return canvas.toDataURL('image/png');
 
-    }, [photo, poem]);
+    }, [photo, poem, isMobile]);
 
 
     const handleEmbed = useCallback(async () => {
@@ -534,3 +535,4 @@ export default function Home() {
     </div>
   );
 }
+
