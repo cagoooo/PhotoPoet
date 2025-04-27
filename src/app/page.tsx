@@ -468,7 +468,7 @@ export default function Home() {
                     onClick={handleEmbed}
                     disabled={!poem || isEmbedGenerating}  // Disable while generating
                   >
-                      {isEmbedGenerating ? '產出中...請稍待片刻' : '產出長輩圖'}  {/* Change text while generating */}
+                      {isEmbedGenerating ? '產出中...請稍待片刻' : '產出超實用長輩圖！'}  {/* Change text while generating */}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -480,4 +480,5 @@ export default function Home() {
     </div>
   );
 }
+
 
