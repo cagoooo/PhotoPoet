@@ -205,7 +205,7 @@ export default function Home() {
       const canvasWidth = 1200;
       const canvasHeight = 600;
     
-      let imageWidth = 600;
+      let imageWidth = 600; // Reduce image width
       let imageHeight = canvasHeight;
     
       if (imageAspectRatio > 1) {
@@ -225,7 +225,7 @@ export default function Home() {
   
       // Style and draw the poem on the right
       ctx.fillStyle = '#222';
-      ctx.fillRect(600, 0, 600, canvasHeight);
+      ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
       ctx.font = '32px Arial'; // Larger font size
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
@@ -236,7 +236,7 @@ export default function Home() {
       const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
   
       for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], 900, startY + i * lineHeight); // Adjust X position for right side
+        ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
       }
   
       // Convert canvas to data URL
@@ -271,10 +271,10 @@ export default function Home() {
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
-            🎨 詩意湧現，靈感如泉 🖋️
+            ✨ 點亮詩意，照亮靈感 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
-            讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
+            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -374,5 +374,3 @@ export default function Home() {
     </div>
   );
 }
-
-
