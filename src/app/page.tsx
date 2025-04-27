@@ -14,7 +14,7 @@ import {toast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
 import Image from 'next/image';
 import {cn} from '@/lib/utils';
-import {Check} from 'lucide-react';
+import {Check, Download} from 'lucide-react';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -24,6 +24,7 @@ export default function Home() {
   const [isCopied, setIsCopied] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const poemRef = useRef<HTMLDivElement>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -54,6 +55,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({photo}),
       });
@@ -167,6 +169,86 @@ export default function Home() {
       });
   }, [poem]);
 
+  const handleDownload = useCallback(async () => {
+    if (!photo || !poem) {
+      toast({
+        title: '錯誤！',
+        description: '請先上傳照片並生成詩詞。',
+      });
+      return;
+    }
+
+    if (!poemRef.current) {
+      toast({
+        title: '錯誤！',
+        description: '無法找到詩詞區塊。',
+      });
+      return;
+    }
+  
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    if (!ctx) {
+      toast({
+        title: '錯誤！',
+        description: '無法建立畫布。',
+      });
+      return;
+    }
+  
+    const image = new Image();
+    image.src = photo;
+  
+    image.onload = () => {
+      // Set canvas dimensions to match the image
+      canvas.width = image.width;
+      canvas.height = image.height + 200; // Increased height for poem
+  
+      // Draw the image
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+  
+      // Style and draw the poem
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, image.height, canvas.width, 200);
+      ctx.font = '24px Arial';
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+  
+      const lines = poem.split('\n');
+      let y = image.height + 50;
+      lines.forEach(line => {
+        ctx.fillText(line, canvas.width / 2, y);
+        y += 30;
+      });
+  
+      // Convert canvas to data URL
+      const dataURL = canvas.toDataURL('image/png');
+  
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'poem_image.png';
+  
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  
+      toast({
+        title: '下載成功！',
+        description: '圖片已成功下載。',
+      });
+    };
+  
+    image.onerror = () => {
+      toast({
+        title: '錯誤！',
+        description: '讀取圖片失敗。',
+      });
+    };
+  }, [photo, poem]);
+
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
@@ -246,22 +328,27 @@ export default function Home() {
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
                   ✨ 靈感之詩，翩然降臨 ✨
                 </h2>
-                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff' }}>
+                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff' }} ref={poemRef}>
                   {poem.split('\n').map((line, index) => (
                     <span key={index} className="poem-line">
                       {line}
                     </span>
                   ))}
                 </div>
-                <Button variant="secondary" className="mt-4 w-full" onClick={handleCopy} disabled={!poem}>
-                  {isCopied ? (
-                    <>
-                      已複製 <Check className="ml-2 h-4 w-4" />
-                    </>
-                  ) : (
-                    '複製完整詩句'
-                  )}
-                </Button>
+                <div className="flex flex-col gap-2 mt-4">
+                  <Button variant="secondary" className="w-full" onClick={handleCopy} disabled={!poem}>
+                    {isCopied ? (
+                      <>
+                        已複製 <Check className="ml-2 h-4 w-4" />
+                      </>
+                    ) : (
+                      '複製完整詩句'
+                    )}
+                  </Button>
+                  <Button variant="secondary" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
+                    下載截圖 <Download className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </div>
