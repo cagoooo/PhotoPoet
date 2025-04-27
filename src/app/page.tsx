@@ -15,6 +15,7 @@ import {useRouter} from 'next/navigation';
 import Image from 'next/image';
 import {cn} from '@/lib/utils';
 import {Check, Download} from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -27,6 +28,8 @@ export default function Home() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
+
+    const isMobile = useIsMobile();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -146,205 +149,248 @@ export default function Home() {
     }
   };
 
-  const openCanvasInNewTab = (dataURL: string) => {
-    const newWindow = window.open('', '_blank');
-    if (newWindow) {
-      newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
-    }
-  }
+    const generateDownloadImageDataUrl = useCallback(async () => {
+        if (!photo || !poem) {
+            toast({
+                title: '錯誤！',
+                description: '請先上傳照片並生成詩詞。',
+            });
+            return null;
+        }
 
-  const handleDownload = useCallback(async () => {
-    if (!photo || !poem) {
-      toast({
-        title: '錯誤！',
-        description: '請先上傳照片並生成詩詞。',
-      });
-      return;
-    }
 
-    setIsDownloadGenerating(true);
-  
-   
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-  
-    if (!ctx) {
-      toast({
-        title: '錯誤！',
-        description: '無法建立畫布。',
-      });
-      setIsDownloadGenerating(false);
-      return;
-    }
-  
-    const image = new window.Image();
-    image.src = photo;
-  
-    image.onload = () => {
-      const imageAspectRatio = image.width / image.height;
-      const canvasWidth = 1200;
-      const canvasHeight = 600;
-    
-      let imageWidth = 600; // Reduced image width
-      let imageHeight = canvasHeight;
-    
-      if (imageAspectRatio > 1) {
-        imageHeight = imageWidth / imageAspectRatio;
-      } else {
-        imageWidth = imageHeight * imageAspectRatio;
-      }
-    
-      const imageX = 0;
-      const imageY = (canvasHeight - imageHeight) / 2;
-      
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-  
-      // Draw the image on the left
-      ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
-  
-      // Style and draw the poem on the right
-      ctx.fillStyle = '#222';
-      ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
-      ctx.font = '32px Arial'; // Larger font size
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle'; // Vertically center the text
-  
-      const lines = poem.split('\n');
-      const lineHeight = 40; // Space between lines
-      const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-      const poemColors = [
-        '#ef5350', // Red
-        '#f48fb1', // Pink
-        '#7e57c2', // Purple
-        '#2196f3', // Blue
-        '#26a69a', // Teal
-        '#43a047', // Green
-        '#eeff41', // Yellow
-        '#f9a825', // Amber
-      ];
-  
-      for (let i = 0; i < lines.length; i++) {
-        ctx.fillStyle = poemColors[i % poemColors.length];
-        ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
-      }
-  
-      // Convert canvas to data URL
-      const dataURL = canvas.toDataURL('image/png');
-  
-        // Open canvas in new tab
-        openCanvasInNewTab(dataURL);
-  
-      toast({
-        title: '下載成功！',
-        description: '圖片已在新視窗開啟。',
-      });
-        setIsDownloadGenerating(false);
-    };
-  
-    image.onerror = () => {
-      toast({
-        title: '錯誤！',
-        description: '讀取圖片失敗。',
-      });
-        setIsDownloadGenerating(false);
-    };
-  }, [photo, poem, openCanvasInNewTab]);
+        if (!ctx) {
+            toast({
+                title: '錯誤！',
+                description: '無法建立畫布。',
+            });
+            return null;
+        }
 
-   const handleEmbed = useCallback(async () => {
-    if (!photo || !poem) {
-      toast({
-        title: '錯誤！',
-        description: '請先上傳照片並生成詩詞。',
-      });
-      return;
-    }
+        const image = new window.Image();
+        image.src = photo;
 
-    setIsEmbedGenerating(true);
+        await new Promise((resolve, reject) => {
+            image.onload = () => resolve(null);
+            image.onerror = () => reject(new Error('Failed to load image'));
+        });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+        const imageAspectRatio = image.width / image.height;
+        const canvasWidth = 1200;
+        const canvasHeight = 600;
 
-    if (!ctx) {
-      toast({
-        title: '錯誤！',
-        description: '無法建立畫布。',
-      });
-      setIsEmbedGenerating(false);
-      return;
-    }
+        let imageWidth = 600; // Reduced image width
+        let imageHeight = canvasHeight;
 
-    const image = new window.Image();
-    image.src = photo;
+        if (imageAspectRatio > 1) {
+            imageHeight = imageWidth / imageAspectRatio;
+        } else {
+            imageWidth = imageHeight * imageAspectRatio;
+        }
 
-    image.onload = () => {
-      const canvasWidth = image.width;
-      const canvasHeight = image.height;
+        const imageX = 0;
+        const imageY = (canvasHeight - imageHeight) / 2;
 
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
-      ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+        // Draw the image on the left
+        ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
 
-      const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
-      ctx.font = `${fontSize}px Arial`;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'bottom';
+        // Style and draw the poem on the right
+        ctx.fillStyle = '#222';
+        ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
+        ctx.font = '32px Arial'; // Larger font size
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle'; // Vertically center the text
 
-      const lines = poem.split('\n');
-      const lineHeight = fontSize * 1.2;
-      let y = canvasHeight - 10;
+        const lines = poem.split('\n');
+        const lineHeight = 40; // Space between lines
+        const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
 
-      const poemColors = [
-        '#ef5350', // Red
-        '#f48fb1', // Pink
-        '#7e57c2', // Purple
-        '#2196f3', // Blue
-        '#26a69a', // Teal
-        '#43a047', // Green
-        '#eeff41', // Yellow
-        '#f9a825', // Amber
-      ];
+        const poemColors = [
+            '#ef5350', // Red
+            '#f48fb1', // Pink
+            '#7e57c2', // Purple
+            '#2196f3', // Blue
+            '#26a69a', // Teal
+            '#43a047', // Green
+            '#eeff41', // Yellow
+            '#f9a825', // Amber
+        ];
 
-      ctx.lineWidth = 5; // Set the width of the stroke
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillStyle = poemColors[i % poemColors.length];
+            ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
+        }
 
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const color = poemColors[i % poemColors.length];
-        ctx.fillStyle = color;
-        ctx.strokeStyle = '#000'; // Black stroke color
-        ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke before fill
-        ctx.fillText(lines[i], canvasWidth - 10, y);
-        y -= lineHeight;
-      }
+        // Convert canvas to data URL
+        return canvas.toDataURL('image/png');
 
-      const dataURL = canvas.toDataURL('image/png');
-       // Trigger download directly on mobile devices
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'poem_image.png'; // Filename for the downloaded image
-        document.body.appendChild(link); // Required for Firefox
+    }, [photo, poem]);
 
-        link.click();
+    const handleDownload = useCallback(async () => {
+        setIsDownloadGenerating(true);
+        try {
+            const dataURL = await generateDownloadImageDataUrl();
+            if (dataURL) {
+                if (isMobile) {
+                    // Trigger download directly on mobile devices
+                    const link = document.createElement('a');
+                    link.href = dataURL;
+                    link.download = 'poem_image.png'; // Filename for the downloaded image
+                    document.body.appendChild(link); // Required for Firefox
 
-        document.body.removeChild(link);
+                    link.click();
 
-      toast({
-        title: '嵌入成功！',
-        description: '圖片已成功嵌入詩詞並下載。',
-      });
-      setIsEmbedGenerating(false);
-    };
+                    document.body.removeChild(link);
+                    toast({
+                        title: '下載成功！',
+                        description: '圖片已成功下載。',
+                    });
 
-    image.onerror = () => {
-      toast({
-        title: '錯誤！',
-        description: '讀取圖片失敗。',
-      });
-      setIsEmbedGenerating(false);
-    };
-  }, [photo, poem]);
+                } else {
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
+                    }
 
+                     toast({
+                        title: '下載成功！',
+                        description: '圖片已在新視窗開啟。',
+                    });
+                }
+            }
+        } catch (error: any) {
+            console.error('Error creating download image:', error);
+            toast({
+                title: '錯誤！',
+                description: '產出圖片失敗。',
+            });
+        } finally {
+            setIsDownloadGenerating(false);
+        }
+    }, [generateDownloadImageDataUrl, isMobile]);
+
+    const generateEmbedImageDataUrl = useCallback(async () => {
+        if (!photo || !poem) {
+            toast({
+                title: '錯誤！',
+                description: '請先上傳照片並生成詩詞。',
+            });
+            return null;
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            toast({
+                title: '錯誤！',
+                description: '無法建立畫布。',
+            });
+            return null;
+        }
+
+        const image = new window.Image();
+        image.src = photo;
+
+        await new Promise((resolve, reject) => {
+            image.onload = () => resolve(null);
+            image.onerror = () => reject(new Error('Failed to load image'));
+        });
+
+
+        const canvasWidth = image.width;
+        const canvasHeight = image.height;
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+
+        const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
+        ctx.font = `${fontSize}px Arial`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+
+        const lines = poem.split('\n');
+        const lineHeight = fontSize * 1.2;
+        let y = canvasHeight - 10;
+
+        const poemColors = [
+            '#ef5350', // Red
+            '#f48fb1', // Pink
+            '#7e57c2', // Purple
+            '#2196f3', // Blue
+            '#26a69a', // Teal
+            '#43a047', // Green
+            '#eeff41', // Yellow
+            '#f9a825', // Amber
+        ];
+
+        ctx.lineWidth = 5; // Set the width of the stroke
+
+        for (let i = lines.length - 1; i >= 0; i--) {
+            const color = poemColors[i % poemColors.length];
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#000'; // Black stroke color
+            ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke before fill
+            ctx.fillText(lines[i], canvasWidth - 10, y);
+            y -= lineHeight;
+        }
+
+        return canvas.toDataURL('image/png');
+
+    }, [photo, poem]);
+
+
+    const handleEmbed = useCallback(async () => {
+        setIsEmbedGenerating(true);
+
+        try {
+            const dataURL = await generateEmbedImageDataUrl();
+            if (dataURL) {
+                if (isMobile) {
+                    // Trigger download directly on mobile devices
+                    const link = document.createElement('a');
+                    link.href = dataURL;
+                    link.download = 'poem_image.png'; // Filename for the downloaded image
+                    document.body.appendChild(link); // Required for Firefox
+
+                    link.click();
+
+                    document.body.removeChild(link);
+
+                    toast({
+                        title: '嵌入成功！',
+                        description: '圖片已成功嵌入詩詞並下載。',
+                    });
+                } else {
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
+                    }
+
+                    toast({
+                        title: '嵌入成功！',
+                        description: '圖片已在新視窗開啟。',
+                    });
+                }
+            }
+        } catch (error: any) {
+            console.error('Error creating embed image:', error);
+            toast({
+                title: '錯誤！',
+                description: '嵌入圖片失敗。',
+            });
+        } finally {
+            setIsEmbedGenerating(false);
+        }
+    }, [generateEmbedImageDataUrl, isMobile]);
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -457,7 +503,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="lightblue" className="w-full" onClick={handleCopy} disabled={!poem}>
+                  <Button variant="lightgreen" className="w-full" onClick={handleCopy} disabled={!poem}>
                     {isCopied ? (
                       <>
                         已複製 <Check className="ml-2 h-4 w-4" />
@@ -466,7 +512,7 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
+                  <Button variant="lightblue" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
                       {isDownloadGenerating ? '產出中...請稍待片刻' : '下載圖文組合'}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
@@ -488,5 +534,3 @@ export default function Home() {
     </div>
   );
 }
-
-
