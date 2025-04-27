@@ -449,7 +449,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="lightblue" className="w-full" onClick={handleCopy} disabled={!poem}>
+                  <Button variant="lightgreen" className="w-full" onClick={handleCopy} disabled={!poem}>
                     {isCopied ? (
                       <>
                         已複製 <Check className="ml-2 h-4 w-4" />

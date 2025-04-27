@@ -21,6 +21,7 @@ const buttonVariants = cva(
         gradient: "bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md", // Added gradient variant
         upload: "bg-gradient-to-r from-green-400 to-blue-500 hover:from-pink-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition-transform duration-300 hover:scale-105 shadow-md",
         lightblue: "bg-sky-500 text-white hover:bg-sky-600 transform hover:scale-105 transition-transform",
+        lightgreen: "bg-green-500 text-white hover:bg-green-600 transform hover:scale-105 transition-transform",
       },
       size: {
         default: "h-10 px-4 py-2",
