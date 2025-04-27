@@ -291,8 +291,6 @@ export default function Home() {
       return;
     }
   
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
   
@@ -308,38 +306,51 @@ export default function Home() {
     image.src = photo;
   
     image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
+      const canvasWidth = image.width;
+      const canvasHeight = image.height;
   
-      ctx.drawImage(image, 0, 0, image.width, image.height);
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
   
-      ctx.font = '48px Arial';
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
+      ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+  
+      // Calculate font size based on canvas size
+      const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'right';
       ctx.textBaseline = 'bottom';
   
       const lines = poem.split('\n');
-      let y = canvas.height - 20 * lines.length;
-      lines.forEach(line => {
-        ctx.fillText(line, canvas.width / 2, y += 50);
-      });
+      const lineHeight = fontSize * 1.2;
+      let y = canvasHeight - 10;
+  
+      // Define poemColors
+      const poemColors = [
+        '#ef5350', // Red
+        '#f48fb1', // Pink
+        '#7e57c2', // Purple
+        '#2196f3', // Blue
+        '#26a69a', // Teal
+        '#43a047', // Green
+        '#eeff41', // Yellow
+        '#f9a825', // Amber
+      ];
+  
+      for (let i = lines.length - 1; i >= 0; i--) {
+        ctx.fillStyle = poemColors[i % poemColors.length];
+        ctx.fillText(lines[i], canvasWidth - 10, y);
+        y -= lineHeight;
+      }
   
       const dataURL = canvas.toDataURL('image/png');
   
-      if (isMobile) {
-          // Open in new window for mobile
-          const newWindow = window.open('', '_blank');
-          if (newWindow) {
-              newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
-          }
-      } else {
-          const link = document.createElement('a');
-          link.href = dataURL;
-          link.download = 'embedded_poem_image.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-      }
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'embedded_poem_image.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
   
       toast({
         title: '嵌入成功！',
