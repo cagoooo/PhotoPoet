@@ -18,7 +18,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 transform hover:scale-105 transition-transform shadow-md",
         ghost: "hover:bg-accent hover:text-accent-foreground transform hover:scale-105 transition-transform",
         link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md", // Added gradient variant
+        gradient: "relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md before:absolute before:inset-0 before:animate-[shimmer_2s_linear_infinite] before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.5)_50%,rgba(255,255,255,0)_100%)] before:bg-[length:150%_100%] before:bg-no-repeat before:[transform:translateX(-100%)]", // Added gradient variant with shimmer
         upload: "bg-gradient-to-r from-green-400 to-blue-500 hover:from-pink-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition-transform duration-300 hover:scale-105 shadow-md",
         lightblue: "bg-sky-500 text-white hover:bg-sky-600 transform hover:scale-105 transition-transform",
         lightgreen: "bg-green-500 text-white hover:bg-green-600 transform hover:scale-105 transition-transform",
@@ -58,4 +58,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-
