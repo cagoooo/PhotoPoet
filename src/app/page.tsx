@@ -201,24 +201,39 @@ export default function Home() {
     image.src = photo;
   
     image.onload = () => {
-      // Set canvas dimensions
-      canvas.width = 1200; // Wider canvas for side-by-side layout
-      canvas.height = Math.max(image.height, 600); // Adjust height as needed, minimum 600
+      const imageAspectRatio = image.width / image.height;
+      const canvasWidth = 1200;
+      const canvasHeight = 600;
+    
+      let imageWidth = 600;
+      let imageHeight = canvasHeight;
+    
+      if (imageAspectRatio > 1) {
+        imageHeight = imageWidth / imageAspectRatio;
+      } else {
+        imageWidth = imageHeight * imageAspectRatio;
+      }
+    
+      const imageX = 0;
+      const imageY = (canvasHeight - imageHeight) / 2;
+      
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
   
       // Draw the image on the left
-      ctx.drawImage(image, 0, 0, 600, canvas.height);
+      ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
   
       // Style and draw the poem on the right
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(600, 0, 600, canvas.height);
+      ctx.fillStyle = '#222';
+      ctx.fillRect(600, 0, 600, canvasHeight);
       ctx.font = '32px Arial'; // Larger font size
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle'; // Vertically center the text
   
       const lines = poem.split('\n');
       const lineHeight = 40; // Space between lines
-      const startY = (canvas.height - lines.length * lineHeight) / 2; // Center the poem vertically
+      const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
   
       for (let i = 0; i < lines.length; i++) {
         ctx.fillText(lines[i], 900, startY + i * lineHeight); // Adjust X position for right side
@@ -256,7 +271,7 @@ export default function Home() {
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
-            ✨ 靈感之詩，翩然降臨 ✨
+            🎨 詩意湧現，靈感如泉 🖋️
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
             讓 AI 為您的照片譜寫動人詩篇，分享您照片的詩意。
