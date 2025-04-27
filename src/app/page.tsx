@@ -64,7 +64,10 @@ export default function Home() {
         let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
         if (response.status === 404) {
           errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
-        } else {
+        } else if (response.status === 503) {
+          errorMessage = 'AI模型目前過載，請稍後再試。';
+        }
+        else {
           const errorBody = await response.text();
           console.error('Error Body:', errorBody);
           errorMessage += `, 詳細訊息: ${errorBody}`;
