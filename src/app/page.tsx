@@ -181,8 +181,6 @@ export default function Home() {
       return;
     }
   
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
   
@@ -250,22 +248,10 @@ export default function Home() {
       // Convert canvas to data URL
       const dataURL = canvas.toDataURL('image/png');
   
-      if (isMobile) {
-          // Open in new window for mobile
-          const newWindow = window.open('', '_blank');
-          if (newWindow) {
-              newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
-          }
-      } else {
-          // Create a download link
-          const link = document.createElement('a');
-          link.href = dataURL;
-          link.download = 'poem_image.png';
-  
-          // Trigger the download
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+      // Open in new window 
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
       }
   
       toast({
@@ -349,13 +335,11 @@ export default function Home() {
   
       const dataURL = canvas.toDataURL('image/png');
   
-      // Create a download link
-      const link = document.createElement('a');
-      link.href = dataURL;
-      link.download = 'embedded_poem_image.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Open in new window
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write('<img src="' + dataURL + '" alt="Embedded Poem Image"/>');
+      }
   
       toast({
         title: '嵌入成功！',
@@ -487,5 +471,3 @@ export default function Home() {
     </div>
   );
 }
-
-
