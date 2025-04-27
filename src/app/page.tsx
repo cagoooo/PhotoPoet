@@ -227,8 +227,14 @@ export default function Home() {
       // Convert canvas to data URL
       const dataURL = canvas.toDataURL('image/png');
   
-      // Open in new window 
-      openCanvasInNewTab(dataURL);
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'photo_poem.png'; // Set the filename
+        link.target = '_blank'; // Open in a new tab
+        document.body.appendChild(link); // Append to the document
+        link.click(); // Simulate a click
+        document.body.removeChild(link); // Remove the element
   
       toast({
         title: '下載成功！',
@@ -311,8 +317,15 @@ export default function Home() {
   
       const dataURL = canvas.toDataURL('image/png');
   
-      // Open in new window
-      openCanvasInNewTab(dataURL);
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'poem_image.png'; // Set the filename
+        link.target = '_blank'; // Open in a new tab
+        document.body.appendChild(link); // Append to the document
+        link.click(); // Simulate a click
+        document.body.removeChild(link); // Remove the element
+
   
       toast({
         title: '嵌入成功！',
