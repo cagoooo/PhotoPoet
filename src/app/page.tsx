@@ -23,6 +23,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
     const [isEmbedGenerating, setIsEmbedGenerating] = useState(false); // New state for embed generation
+    const [isDownloadGenerating, setIsDownloadGenerating] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -161,7 +162,7 @@ export default function Home() {
       return;
     }
 
-    setIsGenerating(true);
+    setIsDownloadGenerating(true);
   
    
     const canvas = document.createElement('canvas');
@@ -172,7 +173,7 @@ export default function Home() {
         title: '錯誤！',
         description: '無法建立畫布。',
       });
-      setIsGenerating(false);
+      setIsDownloadGenerating(false);
       return;
     }
   
@@ -239,7 +240,7 @@ export default function Home() {
         title: '下載成功！',
         description: '圖片已在新視窗開啟。',
       });
-      setIsGenerating(false);
+        setIsDownloadGenerating(false);
     };
   
     image.onerror = () => {
@@ -247,7 +248,7 @@ export default function Home() {
         title: '錯誤！',
         description: '讀取圖片失敗。',
       });
-      setIsGenerating(false);
+        setIsDownloadGenerating(false);
     };
   }, [photo, poem, openCanvasInNewTab]);
 
@@ -460,8 +461,8 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                   <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
-                    {isGenerating ? '產出中...請稍待片刻' : '下載截圖'}
+                  <Button variant="lightblue" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
+                      {isDownloadGenerating ? '產出中...請稍待片刻' : '下載圖文組合'}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
@@ -482,5 +483,4 @@ export default function Home() {
     </div>
   );
 }
-
 
