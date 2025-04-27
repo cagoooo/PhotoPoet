@@ -180,14 +180,8 @@ export default function Home() {
       });
       return;
     }
-
-    if (!poemRef.current) {
-      toast({
-        title: '錯誤！',
-        description: '無法找到詩詞區塊。',
-      });
-      return;
-    }
+  
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -208,7 +202,7 @@ export default function Home() {
       const canvasWidth = 1200;
       const canvasHeight = 600;
     
-      let imageWidth = 600; // Reduce image width
+      let imageWidth = 600; // Reduced image width
       let imageHeight = canvasHeight;
     
       if (imageAspectRatio > 1) {
@@ -256,19 +250,100 @@ export default function Home() {
       // Convert canvas to data URL
       const dataURL = canvas.toDataURL('image/png');
   
-      // Create a download link
-      const link = document.createElement('a');
-      link.href = dataURL;
-      link.download = 'poem_image.png';
+      if (isMobile) {
+          // Open in new window for mobile
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+              newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
+          }
+      } else {
+          // Create a download link
+          const link = document.createElement('a');
+          link.href = dataURL;
+          link.download = 'poem_image.png';
   
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+          // Trigger the download
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      }
   
       toast({
         title: '下載成功！',
         description: '圖片已成功下載。',
+      });
+    };
+  
+    image.onerror = () => {
+      toast({
+        title: '錯誤！',
+        description: '讀取圖片失敗。',
+      });
+    };
+  }, [photo, poem]);
+
+  const handleEmbed = useCallback(async () => {
+    if (!photo || !poem) {
+      toast({
+        title: '錯誤！',
+        description: '請先上傳照片並生成詩詞。',
+      });
+      return;
+    }
+  
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    if (!ctx) {
+      toast({
+        title: '錯誤！',
+        description: '無法建立畫布。',
+      });
+      return;
+    }
+  
+    const image = new window.Image();
+    image.src = photo;
+  
+    image.onload = () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+  
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+  
+      ctx.font = '48px Arial';
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+  
+      const lines = poem.split('\n');
+      let y = canvas.height - 20 * lines.length;
+      lines.forEach(line => {
+        ctx.fillText(line, canvas.width / 2, y += 50);
+      });
+  
+      const dataURL = canvas.toDataURL('image/png');
+  
+      if (isMobile) {
+          // Open in new window for mobile
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+              newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
+          }
+      } else {
+          const link = document.createElement('a');
+          link.href = dataURL;
+          link.download = 'embedded_poem_image.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      }
+  
+      toast({
+        title: '嵌入成功！',
+        description: '圖片已成功嵌入詩詞並下載。',
       });
     };
   
@@ -378,6 +453,9 @@ export default function Home() {
                   </Button>
                   <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
                     下載截圖 <Download className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={handleEmbed} disabled={!poem || isGenerating}>
+                      嵌入圖片 <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </div>
