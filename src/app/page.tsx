@@ -160,6 +160,7 @@ export default function Home() {
       return;
     }
   
+   
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
   
@@ -227,18 +228,12 @@ export default function Home() {
       // Convert canvas to data URL
       const dataURL = canvas.toDataURL('image/png');
   
-        // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'photo_poem.png'; // Set the filename
-        link.target = '_blank'; // Open in a new tab
-        document.body.appendChild(link); // Append to the document
-        link.click(); // Simulate a click
-        document.body.removeChild(link); // Remove the element
+        // Open canvas in new tab
+        openCanvasInNewTab(dataURL);
   
       toast({
         title: '下載成功！',
-        description: '圖片已成功下載。',
+        description: '圖片已在新視窗開啟。',
       });
     };
   
@@ -248,7 +243,7 @@ export default function Home() {
         description: '讀取圖片失敗。',
       });
     };
-  }, [photo, poem]);
+  }, [photo, poem, openCanvasInNewTab]);
 
   const handleEmbed = useCallback(async () => {
     if (!photo || !poem) {
@@ -317,19 +312,12 @@ export default function Home() {
   
       const dataURL = canvas.toDataURL('image/png');
   
-        // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'poem_image.png'; // Set the filename
-        link.target = '_blank'; // Open in a new tab
-        document.body.appendChild(link); // Append to the document
-        link.click(); // Simulate a click
-        document.body.removeChild(link); // Remove the element
-
+       // Open canvas in new tab
+        openCanvasInNewTab(dataURL);
   
       toast({
         title: '嵌入成功！',
-        description: '圖片已成功嵌入詩詞並下載。',
+        description: '圖片已成功嵌入詩詞並在新視窗開啟。',
       });
     };
   
@@ -339,7 +327,7 @@ export default function Home() {
         description: '讀取圖片失敗。',
       });
     };
-  }, [photo, poem]);
+  }, [photo, poem, openCanvasInNewTab]);
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -383,7 +371,7 @@ export default function Home() {
                 上傳你的照片：
               </label>
               <Button
-                variant="outline"
+                variant="upload"
                 className="mt-1 w-full"
                 onClick={handleUploadClick}
               >
@@ -461,7 +449,7 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
+                   <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
                     下載截圖 <Download className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
@@ -481,4 +469,3 @@ export default function Home() {
     </div>
   );
 }
-
