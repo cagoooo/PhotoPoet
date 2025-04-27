@@ -144,33 +144,12 @@ export default function Home() {
     }
   };
 
-  const handleCopy = useCallback(() => {
-    if (!poem) {
-      toast({
-        title: '錯誤！',
-        description: '請先上傳照片並生成詩詞。',
-      });
-      return;
+  const openCanvasInNewTab = (dataURL: string) => {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
     }
-  
-    navigator.clipboard.writeText(poem)
-      .then(() => {
-        toast({
-          title: '複製成功！',
-          description: '詩詞已複製到剪貼簿。',
-        });
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      })
-      .catch(err => {
-        console.error('複製失敗：', err);
-        toast({
-          title: '複製失敗！',
-          description: '無法複製詩詞，請稍後再試。',
-          variant: 'destructive',
-        });
-      });
-  }, [poem]);
+  }
 
   const handleDownload = useCallback(async () => {
     if (!photo || !poem) {
@@ -249,10 +228,7 @@ export default function Home() {
       const dataURL = canvas.toDataURL('image/png');
   
       // Open in new window 
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
-      }
+      openCanvasInNewTab(dataURL);
   
       toast({
         title: '下載成功！',
@@ -336,10 +312,7 @@ export default function Home() {
       const dataURL = canvas.toDataURL('image/png');
   
       // Open in new window
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write('<img src="' + dataURL + '" alt="Embedded Poem Image"/>');
-      }
+      openCanvasInNewTab(dataURL);
   
       toast({
         title: '嵌入成功！',
@@ -471,3 +444,4 @@ export default function Home() {
     </div>
   );
 }
+
