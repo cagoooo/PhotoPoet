@@ -328,6 +328,30 @@ export default function Home() {
     };
   }, [photo, poem]);
 
+  const handleCopy = () => {
+    if (poemRef.current) {
+      const poemText = poemRef.current.innerText;
+      navigator.clipboard.writeText(poemText)
+        .then(() => {
+          setIsCopied(true);
+          toast({
+            title: '已複製！',
+            description: '完整詩句已複製到剪貼簿。',
+          });
+          setTimeout(() => {
+            setIsCopied(false);
+          }, 2000);
+        })
+        .catch(err => {
+          console.error("無法複製詩句: ", err);
+          toast({
+            title: '複製失敗！',
+            description: '無法複製詩句到剪貼簿，請稍後再試。',
+          });
+        });
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
