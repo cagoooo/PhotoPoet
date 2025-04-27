@@ -197,7 +197,7 @@ export default function Home() {
       return;
     }
   
-    const image = new Image();
+    const image = new window.Image();
     image.src = photo;
   
     image.onload = () => {
