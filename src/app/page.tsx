@@ -259,7 +259,7 @@ export default function Home() {
                       已複製 <Check className="ml-2 h-4 w-4" />
                     </>
                   ) : (
-                    '複製'
+                    '複製完整詩句'
                   )}
                 </Button>
               </div>
