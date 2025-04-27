@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import {useState, useCallback, useRef} from 'react';
 import {
@@ -227,15 +227,26 @@ export default function Home() {
       ctx.fillStyle = '#222';
       ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
       ctx.font = '32px Arial'; // Larger font size
-      ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle'; // Vertically center the text
   
       const lines = poem.split('\n');
       const lineHeight = 40; // Space between lines
       const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
+
+      const poemColors = [
+        '#ef5350', // Red
+        '#f48fb1', // Pink
+        '#7e57c2', // Purple
+        '#2196f3', // Blue
+        '#26a69a', // Teal
+        '#43a047', // Green
+        '#eeff41', // Yellow
+        '#f9a825', // Amber
+      ];
   
       for (let i = 0; i < lines.length; i++) {
+        ctx.fillStyle = poemColors[i % poemColors.length];
         ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
       }
   
