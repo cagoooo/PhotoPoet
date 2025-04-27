@@ -319,11 +319,19 @@ export default function Home() {
       }
 
       const dataURL = canvas.toDataURL('image/png');
-      openCanvasInNewTab(dataURL);
+       // Trigger download directly on mobile devices
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'poem_image.png'; // Filename for the downloaded image
+        document.body.appendChild(link); // Required for Firefox
+
+        link.click();
+
+        document.body.removeChild(link);
 
       toast({
         title: '嵌入成功！',
-        description: '圖片已成功嵌入詩詞並在新視窗開啟。',
+        description: '圖片已成功嵌入詩詞並下載。',
       });
       setIsEmbedGenerating(false);
     };
@@ -335,7 +343,7 @@ export default function Home() {
       });
       setIsEmbedGenerating(false);
     };
-  }, [photo, poem, openCanvasInNewTab]);
+  }, [photo, poem]);
 
 
   const handleCopy = () => {
@@ -449,7 +457,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="lightgreen" className="w-full" onClick={handleCopy} disabled={!poem}>
+                  <Button variant="lightblue" className="w-full" onClick={handleCopy} disabled={!poem}>
                     {isCopied ? (
                       <>
                         已複製 <Check className="ml-2 h-4 w-4" />
@@ -458,7 +466,7 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                  <Button variant="lightblue" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
+                  <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
                       {isDownloadGenerating ? '產出中...請稍待片刻' : '下載圖文組合'}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
