@@ -252,8 +252,8 @@ export default function Home() {
     };
   }, [photo, poem, openCanvasInNewTab]);
 
-  const handleEmbed = useCallback(async () => {
-     if (!photo || !poem) {
+   const handleEmbed = useCallback(async () => {
+    if (!photo || !poem) {
       toast({
         title: '錯誤！',
         description: '請先上傳照片並生成詩詞。',
@@ -261,7 +261,7 @@ export default function Home() {
       return;
     }
 
-    setIsEmbedGenerating(true); // Start generation
+    setIsEmbedGenerating(true);
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -271,7 +271,7 @@ export default function Home() {
         title: '錯誤！',
         description: '無法建立畫布。',
       });
-      setIsEmbedGenerating(false); // End generation in case of error
+      setIsEmbedGenerating(false);
       return;
     }
 
@@ -287,7 +287,6 @@ export default function Home() {
 
       ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
 
-      // Calculate font size based on canvas size
       const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
       ctx.font = `${fontSize}px Arial`;
       ctx.textAlign = 'right';
@@ -297,7 +296,6 @@ export default function Home() {
       const lineHeight = fontSize * 1.2;
       let y = canvasHeight - 10;
 
-      // Define poemColors
       const poemColors = [
         '#ef5350', // Red
         '#f48fb1', // Pink
@@ -309,27 +307,25 @@ export default function Home() {
         '#f9a825', // Amber
       ];
 
-      ctx.lineWidth = 3; // Set the width of the stroke
+      ctx.lineWidth = 5; // Set the width of the stroke
 
       for (let i = lines.length - 1; i >= 0; i--) {
         const color = poemColors[i % poemColors.length];
         ctx.fillStyle = color;
         ctx.strokeStyle = '#000'; // Black stroke color
-        ctx.strokeText(lines[i], canvasWidth - 10, y);
+        ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke before fill
         ctx.fillText(lines[i], canvasWidth - 10, y);
         y -= lineHeight;
       }
 
       const dataURL = canvas.toDataURL('image/png');
-
-       // Open canvas in new tab
-        openCanvasInNewTab(dataURL);
+      openCanvasInNewTab(dataURL);
 
       toast({
         title: '嵌入成功！',
         description: '圖片已成功嵌入詩詞並在新視窗開啟。',
       });
-    setIsEmbedGenerating(false); // End generation
+      setIsEmbedGenerating(false);
     };
 
     image.onerror = () => {
@@ -337,9 +333,10 @@ export default function Home() {
         title: '錯誤！',
         description: '讀取圖片失敗。',
       });
-        setIsEmbedGenerating(false); // End generation in case of error
+      setIsEmbedGenerating(false);
     };
   }, [photo, poem, openCanvasInNewTab]);
+
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -452,7 +449,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="secondary" className="w-full" onClick={handleCopy} disabled={!poem}>
+                  <Button variant="lightblue" className="w-full" onClick={handleCopy} disabled={!poem}>
                     {isCopied ? (
                       <>
                         已複製 <Check className="ml-2 h-4 w-4" />
