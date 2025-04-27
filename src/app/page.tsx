@@ -160,6 +160,8 @@ export default function Home() {
       });
       return;
     }
+
+    setIsGenerating(true);
   
    
     const canvas = document.createElement('canvas');
@@ -170,6 +172,7 @@ export default function Home() {
         title: '錯誤！',
         description: '無法建立畫布。',
       });
+      setIsGenerating(false);
       return;
     }
   
@@ -236,6 +239,7 @@ export default function Home() {
         title: '下載成功！',
         description: '圖片已在新視窗開啟。',
       });
+      setIsGenerating(false);
     };
   
     image.onerror = () => {
@@ -243,6 +247,7 @@ export default function Home() {
         title: '錯誤！',
         description: '讀取圖片失敗。',
       });
+      setIsGenerating(false);
     };
   }, [photo, poem, openCanvasInNewTab]);
 
@@ -456,7 +461,8 @@ export default function Home() {
                     )}
                   </Button>
                    <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
-                    下載截圖 <Download className="ml-2 h-4 w-4" />
+                    {isGenerating ? '產出中...請稍待片刻' : '下載截圖'}
+                    <Download className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
                     variant="gradient"
@@ -476,4 +482,5 @@ export default function Home() {
     </div>
   );
 }
+
 
