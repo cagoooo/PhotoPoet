@@ -201,26 +201,28 @@ export default function Home() {
     image.src = photo;
   
     image.onload = () => {
-      // Set canvas dimensions to match the image
-      canvas.width = image.width;
-      canvas.height = image.height + 200; // Increased height for poem
+      // Set canvas dimensions
+      canvas.width = 1200; // Wider canvas for side-by-side layout
+      canvas.height = Math.max(image.height, 600); // Adjust height as needed, minimum 600
   
-      // Draw the image
-      ctx.drawImage(image, 0, 0, image.width, image.height);
+      // Draw the image on the left
+      ctx.drawImage(image, 0, 0, 600, canvas.height);
   
-      // Style and draw the poem
+      // Style and draw the poem on the right
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0, image.height, canvas.width, 200);
-      ctx.font = '24px Arial';
+      ctx.fillRect(600, 0, 600, canvas.height);
+      ctx.font = '32px Arial'; // Larger font size
       ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle'; // Vertically center the text
   
       const lines = poem.split('\n');
-      let y = image.height + 50;
-      lines.forEach(line => {
-        ctx.fillText(line, canvas.width / 2, y);
-        y += 30;
-      });
+      const lineHeight = 40; // Space between lines
+      const startY = (canvas.height - lines.length * lineHeight) / 2; // Center the poem vertically
+  
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], 900, startY + i * lineHeight); // Adjust X position for right side
+      }
   
       // Convert canvas to data URL
       const dataURL = canvas.toDataURL('image/png');
@@ -357,3 +359,4 @@ export default function Home() {
     </div>
   );
 }
+
