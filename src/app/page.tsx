@@ -22,6 +22,7 @@ export default function Home() {
   const [url, setUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+    const [isEmbedGenerating, setIsEmbedGenerating] = useState(false); // New state for embed generation
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -246,47 +247,50 @@ export default function Home() {
   }, [photo, poem, openCanvasInNewTab]);
 
   const handleEmbed = useCallback(async () => {
-    if (!photo || !poem) {
+     if (!photo || !poem) {
       toast({
         title: '錯誤！',
         description: '請先上傳照片並生成詩詞。',
       });
       return;
     }
-  
+
+    setIsEmbedGenerating(true); // Start generation
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-  
+
     if (!ctx) {
       toast({
         title: '錯誤！',
         description: '無法建立畫布。',
       });
+      setIsEmbedGenerating(false); // End generation in case of error
       return;
     }
-  
+
     const image = new window.Image();
     image.src = photo;
-  
+
     image.onload = () => {
       const canvasWidth = image.width;
       const canvasHeight = image.height;
-  
+
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
-  
+
       ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
-  
+
       // Calculate font size based on canvas size
       const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
       ctx.font = `${fontSize}px Arial`;
       ctx.textAlign = 'right';
       ctx.textBaseline = 'bottom';
-  
+
       const lines = poem.split('\n');
       const lineHeight = fontSize * 1.2;
       let y = canvasHeight - 10;
-  
+
       // Define poemColors
       const poemColors = [
         '#ef5350', // Red
@@ -298,7 +302,7 @@ export default function Home() {
         '#eeff41', // Yellow
         '#f9a825', // Amber
       ];
-  
+
       ctx.lineWidth = 3; // Set the width of the stroke
 
       for (let i = lines.length - 1; i >= 0; i--) {
@@ -309,23 +313,25 @@ export default function Home() {
         ctx.fillText(lines[i], canvasWidth - 10, y);
         y -= lineHeight;
       }
-  
+
       const dataURL = canvas.toDataURL('image/png');
-  
+
        // Open canvas in new tab
         openCanvasInNewTab(dataURL);
-  
+
       toast({
         title: '嵌入成功！',
         description: '圖片已成功嵌入詩詞並在新視窗開啟。',
       });
+    setIsEmbedGenerating(false); // End generation
     };
-  
+
     image.onerror = () => {
       toast({
         title: '錯誤！',
         description: '讀取圖片失敗。',
       });
+        setIsEmbedGenerating(false); // End generation in case of error
     };
   }, [photo, poem, openCanvasInNewTab]);
 
@@ -456,9 +462,10 @@ export default function Home() {
                     variant="gradient"
                     className="w-full"
                     onClick={handleEmbed}
-                    disabled={!poem || isGenerating}
+                    disabled={!poem || isEmbedGenerating}  // Disable while generating
                   >
-                    產出長輩圖 <Download className="ml-2 h-4 w-4" />
+                      {isEmbedGenerating ? '產出中...請稍待片刻' : '產出長輩圖'}  {/* Change text while generating */}
+                    <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -469,3 +476,4 @@ export default function Home() {
     </div>
   );
 }
+
