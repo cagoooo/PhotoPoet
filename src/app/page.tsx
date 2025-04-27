@@ -470,8 +470,13 @@ export default function Home() {
                   <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
                     下載截圖 <Download className="ml-2 h-4 w-4" />
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleEmbed} disabled={!poem || isGenerating}>
-                      嵌入圖片 <Download className="ml-2 h-4 w-4" />
+                  <Button
+                    variant="gradient"
+                    className="w-full"
+                    onClick={handleEmbed}
+                    disabled={!poem || isGenerating}
+                  >
+                    產出長輩圖 <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -482,4 +487,5 @@ export default function Home() {
     </div>
   );
 }
+
 

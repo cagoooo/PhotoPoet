@@ -18,6 +18,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 transform hover:scale-105 transition-transform shadow-md",
         ghost: "hover:bg-accent hover:text-accent-foreground transform hover:scale-105 transition-transform",
         link: "text-primary underline-offset-4 hover:underline",
+        gradient: "bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md", // Added gradient variant
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -54,4 +55,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
+
 
