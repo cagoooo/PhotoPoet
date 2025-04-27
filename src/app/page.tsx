@@ -362,7 +362,7 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                  <Button variant="secondary" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
+                  <Button variant="outline" className="w-full" onClick={handleDownload} disabled={!poem || isGenerating}>
                     下載截圖 <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -374,4 +374,5 @@ export default function Home() {
     </div>
   );
 }
+
 
