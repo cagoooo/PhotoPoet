@@ -336,8 +336,13 @@ export default function Home() {
         '#f9a825', // Amber
       ];
   
+      ctx.lineWidth = 3; // Set the width of the stroke
+
       for (let i = lines.length - 1; i >= 0; i--) {
-        ctx.fillStyle = poemColors[i % poemColors.length];
+        const color = poemColors[i % poemColors.length];
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#000'; // Black stroke color
+        ctx.strokeText(lines[i], canvasWidth - 10, y);
         ctx.fillText(lines[i], canvasWidth - 10, y);
         y -= lineHeight;
       }
@@ -477,3 +482,4 @@ export default function Home() {
     </div>
   );
 }
+
