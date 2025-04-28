@@ -259,7 +259,7 @@ export default function Home() {
                     });
 
                 } else {
-                    const newWindow = window.open(dataURL, '_blank');
+                    const newWindow = window.open(dataURL, '_self');
                     if (newWindow) {
                       newWindow.focus(); // Bring the new tab to focus
                        toast({
@@ -317,7 +317,8 @@ export default function Home() {
 
         ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
 
-        const fontSize = Math.max(16, Math.min(canvasWidth / 20, canvasHeight / 20));
+        // Font size calculation
+        const fontSize = Math.max(24, Math.min(canvasWidth / 15, canvasHeight / 15)); // Increased base font size
         ctx.font = `${fontSize}px Arial`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
@@ -378,7 +379,7 @@ export default function Home() {
                     });
                 } else {
 
-                   const newWindow = window.open(dataURL, '_blank');
+                   const newWindow = window.open(dataURL, '_self');
                     if (newWindow) {
                          newWindow.focus();
                          toast({
