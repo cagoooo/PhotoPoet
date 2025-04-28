@@ -236,8 +236,15 @@ export default function Home() {
             '#f9a825', // Amber
         ];
 
+        // Add white stroke
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+
+        ctx.font = 'bold 48px Arial';
+
         for (let i = 0; i < lines.length; i++) {
             ctx.fillStyle = poemColors[i % poemColors.length];
+            ctx.strokeText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight);
             ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
         }
 
@@ -333,11 +340,13 @@ export default function Home() {
 
         //Increased stroke width for better visibility on mobile
         ctx.lineWidth = isMobile ? 8 : 5; // Set the width of the stroke
+        ctx.strokeStyle = 'white'; // Set stroke color to white
+
+        ctx.font = `${fontSize}px Arial`; // Set font again after modifying stroke style
 
         for (let i = lines.length - 1; i >= 0; i--) {
             const color = poemColors[i % poemColors.length];
             ctx.fillStyle = color;
-            ctx.strokeStyle = '#000'; // Black stroke color
             ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke before fill
             ctx.fillText(lines[i], canvasWidth - 10, y);
             y -= lineHeight;
@@ -528,4 +537,5 @@ export default function Home() {
     </div>
   );
 }
+
 
