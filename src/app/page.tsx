@@ -421,9 +421,7 @@ export default function Home() {
             ✨ 點亮詩意，照亮靈感 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
-            上傳一張照片，
-            讓 AI 為你創作一首繁體中文詩詞，
-            分享您照片的詩意。
+            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -485,7 +483,7 @@ export default function Home() {
             <Button
               onClick={handleSubmit}
               disabled={!photo || isGenerating}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md text-lg"
             >
               {isGenerating ? '詠唱中...' : '生成詩詞'}
             </Button>
