@@ -492,7 +492,7 @@ export default function Home() {
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
                   ✨ 靈感之詩，翩然降臨 ✨
                 </h2>
-                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff', fontSize: '1.2em' }} ref={poemRef}>
+                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff', fontSize: '1.5em' }} ref={poemRef}>
                   {poem.split('\n').map((line, index) => (
                     <span key={index} className="poem-line">
                       {line}
