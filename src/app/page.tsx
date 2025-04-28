@@ -244,7 +244,6 @@ export default function Home() {
 
         for (let i = 0; i < lines.length; i++) {
             ctx.fillStyle = poemColors[i % poemColors.length];
-            ctx.strokeText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight);
             ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
         }
 
@@ -537,5 +536,3 @@ export default function Home() {
     </div>
   );
 }
-
-
