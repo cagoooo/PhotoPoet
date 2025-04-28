@@ -209,12 +209,12 @@ export default function Home() {
         // Style and draw the poem on the right
         ctx.fillStyle = '#222';
         ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
-        ctx.font = '32px Arial'; // Larger font size
+        ctx.font = 'bold 40px Arial'; // Larger font size
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle'; // Vertically center the text
 
         const lines = poem.split('\n');
-        const lineHeight = 40; // Space between lines
+        const lineHeight = 48; // Space between lines
         const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
 
         const poemColors = [
@@ -520,6 +520,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-
