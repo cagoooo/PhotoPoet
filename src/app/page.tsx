@@ -243,31 +243,16 @@ export default function Home() {
         try {
             const dataURL = await generateDownloadImageDataUrl();
             if (dataURL) {
-                 if (isMobile) {
-                    // Trigger download directly on mobile devices
-                    const link = document.createElement('a');
-                    link.href = dataURL;
-                    link.download = 'poem_image.png'; // Filename for the downloaded image
-                    document.body.appendChild(link); // Required for Firefox
-
-                    link.click();
-
-                    document.body.removeChild(link);
-                    toast({
-                        title: '下載成功！',
-                        description: '圖片已成功下載。',
-                    });
-
-                } else {
-                    const newWindow = window.open(dataURL, '_self');
-                    if (newWindow) {
-                      newWindow.focus(); // Bring the new tab to focus
-                       toast({
-                        title: '下載成功！',
-                        description: '圖片已在新視窗開啟。',
-                    });
-                    }
-                }
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'poem_image.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast({
+                    title: '下載成功！',
+                    description: '圖片已成功下載。',
+                });
             }
         } catch (error: any) {
             console.error('Error creating download image:', error);
@@ -362,33 +347,19 @@ export default function Home() {
         try {
             const dataURL = await generateEmbedImageDataUrl();
             if (dataURL) {
-                 if (isMobile) {
-                    // Trigger download directly on mobile devices
-                    const link = document.createElement('a');
-                    link.href = dataURL;
-                    link.download = 'poem_image.png'; // Filename for the downloaded image
-                    document.body.appendChild(link); // Required for Firefox
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'poem_image.png'; // Filename for the downloaded image
+                document.body.appendChild(link); // Required for Firefox
 
-                    link.click();
+                link.click();
 
-                    document.body.removeChild(link);
+                document.body.removeChild(link);
 
-                    toast({
-                        title: '嵌入成功！',
-                        description: '圖片已成功嵌入詩詞並下載。',
-                    });
-                } else {
-
-                   const newWindow = window.open(dataURL, '_self');
-                    if (newWindow) {
-                         newWindow.focus();
-                         toast({
-                            title: '嵌入成功！',
-                            description: '圖片已在新視窗開啟。',
-                        });
-                    }
-
-                }
+                toast({
+                    title: '嵌入成功！',
+                    description: '圖片已成功嵌入詩詞並下載。',
+                });
             }
         } catch (error: any) {
             console.error('Error creating embed image:', error);
@@ -522,7 +493,12 @@ export default function Home() {
                       '複製完整詩句'
                     )}
                   </Button>
-                  <Button variant="lightblue" className="w-full" onClick={handleDownload} disabled={!poem || isDownloadGenerating}>
+                  <Button
+                    variant="lightblue"
+                    className="w-full"
+                    onClick={handleDownload}
+                    disabled={!poem || isDownloadGenerating}
+                  >
                       {isDownloadGenerating ? '產出中...請稍待片刻' : '下載圖文組合'}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
@@ -544,5 +520,6 @@ export default function Home() {
     </div>
   );
 }
+
 
 
