@@ -1,6 +1,6 @@
  'use client';
 
-import {useState, useCallback, useRef} from 'react';
+import {useState, useCallback, useRef, useEffect} from 'react';
 import {
   Card,
   CardContent,
@@ -30,6 +30,14 @@ export default function Home() {
   const poemRef = useRef<HTMLDivElement>(null);
 
     const isMobile = useIsMobile();
+
+    useEffect(() => {
+        // Check if running in a mobile environment and if the Line browser is detected
+        if (navigator.userAgent.indexOf('Line') > -1 && window.location.search.indexOf('openExternalBrowser=1') === -1) {
+            // Redirect to the same URL with the "openExternalBrowser=1" parameter
+            window.location.href = window.location.href + '?openExternalBrowser=1';
+        }
+    }, []);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -520,3 +528,4 @@ export default function Home() {
     </div>
   );
 }
+
