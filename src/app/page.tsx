@@ -237,7 +237,7 @@ export default function Home() {
         try {
             const dataURL = await generateDownloadImageDataUrl();
             if (dataURL) {
-                if (isMobile) {
+                 if (isMobile) {
                     // Trigger download directly on mobile devices
                     const link = document.createElement('a');
                     link.href = dataURL;
@@ -276,7 +276,7 @@ export default function Home() {
     }, [generateDownloadImageDataUrl, isMobile]);
 
     const generateEmbedImageDataUrl = useCallback(async () => {
-        if (!photo || !poem) {
+         if (!photo || !poem) {
             toast({
                 title: '錯誤！',
                 description: '請先上傳照片並生成詩詞。',
@@ -344,7 +344,8 @@ export default function Home() {
             y -= lineHeight;
         }
 
-        return canvas.toDataURL('image/png');
+        // Reduce quality for faster download on mobile. Adjust the quality as needed
+        return canvas.toDataURL('image/jpeg', isMobile ? 0.7 : 0.9);
 
     }, [photo, poem, isMobile]);
 
@@ -355,7 +356,7 @@ export default function Home() {
         try {
             const dataURL = await generateEmbedImageDataUrl();
             if (dataURL) {
-                if (isMobile) {
+                 if (isMobile) {
                     // Trigger download directly on mobile devices
                     const link = document.createElement('a');
                     link.href = dataURL;
