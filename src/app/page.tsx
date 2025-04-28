@@ -82,6 +82,12 @@ export default function Home() {
 
       const data = await response.json();
       setPoem(data.poem);
+
+           toast({
+                title: '產生成功！',
+                description: '靈感之詩翩然降臨，請往下滑動檢視',
+            });
+
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -253,15 +259,14 @@ export default function Home() {
                     });
 
                 } else {
-                    const newWindow = window.open('', '_blank');
+                    const newWindow = window.open(dataURL, '_blank');
                     if (newWindow) {
-                        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
-                    }
-
-                     toast({
+                      newWindow.focus(); // Bring the new tab to focus
+                       toast({
                         title: '下載成功！',
                         description: '圖片已在新視窗開啟。',
                     });
+                    }
                 }
             }
         } catch (error: any) {
@@ -372,15 +377,16 @@ export default function Home() {
                         description: '圖片已成功嵌入詩詞並下載。',
                     });
                 } else {
-                    const newWindow = window.open('', '_blank');
+
+                   const newWindow = window.open(dataURL, '_blank');
                     if (newWindow) {
-                        newWindow.document.write('<img src="' + dataURL + '" alt="Poem Image"/>');
+                         newWindow.focus();
+                         toast({
+                            title: '嵌入成功！',
+                            description: '圖片已在新視窗開啟。',
+                        });
                     }
 
-                    toast({
-                        title: '嵌入成功！',
-                        description: '圖片已在新視窗開啟。',
-                    });
                 }
             }
         } catch (error: any) {
@@ -393,6 +399,7 @@ export default function Home() {
             setIsEmbedGenerating(false);
         }
     }, [generateEmbedImageDataUrl, isMobile]);
+
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -497,7 +504,7 @@ export default function Home() {
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
                   ✨ 靈感之詩，翩然降臨 ✨
                 </h2>
-                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff' }} ref={poemRef}>
+                <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff', fontSize: '1.2em' }} ref={poemRef}>
                   {poem.split('\n').map((line, index) => (
                     <span key={index} className="poem-line">
                       {line}
@@ -536,4 +543,5 @@ export default function Home() {
     </div>
   );
 }
+
 
