@@ -182,3 +182,7 @@ body {
   color: #f9a825; /* Amber */
 }
 
+/* Style for poem text */
+.strong-text {
+  font-weight: bold; /* Make the text bold */
+}
