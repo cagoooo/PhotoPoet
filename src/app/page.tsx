@@ -339,7 +339,7 @@ export default function Home() {
 
         //Increased stroke width for better visibility on mobile
         ctx.lineWidth = isMobile ? 8 : 5; // Set the width of the stroke
-        ctx.strokeStyle = 'white'; // Set stroke color to white
+        ctx.strokeStyle = 'black'; // Set stroke color to white
 
         ctx.font = `${fontSize}px Arial`; // Set font again after modifying stroke style
 
@@ -536,3 +536,4 @@ export default function Home() {
     </div>
   );
 }
+
