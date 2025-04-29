@@ -51,6 +51,17 @@ export default function Home() {
 
     }, []);
 
+  useEffect(() => {
+    console.log('useEffect triggered, poem:', poem, 'poemRef.current:', poemRef.current);
+    if (poem && poemRef.current) {
+      console.log('Scrolling into view...');
+      poemRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      console.log('Scrolled into view');
+    } else if (poem && !poemRef.current) {
+      console.log('poemRef.current is null but poem is set!');
+    }
+  }, [poem]);
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -103,10 +114,12 @@ export default function Home() {
       const data = await response.json();
       setPoem(data.poem);
 
-           toast({
+ if (poemRef.current) {
+              toast({
                 title: '產生成功！',
                 description: '靈感之詩翩然降臨，請往下滑動檢視',
             });
+        }
 
     } catch (error: any) {
       console.error('Error:', error);
@@ -250,7 +263,7 @@ export default function Home() {
 
         // Add white stroke
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 10;
 
         ctx.font = 'bold 48px Arial';
 
@@ -329,7 +342,7 @@ export default function Home() {
         ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
 
         // Font size calculation
-        const fontSize = Math.max(24, Math.min(canvasWidth / 15, canvasHeight / 15)); // Increased base font size
+        const fontSize = Math.max(20, Math.min(canvasWidth / 18, canvasHeight / 18)); // Increased base font size
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
@@ -349,16 +362,17 @@ export default function Home() {
             '#f9a825', // Amber
         ];
 
-        //Increased stroke width for better visibility on mobile
-        ctx.lineWidth = isMobile ? 8 : 5; // Set the width of the stroke
-        ctx.strokeStyle = 'black'; // Set stroke color to white
-
+        // Set font before setting stroke style and width
         ctx.font = `bold ${fontSize}px Arial`; // Set font again after modifying stroke style
+
+        // Increased stroke width for better visibility on mobile
+        ctx.lineWidth = isMobile ? 12 : 8; // Set the width of the stroke
+        ctx.strokeStyle = 'white'; // Set stroke color to white
 
         for (let i = lines.length - 1; i >= 0; i--) {
             const color = poemColors[i % poemColors.length];
             ctx.fillStyle = color;
-            ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke before fill
+            ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke text
             ctx.fillText(lines[i], canvasWidth - 10, y);
             y -= lineHeight;
         }
@@ -550,5 +564,4 @@ export default function Home() {
     </div>
   );
 }
-
 

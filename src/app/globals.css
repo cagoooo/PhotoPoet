@@ -186,3 +186,22 @@ body {
 .strong-text {
   font-weight: bold; /* Make the text bold */
 }
+
+/* Responsive adjustments */
+/* Small screens (up to 640px) */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  .poem-text {
+    text-align: center;
+  }
+}
+
+/* Medium screens (between 640px and 1024px) */
+@media (min-width: 641px) and (max-width: 1023px) {
+  body {
+    font-size: 16px;
+  }
+}
+
