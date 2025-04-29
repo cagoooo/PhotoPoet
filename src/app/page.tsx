@@ -421,7 +421,9 @@ export default function Home() {
             ✨ 點亮詩意，照亮靈感 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
-            上傳一張照片，讓 AI 為你創作一首繁體中文詩詞，分享您照片的詩意。
+            上傳一張照片，
+            讓 AI 為你創作一首繁體中文詩詞，
+            分享您照片的詩意。
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -536,4 +538,5 @@ export default function Home() {
     </div>
   );
 }
+
 
