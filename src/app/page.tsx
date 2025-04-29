@@ -318,7 +318,7 @@ export default function Home() {
 
         // Font size calculation
         const fontSize = Math.max(24, Math.min(canvasWidth / 15, canvasHeight / 15)); // Increased base font size
-        ctx.font = `${fontSize}px Arial`;
+        ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
 
@@ -341,7 +341,7 @@ export default function Home() {
         ctx.lineWidth = isMobile ? 8 : 5; // Set the width of the stroke
         ctx.strokeStyle = 'black'; // Set stroke color to white
 
-        ctx.font = `${fontSize}px Arial`; // Set font again after modifying stroke style
+        ctx.font = `bold ${fontSize}px Arial`; // Set font again after modifying stroke style
 
         for (let i = lines.length - 1; i >= 0; i--) {
             const color = poemColors[i % poemColors.length];
@@ -538,5 +538,3 @@ export default function Home() {
     </div>
   );
 }
-
-
