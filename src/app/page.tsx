@@ -37,6 +37,18 @@ export default function Home() {
             // Redirect to the same URL with the "openExternalBrowser=1" parameter
             window.location.href = window.location.href + '?openExternalBrowser=1';
         }
+
+        //Forcing viewport scale to fix WebView rendering issues
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+        } else {
+            const newViewportMeta = document.createElement('meta');
+            newViewportMeta.name = 'viewport';
+            newViewportMeta.content = 'width=device-width, initial-scale=1.0';
+            document.head.appendChild(newViewportMeta);
+        }
+
     }, []);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -421,8 +433,8 @@ export default function Home() {
             ✨ 點亮詩意，照亮靈感 ✨
           </h1>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
-            上傳一張照片，
-            讓 AI 為你創作一首繁體中文詩詞，
+            上傳一張照片，<br/>
+            讓 AI 為你創作一首繁體中文詩詞，<br/>
             分享您照片的詩意。
           </CardDescription>
         </CardHeader>
@@ -538,3 +550,4 @@ export default function Home() {
     </div>
   );
 }
+
