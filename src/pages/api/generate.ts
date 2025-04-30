@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { photo } = req.body;
 
   if (!photo) {
-    return res.status(400).json({ error: 'Photo is required' });
+    return res.status(400).json({ error: '照片為必填欄位' }); // Translated error message
   }
 
   try {
@@ -25,9 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await generatePoem(input);
     res.status(200).json({ poem: result.poem });
   } catch (error: any) {
-    console.error('API error:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate poem' });
+    console.error('API 錯誤:', error); // Log the actual error with a translated prefix
+    // Return the specific error message from the flow or a generic message
+    res.status(500).json({ error: error.message || '生成詩詞失敗' }); // Translated error message
   }
 }
-
-

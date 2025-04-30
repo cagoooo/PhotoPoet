@@ -1,4 +1,3 @@
-// Use server directive is required for Genkit flows.
 'use server';
 /**
  * @fileOverview Generates a poem from an image.
@@ -9,7 +8,7 @@
  */
 
 import {ai} from '@/ai/ai-instance';
-import {z} from 'genkit';
+import {z} from 'genkit'; // Correct import for Zod
 
 const GeneratePoemInputSchema = z.object({
   photoDataUri: z
@@ -21,33 +20,28 @@ const GeneratePoemInputSchema = z.object({
 export type GeneratePoemInput = z.infer<typeof GeneratePoemInputSchema>;
 
 const GeneratePoemOutputSchema = z.object({
-  poem: z.string().describe('A poem generated from the image.'),
+  poem: z.string().describe('A poem generated from the image, in Traditional Chinese.'),
 });
 export type GeneratePoemOutput = z.infer<typeof GeneratePoemOutputSchema>;
 
+// Exported wrapper function calling the flow
 export async function generatePoem(input: GeneratePoemInput): Promise<GeneratePoemOutput> {
   return generatePoemFlow(input);
 }
 
+// Define the prompt
 const prompt = ai.definePrompt({
   name: 'generatePoemPrompt',
-  input: {
-    schema: z.object({
-      photoDataUri: z
-        .string()
-        .describe(
-          "A photo, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-        ),
-    }),
+  input: { // Correct: Using input.schema
+    schema: GeneratePoemInputSchema, // Use the defined input schema
   },
-  output: {
-    schema: z.object({
-      poem: z.string().describe('A poem generated from the image, in Traditional Chinese.'),
-    }),
+  output: { // Correct: Using output.schema
+    schema: GeneratePoemOutputSchema, // Use the defined output schema
   },
   prompt: `你是一位詩人。 根據照片，創作一首反映其內容、氣氛和關鍵元素的詩。 這首詩必須是繁體中文。\n\nPhoto: {{media url=photoDataUri}}`,
 });
 
+// Define the flow
 const generatePoemFlow = ai.defineFlow<
   typeof GeneratePoemInputSchema,
   typeof GeneratePoemOutputSchema
@@ -58,7 +52,11 @@ const generatePoemFlow = ai.defineFlow<
     outputSchema: GeneratePoemOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const {output} = await prompt(input); // Call the defined prompt
+    if (!output) {
+        // Throw a specific error if the AI model doesn't return a valid output
+        throw new Error("AI 模型未能產生有效的輸出。");
+    }
+    return output;
   }
 );

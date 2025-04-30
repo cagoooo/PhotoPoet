@@ -20,7 +20,7 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: '點亮詩意，照亮靈感',
+  title: '點亮詩意~『早安長輩圖產生器』',
   description: '產出超實用長輩圖！',
 };
 

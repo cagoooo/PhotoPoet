@@ -76,7 +76,7 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (retries = 3, delay = 1000) => {
     if (!photo) {
       toast({
         title: '錯誤！',
@@ -84,29 +84,38 @@ export default function Home() {
       });
       return;
     }
-
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({photo}),
+      let response = await fetch('/api/generate', {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Accept': 'application/json'
+ },
+ body: JSON.stringify({ photo }),
       });
+
+ while (!response.ok && response.status === 503 && retries > 0) {
+ console.warn(`AI模型目前過載，重試中... 剩餘 ${retries} 次`);
+ await new Promise(resolve => setTimeout(resolve, delay));
+ response = await fetch('/api/generate', {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Accept': 'application/json'
+ },
+ body: JSON.stringify({ photo }),
+        });
+ retries--;
+ delay *= 3; // Exponential backoff
+      }
 
       if (!response.ok) {
         let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
         if (response.status === 404) {
           errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
         } else if (response.status === 503) {
-          errorMessage = 'AI模型目前過載，請稍後再試。';
-        }
-        else {
-          const errorBody = await response.text();
-          console.error('Error Body:', errorBody);
-          errorMessage += `, 詳細訊息: ${errorBody}`;
+ errorMessage = 'AI模型目前過載，請稍後再試。';
         }
         throw new Error(errorMessage);
       }
@@ -257,7 +266,7 @@ export default function Home() {
             '#2196f3', // Blue
             '#26a69a', // Teal
             '#43a047', // Green
-            '#eeff41', // Yellow
+            '#D97706', // Dark Orange
             '#f9a825', // Amber
         ];
 
@@ -358,7 +367,7 @@ export default function Home() {
             '#2196f3', // Blue
             '#26a69a', // Teal
             '#43a047', // Green
-            '#eeff41', // Yellow
+            '#D97706', // Dark Orange
             '#f9a825', // Amber
         ];
 
@@ -414,6 +423,31 @@ export default function Home() {
         }
     }, [generateEmbedImageDataUrl, isMobile]);
 
+    const handleShare = useCallback(async () => {
+        if (!navigator.share) {
+            toast({
+                title: '分享失敗！',
+                description: '分享功能僅支援行動裝置瀏覽器。',
+            });
+            return;
+        }
+
+        setIsEmbedGenerating(true); // Use the same state as embed generation
+        try {
+            const dataURL = await generateEmbedImageDataUrl();
+            if (dataURL) {
+                const blob = await (await fetch(dataURL)).blob();
+                const file = new File([blob], 'poem_image.png', {type: 'image/png'});
+                await navigator.share({
+                    files: [file],
+                    title: '我的AI詩詞圖片',
+                });
+                toast({ title: '分享成功！', description: '圖片已成功分享！' });
+            }
+        } catch (error) {
+            toast({ title: '分享失敗！', description: '分享圖片時發生錯誤。' });
+        } finally { setIsEmbedGenerating(false); }
+    }, [generateEmbedImageDataUrl]);
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -521,11 +555,18 @@ export default function Home() {
                   ✨ 靈感之詩，翩然降臨 ✨
                 </h2>
                 <div className="mt-2 min-h-[150px] rounded-md shadow-sm resize-none poem-text" style={{ backgroundColor: '#222', color: '#fff', fontSize: '1.5em' }} ref={poemRef}>
-                  {poem.split('\n').map((line, index) => (
-                    <span key={index} className="poem-line">
-                      {line}
-                    </span>
-                  ))}
+                  {poem.split('\n').map((line, index) => {
+                    const poemColors = [
+                        '#ef5350', // Red
+                        '#f48fb1', // Pink
+                        '#7e57c2', // Purple
+                        '#2196f3', // Blue
+                        '#26a69a', // Teal
+                        '#43a047', // Green
+                        '#eeff41', // Yellow
+                        '#f9a825', // Amber',
+                    ]; return (<span key={index} className="poem-line" style={{ color: poemColors[index % poemColors.length], display: 'block' }}>{line}</span>);
+})}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
                   <Button variant="lightgreen" className="w-full" onClick={handleCopy} disabled={!poem}>
@@ -534,28 +575,39 @@ export default function Home() {
                         已複製 <Check className="ml-2 h-4 w-4" />
                       </>
                     ) : (
-                      '複製完整詩句'
+ '複製完整詩句'
                     )}
                   </Button>
                   <Button
                     variant="lightblue"
                     className="w-full"
                     onClick={handleDownload}
-                    disabled={!poem || isDownloadGenerating}
+ disabled={!poem || isDownloadGenerating}
                   >
-                      {isDownloadGenerating ? '產出中...請稍待片刻' : '下載圖文組合'}
-                    <Download className="ml-2 h-4 w-4" />
+下載圖文組合
+                    <Download className="ml-2 h-4 w-4" /> {/* Keep the download icon here */}
                   </Button>
                   <Button
-                    variant="gradient"
+ variant="gradient"
+ style={{ '--gradient-start': '#a78bfa', '--gradient-end': '#f472b6' } as React.CSSProperties} // Pink to Pink gradient
                     className="w-full"
+
                     onClick={handleEmbed}
                     disabled={!poem || isEmbedGenerating}  // Disable while generating
                   >
-                      {isEmbedGenerating ? '產出中...請稍待片刻' : '產出超實用長輩圖！'}  {/* Change text while generating */}
+                      {isEmbedGenerating ? '下載中...請稍待片刻' : '下載妙用長輩圖！'}  {/* Change text while generating */}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
+                <Button
+                  variant="gradient"
+                  style={{ '--gradient-start': '#f472b6', '--gradient-end': '#f472b6' } as React.CSSProperties} // Pink to Pink gradient
+                  className="w-full mt-2" // Add margin top for spacing
+                  onClick={handleShare} // Assuming this button also triggers embedding or sharing
+                  disabled={!poem} // Disable if no poem is generated
+                >
+                  一鍵分享長輩圖(僅支援手機端)😊
+                </Button>
               </div>
             )}
           </div>
