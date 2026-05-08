@@ -55,7 +55,11 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+          NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
         run: npm run build
+
+      - name: Inject SW CACHE_VERSION (commit SHA + date)
+        run: npm run inject:sw-version
 
       - name: Add SPA fallback (404.html copy of index.html)
         run: cp out/index.html out/404.html

@@ -42,7 +42,17 @@ export function SiteFooter() {
         <span className="text-gray-400">·</span>
         <ShareLinkButton />
       </div>
-      <div className="mt-1 text-gray-500">© {year} PhotoPoet · 點亮詩意</div>
+      <div className="mt-1 text-gray-500">
+        © {year} PhotoPoet · 點亮詩意
+        {process.env.NEXT_PUBLIC_BUILD_SHA && (
+          <span
+            className="ml-2 text-gray-400"
+            title={`Build commit: ${process.env.NEXT_PUBLIC_BUILD_SHA}`}
+          >
+            · build {process.env.NEXT_PUBLIC_BUILD_SHA.slice(0, 7)}
+          </span>
+        )}
+      </div>
     </footer>
   );
 }

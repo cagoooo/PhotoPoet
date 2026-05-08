@@ -7,11 +7,13 @@
  * - 靜態資源 (_next/static, *.woff2, og.png, icon.png) 用 cache-first
  * - 加版本號 → 換版時 activate 自動清掉舊 cache
  *
- * 改動 SW 內容後務必把下面的 CACHE_VERSION bump 一下，使用者下次造訪
- * 才會清掉舊 cache。
+ * 版本號自動化（CI build 後跑 scripts/inject-sw-version.mjs 取代）：
+ * - CI 用 git short SHA + Asia/Taipei 日期
+ * - 本地 dev / fallback 用下面的 'dev-fallback' 字串
+ * - 注入腳本用 regex match `const CACHE_VERSION = '...'` — 改格式請同步改 inject script
  */
 
-const CACHE_VERSION = 'v2-2026-05-08';
+const CACHE_VERSION = 'dev-fallback';
 const STATIC_CACHE = `photopoet-static-${CACHE_VERSION}`;
 const HTML_CACHE = `photopoet-html-${CACHE_VERSION}`;
 

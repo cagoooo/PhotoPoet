@@ -12,7 +12,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "subset:og-font": "node scripts/subset-og-font.mjs",
-    "gen:og": "node scripts/generate-og-and-icon.mjs"
+    "gen:og": "node scripts/generate-og-and-icon.mjs",
+    "inject:sw-version": "node scripts/inject-sw-version.mjs"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.0.4",
