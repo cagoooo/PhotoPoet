@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import Script from 'next/script';
 import {Geist, Geist_Mono} from 'next/font/google';
 import {Noto_Sans_TC} from 'next/font/google';
 import './globals.css';
@@ -36,6 +37,10 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoSansTC.variable} antialiased`}>
         {children}
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="beforeInteractive"
+        />
       </body>
     </html>
   );

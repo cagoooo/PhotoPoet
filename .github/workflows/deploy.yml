@@ -44,6 +44,8 @@ jobs:
         run: npm ci --prefix functions || npm install --prefix functions
 
       - name: Build Next.js (static export)
+        env:
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
         run: npm run build
 
       - name: Build Cloud Functions

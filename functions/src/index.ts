@@ -16,10 +16,12 @@ import {genkit, z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
+import {verifyTurnstile, getClientIp} from './turnstile';
 
 setGlobalOptions({region: 'asia-east1', maxInstances: 10});
 
 const GEMINI_KEY = defineSecret('GOOGLE_GENAI_API_KEY');
+const TURNSTILE_SECRET = defineSecret('TURNSTILE_SECRET');
 
 // ─────────────────────────────────────────────────────────────────
 // generatePoem
@@ -48,7 +50,7 @@ function getAI() {
 
 export const generatePoem = onRequest(
   {
-    secrets: [GEMINI_KEY],
+    secrets: [GEMINI_KEY, TURNSTILE_SECRET],
     cors: true,
     memory: '512MiB',
     timeoutSeconds: 60,
@@ -64,8 +66,19 @@ export const generatePoem = onRequest(
       return;
     }
 
-    // Frontend currently sends `{ photo }` — accept both shapes.
     const body = req.body || {};
+
+    const turnstile = await verifyTurnstile(
+      body.turnstileToken,
+      process.env.TURNSTILE_SECRET,
+      getClientIp(req as any)
+    );
+    if (!turnstile.ok) {
+      res.status(403).json({error: turnstile.reason || '人機驗證失敗'});
+      return;
+    }
+
+    // Frontend currently sends `{ photo }` — accept both shapes.
     const photoDataUri: string | undefined = body.photoDataUri || body.photo;
 
     if (!photoDataUri || typeof photoDataUri !== 'string') {

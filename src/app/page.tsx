@@ -16,6 +16,7 @@ import Image from 'next/image';
 import {cn} from '@/lib/utils';
 import {Check, Download} from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { TurnstileGate } from '@/components/TurnstileGate';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -25,6 +26,9 @@ export default function Home() {
   const [isCopied, setIsCopied] = useState(false);
     const [isEmbedGenerating, setIsEmbedGenerating] = useState(false); // New state for embed generation
     const [isDownloadGenerating, setIsDownloadGenerating] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState<number>(0);
+  const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -84,7 +88,15 @@ export default function Home() {
       });
       return;
     }
+    if (turnstileEnabled && !turnstileToken) {
+      toast({
+        title: '尚未通過人機驗證',
+        description: '請等待上方驗證框出現綠色勾勾後再試。',
+      });
+      return;
+    }
     setIsGenerating(true);
+    const buildBody = () => JSON.stringify({ photo, turnstileToken });
     try {
       let response = await fetch('/api/generate', {
  method: 'POST',
@@ -92,7 +104,7 @@ export default function Home() {
  'Content-Type': 'application/json',
  'Accept': 'application/json'
  },
- body: JSON.stringify({ photo }),
+ body: buildBody(),
       });
 
  while (!response.ok && response.status === 503 && retries > 0) {
@@ -104,7 +116,7 @@ export default function Home() {
  'Content-Type': 'application/json',
  'Accept': 'application/json'
  },
- body: JSON.stringify({ photo }),
+ body: buildBody(),
         });
  retries--;
  delay *= 3; // Exponential backoff
@@ -116,6 +128,11 @@ export default function Home() {
           errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
         } else if (response.status === 503) {
  errorMessage = 'AI模型目前過載，請稍後再試。';
+        } else if (response.status === 403) {
+          try {
+            const errBody = await response.json();
+            if (errBody?.error) errorMessage = errBody.error;
+          } catch {}
         }
         throw new Error(errorMessage);
       }
@@ -138,6 +155,9 @@ export default function Home() {
       });
     } finally {
       setIsGenerating(false);
+      // Token 已被後端用掉（無論成功失敗），重新驗證以準備下次提交
+      setTurnstileToken('');
+      setTurnstileResetSignal(s => s + 1);
     }
   };
 
@@ -542,9 +562,13 @@ export default function Home() {
                 />
               </div>
             )}
+            <TurnstileGate
+              onToken={setTurnstileToken}
+              resetSignal={turnstileResetSignal}
+            />
             <Button
               onClick={handleSubmit}
-              disabled={!photo || isGenerating}
+              disabled={!photo || isGenerating || (turnstileEnabled && !turnstileToken)}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md text-lg"
             >
               {isGenerating ? '詠唱中...' : '生成詩詞'}
