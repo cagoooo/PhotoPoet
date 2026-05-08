@@ -44,6 +44,10 @@ jobs:
           # All /api/* calls go cross-origin to Firebase Hosting (rewritten to
           # Cloud Functions there). Functions have cors:true so this works.
           NEXT_PUBLIC_API_BASE: https://photopoet-ha364.web.app
+          # OG image / canonical / metadataBase use this. Same-origin image
+          # avoids FB scraper "non-async processing" failure when og:image is
+          # cross-origin to the page.
+          NEXT_PUBLIC_SITE_URL: https://cagoooo.github.io/PhotoPoet
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}

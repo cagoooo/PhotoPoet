@@ -21,7 +21,13 @@ const notoSansTC = Noto_Sans_TC({
   weight: ['400', '500', '700'],
 });
 
-const SITE_URL = 'https://photopoet-ha364.web.app';
+// 雙部署 SITE_URL 由 build-time env 決定：
+//   Firebase Hosting build  → 預設 https://photopoet-ha364.web.app
+//   GitHub Pages   build    → NEXT_PUBLIC_SITE_URL=https://cagoooo.github.io/PhotoPoet
+// 這樣 og:image 永遠指當前 host 自己的 og.png，FB / LINE 抓 og:image 不必跨域，
+// 解決「以非同步方式處理新圖像」的 OG image 抓不到問題。
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://photopoet-ha364.web.app';
 const OG_IMAGE = `${SITE_URL}/og.png`;
 
 export const metadata: Metadata = {
@@ -57,12 +63,12 @@ export const metadata: Metadata = {
     images: [OG_IMAGE],
   },
   icons: {
-    // Next.js App Router 會自動把 src/app/icon.png 編成 favicon。
-    // 這裡再保險加上明確的 PNG 與 apple-touch-icon。
-    icon: [{url: '/icon.png', type: 'image/png', sizes: '512x512'}],
-    apple: [{url: '/icon.png', type: 'image/png', sizes: '512x512'}],
+    // 用 absolute URL 才能在 GitHub Pages（basePath /PhotoPoet）下正確指
+    // 到 /PhotoPoet/icon.png 而不是 root /icon.png（會 404）。
+    icon: [{url: `${SITE_URL}/icon.png`, type: 'image/png', sizes: '512x512'}],
+    apple: [{url: `${SITE_URL}/icon.png`, type: 'image/png', sizes: '512x512'}],
   },
-  manifest: '/manifest.webmanifest',
+  manifest: `${SITE_URL}/manifest.webmanifest`,
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
