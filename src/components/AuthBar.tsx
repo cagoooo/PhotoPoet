@@ -13,7 +13,6 @@ interface AuthBarProps {
 
 export function AuthBar({remaining, dailyLimit, showHistoryLink = true}: AuthBarProps) {
   const {user, loading, configured, signIn, signOutUser} = useAuth();
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   if (!configured) return null;
   if (loading) {
@@ -51,7 +50,7 @@ export function AuthBar({remaining, dailyLimit, showHistoryLink = true}: AuthBar
       <div className="flex items-center gap-1">
         {showHistoryLink && (
           <Link
-            href={`${basePath}/history`}
+            href="/history"
             className="inline-flex items-center text-xs text-purple-700 hover:text-purple-900 hover:underline px-2 py-1 rounded"
             aria-label="我的詩歷史"
           >

@@ -53,7 +53,6 @@ function formatDate(d: Date | null) {
 export default function HistoryPage() {
   const {user, loading: authLoading, configured} = useAuth();
   const router = useRouter();
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const [poems, setPoems] = useState<Poem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,12 +101,12 @@ export default function HistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, configured, user?.uid]);
 
-  // 未登入：跳回主頁
+  // 未登入：跳回主頁（Next.js router 會自動處理 basePath）
   useEffect(() => {
     if (!authLoading && configured && !user) {
-      router.replace(`${basePath}/`);
+      router.replace('/');
     }
-  }, [authLoading, configured, user, router, basePath]);
+  }, [authLoading, configured, user, router]);
 
   return (
     <div className="flex flex-col items-center min-h-screen py-8 px-4 bg-gradient-to-br from-sky-100 to-pink-100">
@@ -115,7 +114,7 @@ export default function HistoryPage() {
         {/* admin-route-back-to-home: 回主頁按鈕（顯眼位置） */}
         <div className="mb-4">
           <Link
-            href={`${basePath}/`}
+            href="/"
             className="inline-flex items-center text-sm text-purple-700 hover:text-purple-900 hover:underline"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
