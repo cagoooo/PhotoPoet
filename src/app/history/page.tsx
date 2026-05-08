@@ -14,13 +14,15 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import {ArrowLeft, Loader2} from 'lucide-react';
+import {ArrowLeft, Loader2, Copy, Check} from 'lucide-react';
 
 import {firebaseDb, isFirebaseConfigured} from '@/lib/firebase';
 import {useAuth} from '@/hooks/useAuth';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {SiteFooter} from '@/components/SiteFooter';
+import {PoemTTSButton} from '@/components/PoemTTSButton';
+import {toast} from '@/hooks/use-toast';
 
 const PAGE_SIZE = 20;
 const STYLE_LABEL: Record<string, string> = {
@@ -58,6 +60,19 @@ export default function HistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleCopy(id: string, poem: string) {
+    try {
+      await navigator.clipboard.writeText(poem);
+      setCopiedId(id);
+      toast({title: '已複製', description: '詩文已複製到剪貼簿。'});
+      setTimeout(() => setCopiedId(prev => (prev === id ? null : prev)), 2000);
+    } catch (err) {
+      console.error('clipboard write failed', err);
+      toast({title: '複製失敗', description: '請手動選取複製。'});
+    }
+  }
 
   async function loadPage(startCursor?: QueryDocumentSnapshot<DocumentData> | null) {
     if (!configured || !user) return;
@@ -167,6 +182,29 @@ export default function HistoryPage() {
                     </div>
                     <div className="whitespace-pre-line text-base leading-relaxed">
                       {p.poem}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-700">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopy(p.id, p.poem)}
+                        className="flex-1 bg-transparent border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white"
+                      >
+                        {copiedId === p.id ? (
+                          <>
+                            <Check className="h-4 w-4 mr-1.5" />
+                            已複製
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4 mr-1.5" />
+                            複製
+                          </>
+                        )}
+                      </Button>
+                      <div className="flex-1">
+                        <PoemTTSButton poem={p.poem} className="!h-9 !text-sm bg-transparent !border-amber-500/40 !text-amber-300 hover:!bg-amber-900/20" />
+                      </div>
                     </div>
                   </li>
                 ))}
