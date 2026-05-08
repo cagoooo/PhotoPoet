@@ -5,6 +5,7 @@
  * 觸發 skill: akai-author-footer
  */
 import {Heart} from 'lucide-react';
+import {ShareLinkButton} from '@/components/ShareLinkButton';
 
 const TEACHER_PAGE = 'https://www.smes.tyc.edu.tw/'; // 學校教師頁/校網入口
 const GITHUB_URL = 'https://github.com/cagoooo/PhotoPoet';
@@ -38,6 +39,8 @@ export function SiteFooter() {
         >
           GitHub
         </a>
+        <span className="text-gray-400">·</span>
+        <ShareLinkButton />
       </div>
       <div className="mt-1 text-gray-500">© {year} PhotoPoet · 點亮詩意</div>
     </footer>

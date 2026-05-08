@@ -27,9 +27,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { TurnstileGate } from '@/components/TurnstileGate';
 import { AuthBar } from '@/components/AuthBar';
 import { useAuth } from '@/hooks/useAuth';
+import { useUsage, todayKeyTaipei } from '@/hooks/useUsage';
 import { UseGuideDialog } from '@/components/UseGuideDialog';
 import { SiteFooter } from '@/components/SiteFooter';
 import { PoemPlaceholder } from '@/components/PoemPlaceholder';
+import { PoemTTSButton } from '@/components/PoemTTSButton';
+import { compressImage } from '@/lib/compress-image';
+
+const DAILY_LIMIT_FALLBACK = 20;
 
 const POEM_STYLE_OPTIONS = [
   { value: 'modern', label: '🌸 現代詩' },
@@ -61,7 +66,27 @@ export default function Home() {
   const [poemStyle, setPoemStyle] = useState<PoemStyleValue>('modern');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
   const { user, configured: authConfigured, getIdToken } = useAuth();
+  const { usage } = useUsage(user?.uid);
+
+  // V2-4 歡迎回來：登入後一次性把 Firestore 上的今日用量同步到 UI，並 toast 一次
+  useEffect(() => {
+    if (!user || !usage) return;
+    if (welcomedUid === user.uid) return;
+    const today = todayKeyTaipei();
+    const usedToday = usage.date === today ? usage.count : 0;
+    const remainingToday = Math.max(0, DAILY_LIMIT_FALLBACK - usedToday);
+    setRemaining(prev => (prev === null ? remainingToday : prev));
+    setDailyLimit(prev => (prev === null ? DAILY_LIMIT_FALLBACK : prev));
+    if (usedToday > 0) {
+      toast({
+        title: `歡迎回來，${user.displayName?.split(' ')[0] ?? '詩人'} ✨`,
+        description: `今日已生成 ${usedToday} 首，還剩 ${remainingToday} 首。`,
+      });
+    }
+    setWelcomedUid(user.uid);
+  }, [user, usage, welcomedUid]);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -104,13 +129,17 @@ export default function Home() {
     if (!file) {
       return;
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setPhoto(base64String);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // V2-1: resize to 1024px max + JPEG 0.85 + strip EXIF（隱私）
+      const dataUrl = await compressImage(file);
+      setPhoto(dataUrl);
+    } catch (err: any) {
+      console.error('compress failed', err);
+      toast({
+        title: '無法處理圖片',
+        description: err?.message || '請換一張圖片再試。',
+      });
+    }
   };
 
   const handleSubmit = async (
@@ -256,12 +285,16 @@ export default function Home() {
       }
 
       const blob = await response.blob();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setPhoto(base64String);
-      };
-      reader.readAsDataURL(blob);
+      try {
+        // V2-1: 同樣壓縮 / strip EXIF
+        const dataUrl = await compressImage(blob);
+        setPhoto(dataUrl);
+      } catch (err: any) {
+        toast({
+          title: '無法處理圖片',
+          description: err?.message || '請換一張圖再試。',
+        });
+      }
     } catch (error: any) {
       console.error('Error fetching image:', error);
       toast({
@@ -715,6 +748,8 @@ export default function Home() {
  '複製完整詩句'
                     )}
                   </Button>
+                  <PoemTTSButton poem={poem} />
+
                   <Button
                     variant="lightblue"
                     className="w-full"

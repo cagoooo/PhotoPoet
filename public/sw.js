@@ -11,13 +11,20 @@
  * 才會清掉舊 cache。
  */
 
-const CACHE_VERSION = 'v1-2026-05-08';
+const CACHE_VERSION = 'v2-2026-05-08';
 const STATIC_CACHE = `photopoet-static-${CACHE_VERSION}`;
 const HTML_CACHE = `photopoet-html-${CACHE_VERSION}`;
 
-self.addEventListener('install', (event) => {
-  // 立即啟用新版本，避免使用者卡舊版
-  self.skipWaiting();
+// 不在 install 時 skipWaiting — 改由前端 toast「重新載入」按鈕觸發。
+// 這樣使用者頁面正在用舊 cache 時不會被新版突襲取代。
+self.addEventListener('install', () => {
+  /* intentionally empty — wait for SKIP_WAITING message */
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
