@@ -163,7 +163,7 @@ npm run typecheck
 - `.env` 沒被 `.gitignore` 排除，且**從 `initial scaffold` commit 起就在 repo 裡**
 - 這把 Gemini Key 等於公開
 - **行動**：
-  1. 立刻去 [Google AI Studio](https://aistudio.google.com/app/apikey) → 把 `AIzaSyD6fOTXk_u8RS3MM1Ki_VQcoUO4oKZc8aI` 撤銷
+  1. 立刻去 [Google AI Studio](https://aistudio.google.com/app/apikey) → 把 `AIzaSy***REDACTED***（已撤銷）` 撤銷
   2. 重新建一把**已限制**的 key（限制 referer / 限制 API 為 Generative Language API），用 skill `gcp-api-key-secure-create` 自動處理
   3. 把 `.env` 加進 `.gitignore`，並把它從歷史中清除（`git filter-repo` 或新建 repo 重起）
   4. 之後 key 一律放 Firebase Secrets / GitHub Secrets / Vercel env，**不要硬寫**

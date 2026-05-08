@@ -37,7 +37,7 @@
 ### 1.1 🚨 撤銷外洩的 Gemini API Key
 ```bash
 # 1. 先去 https://aistudio.google.com/app/apikey 撤銷舊 key
-#    AIzaSyD6fOTXk_u8RS3MM1Ki_VQcoUO4oKZc8aI
+#    AIzaSy***REDACTED***（已撤銷）
 
 # 2. 用 skill gcp-api-key-secure-create 建一把「已限制」的新 key
 #    限制：只能呼叫 Generative Language API
