@@ -2,7 +2,16 @@
 
 > 上傳照片 → Gemini 2.0 Flash 生成繁體中文詩 → 一鍵下載長輩圖。
 
-**架構**：Next.js 15 (static export) + Firebase Hosting + Cloud Functions (gen2, asia-east1) + Genkit。
+🌐 **線上版**：https://photopoet-ha364.web.app
+
+**架構**：Next.js 15 (static export) + Firebase Hosting + Cloud Functions (gen2, asia-east1) + Genkit + Cloudflare Turnstile。
+
+**安全**：
+- Gemini API key 受限只能呼叫 `generativelanguage.googleapis.com`，存於 Firebase Secret Manager
+- `proxyImage` 配 SSRF 防護（私有 IP 黑名單、redirect 重檢、Content-Type 白名單、10MB / 8s 上限）
+- `generatePoem` 受 Cloudflare Turnstile 保護，無 token 直接 403
+
+**CI/CD**：push 到 `main` → GitHub Actions 自動 deploy 到 Firebase。
 
 - 詳細使用說明：[docs/USAGE.md](docs/USAGE.md)
 - 移植 / 優化計畫：[docs/MIGRATION_AND_OPTIMIZATION.md](docs/MIGRATION_AND_OPTIMIZATION.md)

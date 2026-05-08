@@ -1,7 +1,11 @@
 # PhotoPoet（點亮詩意 · 早安長輩圖產生器）使用說明
 
 > 一個用 Gemini 多模態能力，把照片變成繁體中文詩、再合成「長輩圖」的 Web App。
-> Firebase Studio (Project IDX) 起家，目前以 Next.js 15 (App Router) 跑在 IDX 雲端工作站上。
+>
+> 📍 線上版：https://photopoet-ha364.web.app
+> 📦 Source：https://github.com/cagoooo/PhotoPoet
+>
+> **目前架構**：Next.js 15 (static export) → Firebase Hosting；後端 = Cloud Functions gen2 (asia-east1)；AI = Gemini 2.0 Flash via Genkit；防 bot = Cloudflare Turnstile；CI = GitHub Actions push-to-deploy。
 
 ---
 
