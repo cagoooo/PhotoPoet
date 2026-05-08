@@ -50,3 +50,6 @@ next-env.d.ts
 /functions/node_modules
 firebase-debug.log
 .firebase/
+
+# OG/favicon original font (12 MB) — only the subset is committed
+/scripts/fonts/NotoSansTC-Bold.ttf
