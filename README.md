@@ -13,9 +13,11 @@
 
 **CI/CD**：push 到 `main` → GitHub Actions 自動 deploy 到 Firebase。
 
-- 詳細使用說明：[docs/USAGE.md](docs/USAGE.md)
-- 移植 / 優化計畫：[docs/MIGRATION_AND_OPTIMIZATION.md](docs/MIGRATION_AND_OPTIMIZATION.md)
-- 原始產品需求：[docs/blueprint.md](docs/blueprint.md)
+- 📖 詳細使用說明：[docs/USAGE.md](docs/USAGE.md)
+- 🛠️ 運維手冊：[docs/OPERATIONS.md](docs/OPERATIONS.md)
+- 🗺️ 未來開發路線圖：[docs/ROADMAP.md](docs/ROADMAP.md)
+- 📜 移植歷史記錄：[docs/MIGRATION_AND_OPTIMIZATION.md](docs/MIGRATION_AND_OPTIMIZATION.md)
+- 🎯 原始產品需求：[docs/blueprint.md](docs/blueprint.md)
 
 ## 快速開始（本地）
 

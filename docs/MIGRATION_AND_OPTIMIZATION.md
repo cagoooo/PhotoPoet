@@ -1,5 +1,38 @@
 # PhotoPoet 移植 GitHub + Firebase Serverless 部署 & 後續優化計畫
 
+> 📌 **此文件為歷史記錄（v1.0 規劃版）**。實際執行版本與最終狀態請看：
+> - **[OPERATIONS.md](OPERATIONS.md)** — 完整運維手冊（架構、IAM、rotate SOP、故障排除）
+> - **[ROADMAP.md](ROADMAP.md)** — 未來優化建議與開發路線圖
+
+---
+
+## ✅ 完工狀態（2026-05-08）
+
+整套規劃**已 100% 落地**，且超過原計畫範圍：
+
+| 原計畫 §  | 項目 | 狀態 |
+|---|---|---|
+| §1 | 撤銷外洩 Gemini key + .env 從 git 移除 | ✅ |
+| §2 | Firebase 遷移（Hosting + Functions + 9 步驟） | ✅ |
+| §3.1 | Cloudflare Turnstile 防 bot | ✅ |
+| §3.2 | Firebase Auth + Firestore 詩歷史 + 每日限額（20/人/日） | ✅ |
+| §3.3 | proxy.ts SSRF 修補 | ✅ |
+| §3.5 | OG Image / 社群分享預覽 | ✅ |
+| §5 | GitHub repo + CI/CD push-to-deploy | ✅ |
+
+**額外完成（原計畫未列）**：
+- ✅ GitHub Pages 雙部署（cagoooo.github.io/PhotoPoet/）
+- ✅ Favicon (512×512)
+- ✅ robots.txt + sitemap.xml
+- ✅ Artifact Registry 1-day cleanup policy
+- ✅ docs/OPERATIONS.md 維護手冊（386 行）
+
+剩下沒做的優化（PWA、Genkit prompt 升級、LINE Bot、E2E 測試、Sentry、i18n）→ 全部移到 [ROADMAP.md](ROADMAP.md)。
+
+---
+
+## 以下為原始規劃內容（v1.0, 2026-04-22）— 保留作為歷史對照
+
 > 目標：把目前跑在 Firebase Studio (IDX) 上的 Next.js App，搬成「**GitHub 管原始碼 + Firebase Hosting (靜態) + Cloud Functions (後端) + Firestore (歷史紀錄)** 」的 serverless 架構。
 > 所有後端一律用 Firebase（依使用者偏好）。
 > 操作專案的帳號：**`ipad@mail2.smes.tyc.edu.tw`**（學校 Gmail，所有教學 Firebase 專案 owner）。
