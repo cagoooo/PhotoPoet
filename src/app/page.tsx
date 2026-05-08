@@ -31,6 +31,10 @@ export default function Home() {
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [turnstileResetSignal, setTurnstileResetSignal] = useState<number>(0);
   const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  // For GitHub Pages deploy, NEXT_PUBLIC_API_BASE points at the Firebase Hosting
+  // origin so /api/* still resolves to the Cloud Functions behind the rewrites.
+  // For Firebase Hosting deploy, this is empty so calls stay same-origin.
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
   const [remaining, setRemaining] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const { user, configured: authConfigured, getIdToken } = useAuth();
@@ -119,7 +123,7 @@ export default function Home() {
       return h;
     };
     try {
-      let response = await fetch('/api/generate', {
+      let response = await fetch(`${API_BASE}/api/generate`, {
  method: 'POST',
  headers: buildHeaders(),
  body: buildBody(),
@@ -128,7 +132,7 @@ export default function Home() {
  while (!response.ok && response.status === 503 && retries > 0) {
  console.warn(`AI模型目前過載，重試中... 剩餘 ${retries} 次`);
  await new Promise(resolve => setTimeout(resolve, delay));
- response = await fetch('/api/generate', {
+ response = await fetch(`${API_BASE}/api/generate`, {
  method: 'POST',
  headers: buildHeaders(),
  body: buildBody(),
@@ -191,7 +195,7 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+      const response = await fetch(`${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`);
 
       if (!response.ok) {
         let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
