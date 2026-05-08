@@ -1,16 +1,19 @@
 "use client";
 
+import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {useAuth} from '@/hooks/useAuth';
-import {LogIn, LogOut} from 'lucide-react';
+import {LogIn, LogOut, History} from 'lucide-react';
 
 interface AuthBarProps {
   remaining?: number | null;
   dailyLimit?: number | null;
+  showHistoryLink?: boolean;
 }
 
-export function AuthBar({remaining, dailyLimit}: AuthBarProps) {
+export function AuthBar({remaining, dailyLimit, showHistoryLink = true}: AuthBarProps) {
   const {user, loading, configured, signIn, signOutUser} = useAuth();
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   if (!configured) return null;
   if (loading) {
@@ -45,15 +48,27 @@ export function AuthBar({remaining, dailyLimit}: AuthBarProps) {
           )}
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => signOutUser()}
-        className="text-gray-600 hover:text-gray-900"
-      >
-        <LogOut className="h-4 w-4 mr-1" />
-        登出
-      </Button>
+      <div className="flex items-center gap-1">
+        {showHistoryLink && (
+          <Link
+            href={`${basePath}/history`}
+            className="inline-flex items-center text-xs text-purple-700 hover:text-purple-900 hover:underline px-2 py-1 rounded"
+            aria-label="我的詩歷史"
+          >
+            <History className="h-4 w-4 mr-1" />
+            我的詩
+          </Link>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => signOutUser()}
+          className="text-gray-600 hover:text-gray-900"
+        >
+          <LogOut className="h-4 w-4 mr-1" />
+          登出
+        </Button>
+      </div>
     </div>
   );
 }

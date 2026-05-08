@@ -98,11 +98,16 @@ export async function consumeQuota(user: AuthedUser): Promise<QuotaResult> {
   });
 }
 
-export async function savePoem(uid: string, poem: string): Promise<string> {
+export async function savePoem(
+  uid: string,
+  poem: string,
+  meta?: {style?: string}
+): Promise<string> {
   const db = getFirestore();
   const ref = await db.collection('poems').add({
     uid,
     poem,
+    style: meta?.style ?? null,
     createdAt: FieldValue.serverTimestamp(),
   });
   return ref.id;

@@ -14,11 +14,32 @@ import {toast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
 import Image from 'next/image';
 import {cn} from '@/lib/utils';
-import {Check, Download} from 'lucide-react';
+import {Check, Download, Sparkles, BookOpen, History, RefreshCcw} from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TurnstileGate } from '@/components/TurnstileGate';
 import { AuthBar } from '@/components/AuthBar';
 import { useAuth } from '@/hooks/useAuth';
+import { UseGuideDialog } from '@/components/UseGuideDialog';
+import { SiteFooter } from '@/components/SiteFooter';
+import { PoemPlaceholder } from '@/components/PoemPlaceholder';
+
+const POEM_STYLE_OPTIONS = [
+  { value: 'modern', label: '🌸 現代詩' },
+  { value: 'seven-jueju', label: '🏯 七言絕句' },
+  { value: 'five-jueju', label: '🎋 五言絕句' },
+  { value: 'haiku', label: '🍃 俳句（5-7-5）' },
+  { value: 'taigi', label: '🌾 台語白話詩' },
+  { value: 'elder', label: '🌅 早安問候語' },
+] as const;
+type PoemStyleValue = (typeof POEM_STYLE_OPTIONS)[number]['value'];
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -37,6 +58,9 @@ export default function Home() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
   const [remaining, setRemaining] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
+  const [poemStyle, setPoemStyle] = useState<PoemStyleValue>('modern');
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const { user, configured: authConfigured, getIdToken } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,7 +113,12 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (retries = 3, delay = 1000) => {
+  const handleSubmit = async (
+    arg?: { regenerate?: boolean } | number,
+    delay = 1000
+  ) => {
+    const isRegen = typeof arg === 'object' && !!arg?.regenerate;
+    let retries = typeof arg === 'number' ? arg : 3;
     if (!photo) {
       toast({
         title: '錯誤！',
@@ -111,9 +140,16 @@ export default function Home() {
       });
       return;
     }
-    setIsGenerating(true);
+    if (isRegen) setIsRegenerating(true);
+    else setIsGenerating(true);
     const idToken = authConfigured ? await getIdToken() : null;
-    const buildBody = () => JSON.stringify({ photo, turnstileToken });
+    const buildBody = () =>
+      JSON.stringify({
+        photo,
+        turnstileToken,
+        style: poemStyle,
+        regenerate: isRegen,
+      });
     const buildHeaders = () => {
       const h: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -178,11 +214,14 @@ export default function Home() {
       });
     } finally {
       setIsGenerating(false);
+      setIsRegenerating(false);
       // Token 已被後端用掉（無論成功失敗），重新驗證以準備下次提交
       setTurnstileToken('');
       setTurnstileResetSignal(s => s + 1);
     }
   };
+
+  const handleRegenerate = () => handleSubmit({ regenerate: true });
 
   const handleURLSubmission = useCallback(async () => {
     if (!url) {
@@ -517,9 +556,19 @@ export default function Home() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen py-12 bg-gradient-to-br from-sky-100 to-pink-100">
+    <div className="flex flex-col justify-center items-center min-h-screen py-12 px-4 bg-gradient-to-br from-sky-100 to-pink-100">
+      <UseGuideDialog open={showGuide} onOpenChange={setShowGuide} />
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
-        <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md">
+        <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md relative">
+          <button
+            type="button"
+            onClick={() => setShowGuide(true)}
+            aria-label="使用說明"
+            className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/15 hover:bg-white/25 transition px-3 py-1 text-xs font-medium border border-white/25"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            使用說明
+          </button>
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
             ✨ 點亮詩意，照亮靈感 ✨
           </h1>
@@ -586,15 +635,31 @@ export default function Home() {
                 />
               </div>
             )}
+            <div>
+              <label htmlFor="poem-style" className="block text-sm font-medium text-gray-700 mb-1">
+                詩文風格：
+              </label>
+              <Select value={poemStyle} onValueChange={(v) => setPoemStyle(v as PoemStyleValue)}>
+                <SelectTrigger id="poem-style" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {POEM_STYLE_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <TurnstileGate
               onToken={setTurnstileToken}
               resetSignal={turnstileResetSignal}
             />
             <Button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
               disabled={
                 !photo ||
                 isGenerating ||
+                isRegenerating ||
                 (turnstileEnabled && !turnstileToken) ||
                 (authConfigured && !user)
               }
@@ -602,6 +667,7 @@ export default function Home() {
             >
               {isGenerating ? '詠唱中...' : (authConfigured && !user ? '請先登入' : '生成詩詞')}
             </Button>
+            {(isGenerating || isRegenerating) && !poem && <PoemPlaceholder />}
             {poem && (
               <div className="mt-4">
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
@@ -622,6 +688,24 @@ export default function Home() {
 })}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={handleRegenerate}
+                    disabled={!poem || isRegenerating || isGenerating || (turnstileEnabled && !turnstileToken) || (authConfigured && !user)}
+                  >
+                    {isRegenerating ? (
+                      <>
+                        <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                        重新詠唱中...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        ✨ 換一首（同照片不同詩）
+                      </>
+                    )}
+                  </Button>
                   <Button variant="lightgreen" className="w-full" onClick={handleCopy} disabled={!poem}>
                     {isCopied ? (
                       <>
@@ -666,6 +750,7 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
+      <SiteFooter />
     </div>
   );
 }

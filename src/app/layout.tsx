@@ -1,8 +1,9 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import Script from 'next/script';
 import {Geist, Geist_Mono} from 'next/font/google';
 import {Noto_Sans_TC} from 'next/font/google';
 import './globals.css';
+import {ServiceWorkerRegister} from '@/components/ServiceWorkerRegister';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -61,6 +62,18 @@ export const metadata: Metadata = {
     icon: [{url: '/icon.png', type: 'image/png', sizes: '512x512'}],
     apple: [{url: '/icon.png', type: 'image/png', sizes: '512x512'}],
   },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'PhotoPoet',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#7e22ce',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -75,6 +88,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoSansTC.variable} antialiased`}>
         {children}
+        <ServiceWorkerRegister />
         <Script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
           strategy="beforeInteractive"

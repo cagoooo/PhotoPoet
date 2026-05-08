@@ -28,10 +28,41 @@ const TURNSTILE_SECRET = defineSecret('TURNSTILE_SECRET');
 // generatePoem
 // ─────────────────────────────────────────────────────────────────
 
+const POEM_STYLES = [
+  'modern',
+  'seven-jueju',
+  'five-jueju',
+  'haiku',
+  'taigi',
+  'elder',
+] as const;
+type PoemStyle = (typeof POEM_STYLES)[number];
+
+const STYLE_INSTRUCTIONS: Record<PoemStyle, string> = {
+  'modern':
+    '請寫一首自由形式的繁體中文現代詩，4-8 行，有意象、有情感，可長短句交錯。',
+  'seven-jueju':
+    '請寫一首四句、每句七字（共 28 字）的繁體中文絕句，講求對仗工整、意境深遠。',
+  'five-jueju':
+    '請寫一首四句、每句五字（共 20 字）的繁體中文絕句，言簡意賅、留白有韻。',
+  'haiku':
+    '請寫一首三行的繁體中文俳句（5-7-5 字節奏），抓取一個瞬間的感受或景物。',
+  'taigi':
+    '請用台語白話文寫一首親切自然的繁體中文短詩，4-6 行，可帶點俚語或日常感。',
+  'elder':
+    '請寫一段溫暖正向的繁體中文早安問候語（2-4 行），適合長輩使用，加上祝福或人生小哲理。',
+};
+
+function isPoemStyle(s: unknown): s is PoemStyle {
+  return typeof s === 'string' && (POEM_STYLES as readonly string[]).includes(s);
+}
+
 const PoemInputSchema = z.object({
   photoDataUri: z
     .string()
     .regex(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '需要 image data URI'),
+  styleInstruction: z.string(),
+  freshSeed: z.string().optional(),
 });
 
 const PoemOutputSchema = z.object({
@@ -102,15 +133,22 @@ export const generatePoem = onRequest(
       return;
     }
 
-    const parsed = PoemInputSchema.safeParse({photoDataUri});
-    if (!parsed.success) {
-      res.status(400).json({error: '照片格式不正確'});
-      return;
-    }
-
     if (photoDataUri.length > 14 * 1024 * 1024) {
       // ~10 MB binary as base64 ≈ 13.4 MB — give a small margin.
       res.status(413).json({error: '圖片過大，請壓縮後再試'});
+      return;
+    }
+
+    const style: PoemStyle = isPoemStyle(body.style) ? body.style : 'modern';
+    const styleInstruction = STYLE_INSTRUCTIONS[style];
+    const isRegenerate = body.regenerate === true;
+    const freshSeed = isRegenerate
+      ? `（這是同一張照片的重新詮釋第 ${Math.floor(Math.random() * 9999)} 次嘗試，請以全新角度切入，避免重複先前可能的詩句。）`
+      : '';
+
+    const parsed = PoemInputSchema.safeParse({photoDataUri, styleInstruction, freshSeed});
+    if (!parsed.success) {
+      res.status(400).json({error: '輸入格式不正確'});
       return;
     }
 
@@ -120,11 +158,15 @@ export const generatePoem = onRequest(
         name: 'generatePoemPrompt',
         input: {schema: PoemInputSchema},
         output: {schema: PoemOutputSchema},
+        config: {
+          temperature: isRegenerate ? 0.95 : 0.8,
+          topP: 0.95,
+        },
         prompt:
-          '你是一位詩人。 根據照片，創作一首反映其內容、氣氛和關鍵元素的詩。 這首詩必須是繁體中文。\n\nPhoto: {{media url=photoDataUri}}',
+          '你是一位細膩的詩人。仔細觀察下面的照片：注意主體、光線、色調、氛圍與可能的情緒。\n\n{{styleInstruction}}\n\n{{#if freshSeed}}{{freshSeed}}\n\n{{/if}}只輸出詩本身，不要加任何解釋或前言。\n\nPhoto: {{media url=photoDataUri}}',
       });
 
-      const {output} = await prompt({photoDataUri});
+      const {output} = await prompt({photoDataUri, styleInstruction, freshSeed});
       if (!output) {
         throw new Error('AI 模型未能產生有效的輸出。');
       }
@@ -132,13 +174,14 @@ export const generatePoem = onRequest(
       // store history (best-effort — don't fail the request if write fails)
       let poemId: string | null = null;
       try {
-        poemId = await savePoem(user.uid, output.poem);
+        poemId = await savePoem(user.uid, output.poem, {style});
       } catch (e) {
         console.warn('[generatePoem] savePoem failed', e);
       }
 
       res.status(200).json({
         poem: output.poem,
+        style,
         remaining: quota.remaining,
         dailyLimit: DAILY_LIMIT,
         poemId,

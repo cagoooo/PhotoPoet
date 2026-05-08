@@ -1,0 +1,20 @@
+{
+  "name": "PhotoPoet · 點亮詩意",
+  "short_name": "PhotoPoet",
+  "description": "上傳照片，AI 為你寫一首繁體中文詩。",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7e22ce",
+  "background_color": "#ffffff",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
