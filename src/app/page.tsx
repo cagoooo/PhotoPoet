@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {Checkbox} from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TurnstileGate } from '@/components/TurnstileGate';
@@ -64,6 +65,7 @@ export default function Home() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const [poemStyle, setPoemStyle] = useState<PoemStyleValue>('modern');
+  const [publishToWall, setPublishToWall] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
@@ -178,6 +180,7 @@ export default function Home() {
         turnstileToken,
         style: poemStyle,
         regenerate: isRegen,
+        publishToWall,
       });
     const buildHeaders = () => {
       const h: Record<string, string> = {
@@ -593,15 +596,24 @@ export default function Home() {
       <UseGuideDialog open={showGuide} onOpenChange={setShowGuide} />
       <Card className="w-full max-w-md rounded-lg border shadow-md overflow-hidden bg-white/80 backdrop-blur-sm">
         <CardHeader className="p-6 text-center bg-gradient-to-br from-purple-700 to-pink-700 text-white shadow-md relative">
-          <button
-            type="button"
-            onClick={() => setShowGuide(true)}
-            aria-label="使用說明"
-            className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/15 hover:bg-white/25 transition px-3 py-1 text-xs font-medium border border-white/25"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            使用說明
-          </button>
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <Link
+              href="/wall"
+              aria-label="詩文牆"
+              className="inline-flex items-center gap-1 rounded-full bg-white/15 hover:bg-white/25 transition px-3 py-1 text-xs font-medium border border-white/25"
+            >
+              🌸 詩文牆
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowGuide(true)}
+              aria-label="使用說明"
+              className="inline-flex items-center gap-1 rounded-full bg-white/15 hover:bg-white/25 transition px-3 py-1 text-xs font-medium border border-white/25"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              使用說明
+            </button>
+          </div>
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
             ✨ 點亮詩意，照亮靈感 ✨
           </h1>
@@ -683,6 +695,17 @@ export default function Home() {
                 </SelectContent>
               </Select>
             </div>
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none px-1">
+              <Checkbox
+                checked={publishToWall}
+                onCheckedChange={(v) => setPublishToWall(v === true)}
+                aria-label="公開分享到詩文牆"
+              />
+              <span>
+                🌸 公開分享到「詩文牆」
+                <span className="text-gray-500 ml-1">（其他人可看到，會顯示你的暱稱）</span>
+              </span>
+            </label>
             <TurnstileGate
               onToken={setTurnstileToken}
               resetSignal={turnstileResetSignal}

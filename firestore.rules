@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // All writes go through Cloud Functions (admin SDK bypasses these rules).
-// Client SDK can ONLY read its own data — never write directly.
+// Client SDK can ONLY read its own data, OR public-flagged poems.
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
@@ -13,13 +13,17 @@ service cloud.firestore {
       allow write: if false;     // server-only via admin SDK
     }
 
-    // generated poems history
+    // generated poems
+    //   • owner can read all of their own (private + public)
+    //   • anyone can read poems flagged as isPublic == true
+    //   • list query 必須讓「每一筆 doc」都通過上面 read 規則 — 也就是
+    //     - owner 可 query: where('uid', '==', auth.uid)
+    //     - 任何人可 query 詩文牆: where('isPublic', '==', true)
     match /poems/{poemId} {
-      allow read:   if isOwner(resource.data.uid);
-      allow list:   if isSignedIn() &&
-                     request.query.limit <= 50 &&
-                     request.auth.uid == request.query.where[0][2];
-      allow write:  if false;    // server-only via admin SDK
+      allow read: if (isSignedIn() && request.auth.uid == resource.data.uid)
+                  || resource.data.isPublic == true;
+      allow list: if request.query.limit <= 50;
+      allow write: if false;     // server-only via admin SDK
     }
   }
 }

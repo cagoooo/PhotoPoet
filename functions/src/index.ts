@@ -176,9 +176,18 @@ export const generatePoem = onRequest(
       }
 
       // store history (best-effort — don't fail the request if write fails)
+      const publishToWall = body.publishToWall === true;
       let poemId: string | null = null;
       try {
-        poemId = await savePoem(user.uid, output.poem, {style});
+        poemId = await savePoem(user.uid, output.poem, {
+          style,
+          isPublic: publishToWall,
+          // 用使用者顯示名稱（無則 fallback 到 email 前段，再無則匿名）
+          displayName:
+            user.name ||
+            (user.email ? user.email.split('@')[0] : null) ||
+            '匿名詩人',
+        });
       } catch (e) {
         console.warn('[generatePoem] savePoem failed', e);
       }

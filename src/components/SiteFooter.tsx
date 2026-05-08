@@ -4,6 +4,7 @@
  * Made with ❤️ by 阿凱老師（ipad@mail2.smes.tyc.edu.tw, 桃園市石門國小）
  * 觸發 skill: akai-author-footer
  */
+import Link from 'next/link';
 import {Heart} from 'lucide-react';
 import {ShareLinkButton} from '@/components/ShareLinkButton';
 
@@ -30,6 +31,13 @@ export function SiteFooter() {
         </span>
         <span className="text-gray-400">·</span>
         <span>桃園市石門國小</span>
+        <span className="text-gray-400">·</span>
+        <Link
+          href="/wall"
+          className="text-purple-700 hover:text-purple-900 hover:underline"
+        >
+          🌸 詩文牆
+        </Link>
         <span className="text-gray-400">·</span>
         <a
           href={GITHUB_URL}

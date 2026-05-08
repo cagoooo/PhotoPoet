@@ -101,13 +101,17 @@ export async function consumeQuota(user: AuthedUser): Promise<QuotaResult> {
 export async function savePoem(
   uid: string,
   poem: string,
-  meta?: {style?: string}
+  meta?: {style?: string; isPublic?: boolean; displayName?: string | null}
 ): Promise<string> {
   const db = getFirestore();
+  const isPublic = meta?.isPublic === true;
   const ref = await db.collection('poems').add({
     uid,
     poem,
     style: meta?.style ?? null,
+    isPublic,
+    // 公開時才寫 displayName，避免私人詩無故曝光使用者名稱
+    displayName: isPublic ? (meta?.displayName ?? null) : null,
     createdAt: FieldValue.serverTimestamp(),
   });
   return ref.id;
