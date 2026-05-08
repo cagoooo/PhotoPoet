@@ -1,12 +1,27 @@
 "use client";
 
+import {useEffect, useRef} from 'react';
+
 /**
  * 生詩中的詩意 loading placeholder：
  * 模擬詩文逐行浮現 + 光點漂浮，比單純 spinner 貼合主題。
+ *
+ * Mount 時自動 scrollIntoView — 行動裝置使用者按下「生成詩詞」後不必
+ * 手動下滑就能看到「詠唱中…」狀態。
  */
 export function PoemPlaceholder() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // 用 rAF 等下一個 paint，確保元件已實際 in DOM 後再捲動
+    const id = requestAnimationFrame(() => {
+      ref.current?.scrollIntoView({behavior: 'smooth', block: 'center'});
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
   return (
-    <div className="mt-2 min-h-[150px] rounded-md shadow-sm relative overflow-hidden flex flex-col items-center justify-center gap-3 py-6"
+    <div
+      ref={ref}
+      className="mt-2 min-h-[150px] rounded-md shadow-sm relative overflow-hidden flex flex-col items-center justify-center gap-3 py-6"
       style={{ backgroundColor: '#222', color: '#fff' }}>
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(8)].map((_, i) => (
