@@ -17,6 +17,8 @@ import {cn} from '@/lib/utils';
 import {Check, Download} from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TurnstileGate } from '@/components/TurnstileGate';
+import { AuthBar } from '@/components/AuthBar';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -29,6 +31,9 @@ export default function Home() {
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [turnstileResetSignal, setTurnstileResetSignal] = useState<number>(0);
   const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [dailyLimit, setDailyLimit] = useState<number | null>(null);
+  const { user, configured: authConfigured, getIdToken } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -88,6 +93,13 @@ export default function Home() {
       });
       return;
     }
+    if (authConfigured && !user) {
+      toast({
+        title: '請先登入',
+        description: '請使用上方按鈕以 Google 帳號登入後再試。',
+      });
+      return;
+    }
     if (turnstileEnabled && !turnstileToken) {
       toast({
         title: '尚未通過人機驗證',
@@ -96,14 +108,20 @@ export default function Home() {
       return;
     }
     setIsGenerating(true);
+    const idToken = authConfigured ? await getIdToken() : null;
     const buildBody = () => JSON.stringify({ photo, turnstileToken });
+    const buildHeaders = () => {
+      const h: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      };
+      if (idToken) h.Authorization = `Bearer ${idToken}`;
+      return h;
+    };
     try {
       let response = await fetch('/api/generate', {
  method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json'
- },
+ headers: buildHeaders(),
  body: buildBody(),
       });
 
@@ -112,10 +130,7 @@ export default function Home() {
  await new Promise(resolve => setTimeout(resolve, delay));
  response = await fetch('/api/generate', {
  method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json'
- },
+ headers: buildHeaders(),
  body: buildBody(),
         });
  retries--;
@@ -128,10 +143,12 @@ export default function Home() {
           errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
         } else if (response.status === 503) {
  errorMessage = 'AI模型目前過載，請稍後再試。';
-        } else if (response.status === 403) {
+        } else if (response.status === 401 || response.status === 403 || response.status === 429) {
           try {
             const errBody = await response.json();
             if (errBody?.error) errorMessage = errBody.error;
+            if (typeof errBody?.dailyLimit === 'number') setDailyLimit(errBody.dailyLimit);
+            if (typeof errBody?.remaining === 'number') setRemaining(errBody.remaining);
           } catch {}
         }
         throw new Error(errorMessage);
@@ -139,6 +156,8 @@ export default function Home() {
 
       const data = await response.json();
       setPoem(data.poem);
+      if (typeof data.remaining === 'number') setRemaining(data.remaining);
+      if (typeof data.dailyLimit === 'number') setDailyLimit(data.dailyLimit);
 
  if (poemRef.current) {
               toast({
@@ -508,6 +527,7 @@ export default function Home() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex flex-col gap-4">
+            <AuthBar remaining={remaining} dailyLimit={dailyLimit} />
             <div>
               <label htmlFor="upload" className="block text-sm font-medium text-gray-700">
                 上傳你的照片：
@@ -568,10 +588,15 @@ export default function Home() {
             />
             <Button
               onClick={handleSubmit}
-              disabled={!photo || isGenerating || (turnstileEnabled && !turnstileToken)}
+              disabled={
+                !photo ||
+                isGenerating ||
+                (turnstileEnabled && !turnstileToken) ||
+                (authConfigured && !user)
+              }
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded transform transition-transform duration-300 hover:scale-105 shadow-md text-lg"
             >
-              {isGenerating ? '詠唱中...' : '生成詩詞'}
+              {isGenerating ? '詠唱中...' : (authConfigured && !user ? '請先登入' : '生成詩詞')}
             </Button>
             {poem && (
               <div className="mt-4">

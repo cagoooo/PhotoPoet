@@ -17,6 +17,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {verifyTurnstile, getClientIp} from './turnstile';
+import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT} from './auth-quota';
 
 setGlobalOptions({region: 'asia-east1', maxInstances: 10});
 
@@ -68,6 +69,14 @@ export const generatePoem = onRequest(
 
     const body = req.body || {};
 
+    // 1️⃣ Auth — must be a real Google-signed-in user
+    const user = await verifyIdToken(req.headers.authorization);
+    if (!user) {
+      res.status(401).json({error: '請先用 Google 帳號登入後再試。'});
+      return;
+    }
+
+    // 2️⃣ Turnstile
     const turnstile = await verifyTurnstile(
       body.turnstileToken,
       process.env.TURNSTILE_SECRET,
@@ -75,6 +84,13 @@ export const generatePoem = onRequest(
     );
     if (!turnstile.ok) {
       res.status(403).json({error: turnstile.reason || '人機驗證失敗'});
+      return;
+    }
+
+    // 3️⃣ Per-user daily quota (transactional inc, no race)
+    const quota = await consumeQuota(user);
+    if (!quota.ok) {
+      res.status(429).json({error: quota.reason || '已達每日上限', remaining: 0, dailyLimit: DAILY_LIMIT});
       return;
     }
 
@@ -113,7 +129,20 @@ export const generatePoem = onRequest(
         throw new Error('AI 模型未能產生有效的輸出。');
       }
 
-      res.status(200).json({poem: output.poem});
+      // store history (best-effort — don't fail the request if write fails)
+      let poemId: string | null = null;
+      try {
+        poemId = await savePoem(user.uid, output.poem);
+      } catch (e) {
+        console.warn('[generatePoem] savePoem failed', e);
+      }
+
+      res.status(200).json({
+        poem: output.poem,
+        remaining: quota.remaining,
+        dailyLimit: DAILY_LIMIT,
+        poemId,
+      });
     } catch (err: any) {
       console.error('[generatePoem] error', err);
       const status = err?.status === 429 ? 429 : err?.status === 503 ? 503 : 500;
