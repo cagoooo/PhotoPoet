@@ -1,0 +1,207 @@
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 10%;
+    --primary: 210 100% 60%; /* Soft, desaturated blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 50% 70%; /* Soft, desaturated green */
+    --secondary-foreground: 220 30% 10%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 220 20% 45.1%;
+    --accent: 30 70% 50%; /* Warm, earthy tone like terracotta */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 220 50% 50%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 80% 40%; /* Darker, desaturated blue */
+    --primary-foreground: 0 0% 9%;
+    --secondary: 150 30% 30%; /* Darker, desaturated green */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 30 50% 30%; /* Darker, earthy tone */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Animation for poem fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Style for poem text */
+.poem-text {
+  text-align: center;
+  white-space: pre-line; /* Preserve line breaks */
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Rainbow color animation */
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.rainbow-text {
+  background: linear-gradient(
+    to right,
+    #ef5350,
+    #f48fb1,
+    #7e57c2,
+    #2196f3,
+    #26a69a,
+    #43a047,
+    #eeff41,
+    #f9a825,
+    #ff5722
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 500% auto;
+  animation: rainbow 5s linear infinite;
+}
+
+/* Multicolored poem lines */
+.multicolored-poem {
+  text-align: center;
+  white-space: pre-line;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 1s ease-in-out;
+}
+
+.poem-line {
+  display: block; /* Ensures each line is on a new line */
+}
+
+.poem-line:nth-child(1) {
+  color: #ef5350; /* Red */
+}
+
+.poem-line:nth-child(2) {
+  color: #f48fb1; /* Pink */
+}
+
+.poem-line:nth-child(3) {
+  color: #7e57c2; /* Purple */
+}
+
+.poem-line:nth-child(4) {
+  color: #2196f3; /* Blue */
+}
+
+.poem-line:nth-child(5) {
+  color: #26a69a; /* Teal */
+}
+
+.poem-line:nth-child(6) {
+  color: #43a047; /* Green */
+}
+
+.poem-line:nth-child(7) {
+  color: #eeff41; /* Yellow */
+}
+
+.poem-line:nth-child(8) {
+  color: #f9a825; /* Amber */
+}
+
+/* Style for poem text */
+.strong-text {
+  font-weight: bold; /* Make the text bold */
+}
+
+/* Responsive adjustments */
+/* Small screens (up to 640px) */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  .poem-text {
+    text-align: center;
+  }
+}
+
+/* Medium screens (between 640px and 1024px) */
+@media (min-width: 641px) and (max-width: 1023px) {
+  body {
+    font-size: 16px;
+  }
+}
+
