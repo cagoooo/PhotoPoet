@@ -72,6 +72,20 @@
 | Firebase Console | https://console.firebase.google.com/project/photopoet-ha364 | – |
 | GCP Console | https://console.cloud.google.com/home/dashboard?project=photopoet-ha364 | – |
 
+### 路由清單
+
+| 路徑 | 說明 |
+|---|---|
+| `/` | 主頁（上傳 / 生詩 / 下載長輩圖） |
+| `/history` | 我的詩歷史頁（需登入） |
+| `/api/generate` | POST 生詩（Auth + Turnstile + Quota，Hosting rewrites → Cloud Functions） |
+| `/api/proxy?url=` | GET 圖片代理（SSRF-hardened） |
+| `/og.png` | OG 分享圖 1200×630 |
+| `/icon.png` | favicon / PWA icon 512×512 |
+| `/manifest.webmanifest` | PWA manifest |
+| `/sw.js` | Service Worker |
+| `/robots.txt` · `/sitemap.xml` | 爬蟲輔助 |
+
 ---
 
 ## 3. Cloud / GitHub 資源清單
@@ -302,6 +316,53 @@ Firestore Console：https://console.firebase.google.com/project/photopoet-ha364/
 
 ### 7.7 退 Quota（特殊情況讓某使用者重置）
 Firestore Console 直接編輯該 user doc，把 `usage.count` 改成 `0` 或刪 `usage` 欄位即可。
+
+### 7.8 PWA Service Worker 升版
+改 `public/sw.js` 內容後，**必須 bump `CACHE_VERSION`**（檔案頂部那個常數），不然使用者瀏覽器會繼續用舊 SW 的 cache 策略：
+
+```js
+const CACHE_VERSION = 'v1-2026-05-08';   // ← 改成新日期
+```
+
+部署後使用者下次造訪時會：
+1. 偵測到新 SW
+2. `skipWaiting + clientsClaim` 立即接管
+3. `activate` 階段把所有 `!== CACHE_VERSION` 的舊 cache 清掉
+
+如果想加「新版可用」toast 提示使用者，做 ROADMAP.md V2-5。
+
+### 7.9 新增詩文風格（增加第 7 種）
+1. 編輯 [functions/src/index.ts](functions/src/index.ts) 的 `POEM_STYLES` 陣列加新 ID
+2. `STYLE_INSTRUCTIONS` map 加對應指令
+3. 編輯 [src/app/page.tsx](src/app/page.tsx) 的 `POEM_STYLE_OPTIONS` 加 emoji + label
+4. 編輯 [src/app/history/page.tsx](src/app/history/page.tsx) 的 `STYLE_LABEL` 加對應 emoji
+5. push 觸發雙部署
+
+四處要同步！全文 grep 該風格 ID 確認沒漏：
+```bash
+grep -r "modern\|seven-jueju\|five-jueju\|haiku\|taigi\|elder" src/ functions/src/
+```
+
+### 7.10 新增頁面（例如 /admin、/wall）
+跟 [`src/app/history/page.tsx`](src/app/history/page.tsx) 一樣模式：
+1. 新增 `src/app/<name>/page.tsx`，client component
+2. 使用 `process.env.NEXT_PUBLIC_BASE_PATH` 處理 GitHub Pages prefix
+3. 必加「← 回主頁」連結（`admin-route-back-to-home` skill 規範）
+4. 若是後台類頁，加 admin email allowlist 守衛
+5. push deploy 後驗證 Firebase Hosting **跟** GitHub Pages 兩邊都能進入
+
+> ⚠️ Next.js static export 對 dynamic routes（如 `/p/[id]`）支援需要 `generateStaticParams`，不能完全動態。如要動態 URL（公開單詩分享頁等），考慮改用 Cloud Function SSR。
+
+### 7.11 加新 GitHub repo variable / secret
+- **public 值**（NEXT_PUBLIC_* / 新 site key）：用 GitHub variable
+  ```bash
+  gh variable set MY_VAR --repo=cagoooo/PhotoPoet --body="value"
+  ```
+- **保密值**（API key / SA JSON）：用 GitHub secret
+  ```bash
+  echo -n "value" | gh secret set MY_SECRET --repo=cagoooo/PhotoPoet
+  ```
+- 在 `.github/workflows/deploy.yml` 跟 `deploy-pages.yml` 都要加 env mapping
 
 ---
 

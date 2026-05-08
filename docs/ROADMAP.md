@@ -1,8 +1,53 @@
 # PhotoPoet 開發路線圖（Roadmap）
 
-> 版本：v1.0（2026-05-08）
-> 狀態：Stage 1-4 + 雙部署 + 社群分享 + 維護手冊已全部結案
+> 版本：**v1.1**（2026-05-08）
 > 線上版：https://photopoet-ha364.web.app · https://cagoooo.github.io/PhotoPoet/
+
+---
+
+## 🎯 進度里程碑
+
+| 里程碑 | 完成日 | 包含項目 |
+|---|---|---|
+| **M0** 雛形 | 2026-04-22 | IDX 上 Next.js + Genkit + Gemini 2.0 Flash 原型 |
+| **M1** 安全與架構 | 2026-05-08 | Stage 1 SSRF 修補 / Stage 2 Firebase 遷移 / Stage 3 Turnstile / Stage 4 Auth + Quota |
+| **M2** 雙部署與分享 | 2026-05-08 | GitHub Pages mirror / OG image / favicon / robots+sitemap |
+| **M3** 維運完備 | 2026-05-08 | OPERATIONS 手冊 / ROADMAP / Secret Scanning 處理 |
+| **M4** Quick Wins v1 | 2026-05-08 | Q1-Q6 + U1 PWA（重新生成 / 風格選擇 / 歷史頁 / onboarding / footer / 詩意 loading / PWA） |
+| **M5** Quick Wins v2 | 待做 | 見下方「[Quick Wins v2](#-quick-wins-v22026-05-08-後新發現)」 |
+| **M6** UX 升級 | 待做 | 自訂域名 / dark mode / i18n |
+| **M7** 內容流通 | 待做 | LINE Bot / 詩文牆 / 公開單詩分享頁 |
+| **M8** 學校版 | 長期 | 班級綁定 / 老師儀表板 / 詩集翻翻書 |
+
+**整體完成度：4/8 主里程碑 = 50%**（M5+ 為純功能擴充，不影響核心可用性）
+
+---
+
+## 📊 已完成功能總覽
+
+| 領域 | 項目 | 狀態 |
+|---|---|---|
+| 基礎架構 | Firebase Hosting + Cloud Functions gen2 + Firestore | ✅ |
+| 基礎架構 | GitHub Pages 雙部署（cross-origin API 跨域） | ✅ |
+| AI | Genkit + Gemini 2.0 Flash + Secret Manager | ✅ |
+| AI | 6 種詩風（現代/七言/五言/俳句/台語/早安） | ✅ Q2 |
+| AI | 重新生成（同照片不同詩，temperature 0.95） | ✅ Q1 |
+| 安全 | Cloudflare Turnstile bot 防護 | ✅ Stage 3 |
+| 安全 | Firebase Auth (Google) | ✅ Stage 4 |
+| 安全 | 每人每日 20 首限額（Firestore transactional） | ✅ Stage 4 |
+| 安全 | proxyImage SSRF 防護 6 層 | ✅ Stage 1 |
+| 安全 | API key referrer + API target 限制 | ✅ |
+| 使用者體驗 | onboarding 5 步驟彈窗（localStorage 記住） | ✅ Q4 |
+| 使用者體驗 | 詩意 loading placeholder | ✅ Q6 |
+| 使用者體驗 | 我的詩歷史頁（cursor pagination） | ✅ Q3 |
+| 使用者體驗 | 阿凱老師 footer 署名 | ✅ Q5 |
+| 行動裝置 | PWA（manifest + SW + 加桌面 + 離線可看） | ✅ U1 |
+| 社群分享 | OG image 1200×630 + favicon 512×512 | ✅ |
+| 社群分享 | robots.txt + sitemap.xml | ✅ |
+| CI/CD | push to main → 雙 workflow 並行 deploy | ✅ |
+| CI/CD | github-deploy SA + 9 IAM roles | ✅ |
+| 維運 | OPERATIONS.md 完整手冊 | ✅ |
+| 維運 | Artifact Registry 1-day cleanup | ✅ |
 
 這份文件列出**還能做的優化與功能擴充**，按「**價值 × 工作量 × 技術難度**」分類。每個項目都有：
 
@@ -33,7 +78,7 @@
 
 > 都在 30 分鐘到 2 小時內可完成、立即看得到效果。
 
-### Q1. 加入「重新生成」按鈕
+### ✅ Q1. 加入「重新生成」按鈕（**已完成 2026-05-08**）
 **🎯 價值**：UX — 使用者覺得詩不滿意時能重生而不必重傳照片
 **⏱️ 工作量**：⭐⭐
 **🛠️ 技術難度**：2
@@ -49,7 +94,7 @@
 
 ---
 
-### Q2. 加入詩文風格選擇
+### ✅ Q2. 加入詩文風格選擇（**已完成 2026-05-08**）
 **🎯 價值**：UX — 增加趣味性 + 教學情境多樣
 **⏱️ 工作量**：⭐⭐
 **🛠️ 技術難度**：2
@@ -71,7 +116,7 @@
 
 ---
 
-### Q3. 「我的詩歷史」頁
+### ✅ Q3. 「我的詩歷史」頁（**已完成 2026-05-08**）
 **🎯 價值**：使用者已登入，但目前看不到自己過去寫的詩 — 浪費了 Stage 4 已存的 Firestore 資料
 **⏱️ 工作量**：⭐⭐⭐
 **🛠️ 技術難度**：2
@@ -95,7 +140,7 @@
 
 ---
 
-### Q4. 主頁加 onboarding 「📖 使用說明」彈窗
+### ✅ Q4. 主頁加 onboarding 「📖 使用說明」彈窗（**已完成 2026-05-08**）
 **🎯 價值**：給家長 / 老師看的時候不必看 README，第一次打開就知道怎麼用
 **⏱️ 工作量**：⭐⭐
 **🛠️ 技術難度**：2
@@ -109,7 +154,7 @@
 
 ---
 
-### Q5. 頁尾加上「Made with ❤️ by 阿凱老師」
+### ✅ Q5. 頁尾加上「Made with ❤️ by 阿凱老師」（**已完成 2026-05-08**）
 **🎯 價值**：作者署名（個人作品慣例）
 **⏱️ 工作量**：⭐
 **🛠️ 技術難度**：1
@@ -120,7 +165,7 @@
 
 ---
 
-### Q6. 加「Loading 動畫」更貼近詩意
+### ✅ Q6. 加「Loading 動畫」更貼近詩意（**已完成 2026-05-08**）
 **🎯 價值**：UX — 目前生詩中只有按鈕變「詠唱中...」，可加更詩意的視覺回饋
 **⏱️ 工作量**：⭐⭐
 **🛠️ 技術難度**：2
@@ -131,9 +176,159 @@
 
 ---
 
+## 🆕 Quick Wins v2（2026-05-08 後新發現）
+
+> 做完 v1 後浮現的下一輪低成本優化，每項都仍是 30 min ~ 2 小時。
+
+### V2-1. 客戶端圖片壓縮（上傳前）
+**🎯 價值**：節省 quota 流量 + 減少 Gemini 處理時間 + 加速 UX
+**⏱️ 工作量**：⭐⭐
+**🛠️ 技術難度**：2
+
+**📋 實作大綱**
+1. 使用者選擇照片後，在送到後端前用 `<canvas>` resize 到最長邊 1024 px
+2. JPEG 壓縮 quality 0.85
+3. 從原本動輒 4-8 MB 壓到 100-300 KB
+4. 同時順便 strip EXIF（不會把 GPS 位置等隱私 metadata 上雲）
+
+```ts
+// 新建 src/lib/compress-image.ts
+export async function compressImage(file: File, maxDim = 1024, quality = 0.85): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, w, h);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+```
+
+對應 `page.tsx` 的 `handleFileChange` 改用這個。
+
+---
+
+### V2-2. EXIF 隱私保護（已可選 — V2-1 順便處理）
+**🎯 價值**：把照片上傳到雲端時不會夾帶 GPS 位置 / 拍攝時間 / 相機 serial 等敏感資料
+**⏱️ 工作量**：⭐ （配合 V2-1 一起做免費）
+**🛠️ 技術難度**：1
+
+> Canvas 重繪本身就會 strip EXIF（瀏覽器規範），不需要額外套件。完成 V2-1 自動就有此效果。
+
+---
+
+### V2-3. 詩文朗讀（TTS）— 用 Web Speech API
+**🎯 價值**：詩本就是聽覺藝術；長輩使用者直接「聽詩」更友善
+**⏱️ 工作量**：⭐⭐
+**🛠️ 技術難度**：2
+
+**📋 實作大綱**
+1. 加「🔊 朗讀」按鈕在詩文區塊
+2. `window.speechSynthesis.speak(new SpeechSynthesisUtterance(poem))`
+3. 設 `lang = 'zh-TW'`、`rate = 0.85`、`pitch = 1.0`
+4. iOS Safari 限制：必須在 user gesture 內觸發（按鈕點擊就 OK）
+5. 進階：選擇不同 voice（Google 中文女聲 / 男聲）
+
+**0 token 成本** — Web Speech API 用裝置內建 TTS engine，不打 API。
+
+---
+
+### V2-4. 「歡迎回來」歡迎訊息
+**🎯 價值**：已登入使用者重新造訪時看到「歡迎回來，今日剩餘 12 首」比 cold start 親切
+**⏱️ 工作量**：⭐
+**🛠️ 技術難度**：1
+
+**📋 實作大綱**
+- AuthBar 已經顯示「今日剩餘 X / 20」
+- 額外：第一次載入時若 user 已登入，主動 fetch 一次 `users/{uid}` 拿 usage（即使還沒生詩），不必等使用者按按鈕才知道剩多少
+- 用 useEffect + Firestore client SDK 做 one-shot read
+
+---
+
+### V2-5. SW 更新偵測 + 「有新版！點此重新整理」
+**🎯 價值**：發布新版時，使用者能立刻看到（不用等 SW 自動更新 24h）
+**⏱️ 工作量**：⭐⭐
+**🛠️ 技術難度**：2
+**🔗 相關 skill**：`pwa-cache-bust`
+
+**📋 實作大綱**
+- 在 `ServiceWorkerRegister.tsx` 加 update detection
+- `registration.addEventListener('updatefound', ...)`
+- 偵測到新 SW worker → 跳一個 toast「✨ 有新版可用，點此載入」
+- 點擊 → `worker.postMessage({type: 'SKIP_WAITING'})` + `window.location.reload()`
+
+```ts
+const reg = await navigator.serviceWorker.register(...);
+reg.addEventListener('updatefound', () => {
+  const installing = reg.installing;
+  installing?.addEventListener('statechange', () => {
+    if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+      // 有舊版正在 control，新版已 install — 提示更新
+      showUpdateToast(() => {
+        installing.postMessage({ type: 'SKIP_WAITING' });
+        window.location.reload();
+      });
+    }
+  });
+});
+```
+
+---
+
+### V2-6. QR Code 產生器（給老師上課用）
+**🎯 價值**：老師上課時投影產 QR code，學生用手機掃一下就進來，不用打網址
+**⏱️ 工作量**：⭐
+**🛠️ 技術難度**：1
+
+**📋 實作大綱**
+- footer 加一個小按鈕「📱 QR 邀請」
+- 點開彈窗顯示當前 URL 的 QR code（用 [`qrcode`](https://www.npmjs.com/package/qrcode) 套件，client-side 生成）
+- 旁邊顯示短連結（`https://photopoet-ha364.web.app/`）方便手抄
+- 可選：「複製連結」按鈕
+
+---
+
+### V2-7. 詩文點讚（單機版）
+**🎯 價值**：使用者標記自己最愛的詩；之後可作為「精選詩文牆」素材來源
+**⏱️ 工作量**：⭐⭐
+**🛠️ 技術難度**：2
+
+**📋 實作大綱**
+- 詩生成後加「⭐ 收藏」按鈕（`poems/{id}.starred = true`，client SDK 寫入 — 但要先放寬 Firestore rule 允許自己更新自己的詩）
+- 歷史頁加「⭐ 只看收藏」filter
+- 之後 F5 詩文牆可以用 starred 的當基底
+
+**Firestore rule 改動**：
+```
+match /poems/{poemId} {
+  // 既有：read if owner; write: if false (admin only)
+  // 新增：允許 owner 改 starred 欄位（且只能改這個欄位）
+  allow update: if isOwner(resource.data.uid) &&
+                  request.resource.data.diff(resource.data).affectedKeys() == ['starred'].toSet();
+}
+```
+
+---
+
+### V2-8. 鍵盤快捷鍵
+**🎯 價值**：powerful user 用得快
+**⏱️ 工作量**：⭐
+**🛠️ 技術難度**：1
+
+**📋 實作大綱**
+- `Enter` 在照片已選擇時觸發「生成詩詞」
+- `R` 在有詩時觸發「換一首」
+- `C` 觸發複製
+- `?` 開啟「使用說明」彈窗
+- 加 `useEffect` 註冊 `keydown` listener
+- 在使用說明彈窗最後一段「⌨️ 鍵盤快捷鍵」展示
+
+---
+
 ## 🎨 體驗強化（UX）
 
-### U1. PWA + Service Worker（離線可裝桌面）
+### ✅ U1. PWA + Service Worker（離線可裝桌面）（**已完成 2026-05-08**）
 **🎯 價值**：使用者可「安裝」到手機桌面，且基本介面離線也能載入
 **⏱️ 工作量**：⭐⭐⭐
 **🛠️ 技術難度**：3
@@ -572,26 +767,80 @@
 
 ---
 
-## 🎯 優先順序建議
+## 🎯 優先順序建議（v2，2026-05-08 更新）
 
-如果你只能挑 5 件做，我推薦這個順序：
+> Q1-Q6 + U1 完工後的新建議。
 
-| # | 項目 | 為什麼是這個順序 |
-|---|---|---|
-| 1 | **Q3「我的詩歷史」頁** | Stage 4 已存資料但看不到，立刻補完是最有「即時收穫感」的 |
-| 2 | **Q5 加 footer + Q4 onboarding** | 阿凱老師作品標記 + 新使用者門檻降低，整體完整度提升 |
-| 3 | **Q1 重新生成 + Q2 風格選擇** | 30 分鐘的 UX 大躍進，使用者「想再玩」的動機強 |
-| 4 | **U1 PWA** | 行動裝置體驗從「網頁」變「應用」，加分巨大且工作量中等 |
-| 5 | **O1 Sentry + O2 LINE 告警** | 上線後最該有的「夜裡能睡得著」基本盤 |
+### 🌟 第一波（本週末，2-3 hr）— 把現有功能「磨亮」
+| # | 項目 | 工作量 | 為什麼先做 |
+|---|---|---|---|
+| 1 | **V2-1 客戶端圖片壓縮** | ⭐⭐ | 直接改善生詩速度 + 隱私（順帶 strip EXIF）|
+| 2 | **V2-3 詩文朗讀** | ⭐⭐ | 0 成本 + 0 風險 + 給長輩超友善 |
+| 3 | **V2-5 SW 更新提醒** | ⭐⭐ | 有了 PWA 就該配這個，不然新版部署沒人看到 |
+| 4 | **V2-4 歡迎回來訊息** | ⭐ | 30 分鐘小事，提升歸屬感 |
+| 5 | **V2-6 QR Code 產生器** | ⭐ | 教學情境立刻有用 |
+
+### 🚀 第二波（本月內，半天）— 為「正式對外推廣」做準備
+| # | 項目 | 工作量 | 為什麼 |
+|---|---|---|---|
+| 6 | **O1 Sentry / Cloud Logging** | ⭐⭐ | 上線後 silent fail 才不會吃虧 |
+| 7 | **O2 LINE 告警** | ⭐⭐ | 嚴重錯誤即時推播給管理者 |
+| 8 | **P1 自動備份 Firestore** | ⭐⭐ | 跑久了越來越多資料，誤刪會痛 |
+| 9 | **U2 自訂域名** | ⭐⭐ | 品牌 + SEO + 好記 |
+| 10 | **U3 Dark Mode** | ⭐⭐⭐ | shadcn/ui 已有 next-themes 整合，幾乎免改 |
+
+### 🎉 第三波（下個月，一天）— 內容流通
+| # | 項目 | 工作量 | 為什麼 |
+|---|---|---|---|
+| 11 | **F5 每日精選詩文牆** | ⭐⭐⭐⭐ | 從個人 toy 變社群型應用，質變 |
+| 12 | **S1 LINE Bot 模式** | ⭐⭐⭐⭐ | 跟 PhotoPoet 主題完美契合，教學現場可用 |
+| 13 | **F4 多版型 export** | ⭐⭐⭐ | 配合 IG/桌布/列印不同情境 |
+| 14 | **T1 E2E 測試** | ⭐⭐⭐ | 為日後改動兜底 |
+
+### 🌌 長期（看興趣，連續多週）— 走向學校工具
+| # | 項目 | 工作量 | 為什麼 |
+|---|---|---|---|
+| 15 | **V1 學校教師專用版** | ⭐⭐⭐⭐ | 老師-班級-學生資料模型，從 toy 到 production |
+| 16 | **V2 詩集翻翻書** | ⭐⭐⭐⭐ | 圖片 Storage + 翻頁 UI，視覺化體驗 |
+| 17 | **F6 公開單詩分享頁** | ⭐⭐⭐⭐ | OG image 動態生成 per poem，社群擴散加倍 |
 
 ---
 
-## 📅 建議節奏
+## 📅 建議節奏（基於目前狀態）
 
-- **本週末**（2-3 hr）：Q1 + Q2 + Q3 + Q5 — 一次補齊使用者面所有缺口
-- **本月內**（半天）：Q4 onboarding + U1 PWA + O1 Sentry — 上線品質完備
-- **下個月**（一天）：U2 自訂域名 + T1 E2E 測試 — 進入「正式服務」階段
-- **長期**（看興趣）：S1 LINE Bot / V1 學校教師版 / V2 詩集 — 由教學情境驅動
+```
+今天   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       Stage 1-4 + Quick Wins v1 + PWA 完成 ← 你現在在這裡
+       │
+本週末 │ V2-1, V2-3, V2-4, V2-5, V2-6 (~ 2-3 hr) — 磨亮現有
+       │
+本月底 │ O1, O2, P1, U2, U3 (~ 半天) — 上線品質
+       │
+下個月 │ F5, S1, F4, T1 (~ 一天) — 內容流通
+       │
+半年內 │ V1 學校版, F6 公開分享頁, V2 詩集翻翻書 — 走向產品化
+```
+
+**目前每多做一件 Quick Win v2 大約 30 min ~ 1 hr，搭配 push-to-deploy CI 5 分鐘，**
+**把它們當「碎片時間 polish」最划算。**
+
+---
+
+## 🤔 怎麼挑下一件？三個問題
+
+每次想動手前先問自己：
+
+1. **這次的目的是「給人看」還是「打底」？**
+   - 給人看 → 挑 Quick Wins / UX 類
+   - 打底 → 挑 Observability / QA 類
+
+2. **這個改動會不會卡到下一個改動？**
+   - 例：F5 詩文牆需要 V2-7 收藏功能先做
+   - 例：S1 LINE Bot 需要 OPERATIONS handbook 內的 LINE Messaging skill
+
+3. **教學現場有實際使用回饋嗎？**
+   - 有 → 用回饋驅動下一輪優化
+   - 沒 → 先做幾項 Quick Wins v2 + QR code，下週帶到課堂試用
 
 ---
 
