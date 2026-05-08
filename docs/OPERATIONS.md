@@ -97,12 +97,26 @@
 - **Billing account**：`0119C9-C416DD-660DE3`
 
 ### Cloud Functions (gen2)
-| Function | URL | Memory | Timeout | maxInstances |
-|---|---|---|---|---|
-| `generatePoem` | `https://generatepoem-tmr27hb2ca-de.a.run.app` | 512 MiB | 60s | 10 |
-| `proxyImage` | `https://proxyimage-tmr27hb2ca-de.a.run.app` | 256 MiB | 30s | 5 |
+| Function | Trigger | URL | Memory | Timeout | 備註 |
+|---|---|---|---|---|---|
+| `generatePoem` | onRequest | `https://generatepoem-tmr27hb2ca-de.a.run.app` | 512 MiB | 60s | maxInstances 10 |
+| `proxyImage` | onRequest | `https://proxyimage-tmr27hb2ca-de.a.run.app` | 256 MiB | 30s | maxInstances 5 |
+| `dailyBackup` | onSchedule (`0 3 * * *` Asia/Taipei) | – | 256 MiB | 540s | 每日備份 Firestore 到 GCS — **不推 LINE**（節省月額度），狀態靠 Cloud Logging |
 
-兩個都 `cors: true`、`allUsers / roles/run.invoker`。
+`generatePoem` / `proxyImage` 都 `cors: true`、`allUsers / roles/run.invoker`。
+
+### GCS 備份 bucket
+- `gs://photopoet-ha364-backups`（asia-east1, uniform-bucket-level-access）
+- Lifecycle: delete after 30 days
+- 路徑模式: `<yyyy-mm-dd>/<firestore-export-prefix>`
+
+### Secret Manager（Functions runtime 取用）
+| Secret | 內容 | 綁到 |
+|---|---|---|
+| `GOOGLE_GENAI_API_KEY` | Gemini API key | generatePoem |
+| `TURNSTILE_SECRET` | Cloudflare Turnstile server secret | generatePoem |
+| `PHOTOPOET_LINE_CHANNEL_ACCESS_TOKEN` | LINE Bot push token（共用阿凱老師統一 channel） | generatePoem |
+| `PHOTOPOET_LINE_ADMIN_USER_ID` | LINE 管理員 userId | generatePoem |
 
 ### Firestore
 - Database：`(default)` Native mode, asia-east1
@@ -115,8 +129,8 @@
 ### Service Accounts
 | SA Email | 用途 | 主要 IAM Roles |
 |---|---|---|
-| `github-deploy@photopoet-ha364.iam.gserviceaccount.com` | GitHub Actions 部署用 | firebase.admin、cloudfunctions.admin、run.admin、iam.serviceAccountUser、secretmanager.admin、artifactregistry.admin、cloudbuild.builds.editor、serviceusage.serviceUsageConsumer、billing.viewer (在 billing-account 層級) |
-| `142975838924-compute@developer.gserviceaccount.com` | Functions runtime SA | datastore.user |
+| `github-deploy@photopoet-ha364.iam.gserviceaccount.com` | GitHub Actions 部署用 | firebase.admin、cloudfunctions.admin、run.admin、iam.serviceAccountUser、secretmanager.admin、artifactregistry.admin、cloudbuild.builds.editor、serviceusage.serviceUsageConsumer、billing.viewer (在 billing-account 層級)、**cloudscheduler.admin**（部署 scheduled functions 必要） |
+| `142975838924-compute@developer.gserviceaccount.com` | Functions runtime SA | datastore.user、**datastore.importExportAdmin**（dailyBackup 需要）+ bucket-level `storage.admin` on `gs://photopoet-ha364-backups` |
 
 ### GCP API Keys
 | Display Name | UID | 用途 | 限制 |
@@ -353,7 +367,65 @@ grep -r "modern\|seven-jueju\|five-jueju\|haiku\|taigi\|elder" src/ functions/sr
 
 > ⚠️ Next.js static export 對 dynamic routes（如 `/p/[id]`）支援需要 `generateStaticParams`，不能完全動態。如要動態 URL（公開單詩分享頁等），考慮改用 Cloud Function SSR。
 
-### 7.11 加新 GitHub repo variable / secret
+### 7.11.5 手動觸發 dailyBackup（驗證 work / 災難演練）
+```bash
+gcloud scheduler jobs run firebase-schedule-dailyBackup-asia-east1 \
+  --location=asia-east1 --project=photopoet-ha364
+```
+跑完約 30 秒後檢查：
+```bash
+gcloud storage ls gs://photopoet-ha364-backups/
+```
+應該看到 `<yyyy-mm-dd>/` 資料夾。LINE 也會收到「✅ 每日 Firestore 備份完成」卡片。
+
+### 7.11.7 onSchedule function 部署陷阱（已踩過）
+Firebase Functions v2 的 `onSchedule` 部署時，**會同時建立**：
+1. Cloud Run service（function 本體）
+2. Cloud Scheduler job（觸發 source）
+
+如果第一次 deploy 時 SA 缺 `cloudscheduler.admin`：
+- function 建立成功（看到 ACTIVE）
+- scheduler job 建立失敗（403）
+- **但 firebase deploy 視為「partial success，function 已存在」**
+- 補了 IAM 後 retry deploy → firebase 跳過 function update → scheduler 永遠沒建
+
+**修補 SOP**：
+```bash
+# 1. 確認 SA 有 cloudscheduler.admin
+gcloud projects get-iam-policy photopoet-ha364 \
+  --flatten="bindings[].members" \
+  --filter="bindings.role:roles/cloudscheduler.admin" \
+  --format="value(bindings.members)"
+
+# 2. 刪掉 partial-deploy 的 function
+gcloud functions delete dailyBackup --region=asia-east1 --gen2 --quiet
+
+# 3. 再 trigger deploy → firebase 完整重建（function + scheduler）
+gh workflow run "Deploy to Firebase" --repo=cagoooo/PhotoPoet --ref=main
+
+# 4. 驗證
+gcloud scheduler jobs list --location=asia-east1 --project=photopoet-ha364
+```
+
+**怎麼避免再踩**：
+- 新增 onSchedule function 前先 grant SA `cloudscheduler.admin`
+- 已加進 OPERATIONS §3 SA roles 清單
+
+### 7.11.6 從備份還原 Firestore（緊急時）
+**警告**：import 會合併到當前 db，現有資料不會被刪除（但同 ID 會覆寫）。
+```bash
+# 1. 列出可用備份
+gcloud storage ls gs://photopoet-ha364-backups/
+
+# 2. 找到正確的 export metadata（路徑類似 .../2026-05-08/<timestamp>.overall_export_metadata）
+gcloud firestore import gs://photopoet-ha364-backups/2026-05-08/<timestamp>.overall_export_metadata \
+  --project=photopoet-ha364
+
+# 3. import 是 async，10-30 秒到幾分鐘不等
+gcloud firestore operations list --project=photopoet-ha364 | head
+```
+
+### 7.12 加新 GitHub repo variable / secret
 - **public 值**（NEXT_PUBLIC_* / 新 site key）：用 GitHub variable
   ```bash
   gh variable set MY_VAR --repo=cagoooo/PhotoPoet --body="value"
@@ -400,6 +472,23 @@ grep -r "modern\|seven-jueju\|five-jueju\|haiku\|taigi\|elder" src/ functions/sr
 | Artifact Registry | 0.5 GB free + cleanup-policy 1d | 設了 1 day cleanup |
 
 **最容易爆的**：Gemini RPD 1500 — 加上 Auth + Quota（20/人/日）+ Turnstile，要爆需要 75+ 真人帳號每天用滿。實際上幾乎不會。
+
+### LINE 告警設計
+
+**只推一種事件**：使用者**成功**生出詩。
+- Dedupe：`user-active-${uid}-${todayKey}` — 同一個 uid 每天第一首才推
+- 訊息：「有使用者來生詩了」+ 使用者名 / 風格 / 今日已生 N/20
+- **失敗（5xx / 429）一律不推**，靠 Cloud Logging 觀測即可
+- **dailyBackup 一律不推**，狀態靠 `gcloud functions logs read dailyBackup`
+
+**月額度估算**（LINE 免費 200 條/月，多專案共用 channel）：
+- 5 個老師日常活躍 → ~150 條/月（在免費額度內）
+- 30 人課堂示範一次 → 30 條，可做 6 次/月以內
+- 超過 200 條 LINE silent fail（429），不影響服務
+
+**要改頻率**：編輯 [functions/src/index.ts](functions/src/index.ts) 的 `dedupeKey`：
+- 每小時去重：`user-active-${uid}-${hour}`
+- 不去重（每首都推）：不建議，月額度 1 天就爆
 
 ---
 

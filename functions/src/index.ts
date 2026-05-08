@@ -183,6 +183,27 @@ export const generatePoem = onRequest(
         console.warn('[generatePoem] savePoem failed', e);
       }
 
+      // 「使用者活躍」LINE 告警：同 uid 每天第一首才推（in-memory dedupe）
+      // → 一個活躍使用者最多耗 1 條 LINE 月額度/天
+      const todayKeyTaipei = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
+      const usedToday = DAILY_LIMIT - quota.remaining; // 含本次
+      notifyAdmin({
+        status: 'success',
+        dedupeKey: `user-active-${user.uid}-${todayKeyTaipei}`,
+        title: '有使用者來生詩了',
+        fields: [
+          {icon: '👤', label: '使用者', value: user.name || user.email || user.uid.slice(0, 8)},
+          {icon: '🎨', label: '風格', value: style},
+          {icon: '📊', label: '今日已生', value: `${usedToday} / ${DAILY_LIMIT}`},
+        ],
+        footerNote: '同一人每天只通知一次',
+      }).catch(() => {});
+
       res.status(200).json({
         poem: output.poem,
         style,
@@ -193,31 +214,6 @@ export const generatePoem = onRequest(
     } catch (err: any) {
       console.error('[generatePoem] error', err);
       const status = err?.status === 429 ? 429 : err?.status === 503 ? 503 : 500;
-      // 對 5xx / 服務不穩相關錯誤推 LINE 告警（同類 1 hr 內只推 1 次）
-      if (status >= 500 || status === 429) {
-        const dedupeKey =
-          status === 503
-            ? 'gemini-overload-503'
-            : status === 429
-              ? 'gemini-quota-429'
-              : 'generate-5xx';
-        notifyAdmin({
-          status: 'failed',
-          dedupeKey,
-          title: status === 503 ? 'AI 模型暫時過載' : status === 429 ? 'Gemini 額度受限' : '生詩失敗',
-          fields: [
-            {icon: '🔢', label: 'HTTP', value: String(status)},
-            {icon: '🎨', label: '風格', value: style},
-            {icon: '👤', label: '使用者', value: user.email || user.uid.slice(0, 8)},
-            {
-              icon: '💬',
-              label: '錯誤',
-              value: String(err?.message || err).slice(0, 200),
-            },
-          ],
-          footerNote: '同類 1 小時內只推 1 次',
-        }).catch(() => {});
-      }
       res.status(status).json({error: err?.message || '生成詩詞失敗'});
     }
   }
@@ -403,12 +399,15 @@ export const dailyBackup = onSchedule(
     schedule: '0 3 * * *',
     timeZone: 'Asia/Taipei',
     region: 'asia-east1',
-    secrets: [LINE_TOKEN, LINE_ADMIN],
     timeoutSeconds: 540,
     memory: '256MiB',
     retryCount: 0,
   },
   async () => {
+    // 不推 LINE 通知（節省月額度 200 條）。狀態靠 Cloud Logging：
+    //   gcloud functions logs read dailyBackup --region=asia-east1 --gen2
+    // 失敗會被 console.error 寫進 Logging，可日後在 GCP Console 設 alert
+    // policy 改用 email / Pub/Sub 推播（成本極低）。
     const dateKey = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Taipei',
       year: 'numeric',
@@ -418,7 +417,6 @@ export const dailyBackup = onSchedule(
     const outputUriPrefix = `gs://photopoet-ha364-backups/${dateKey}`;
     const databaseName = 'projects/photopoet-ha364/databases/(default)';
 
-    // 透過 ADC 拿 access token（runtime SA 已綁 datastore.importExportAdmin）
     let accessToken: string;
     try {
       const {GoogleAuth} = await import('google-auth-library');
@@ -430,16 +428,7 @@ export const dailyBackup = onSchedule(
       if (!tokenRes.token) throw new Error('Could not obtain access token');
       accessToken = tokenRes.token;
     } catch (err: any) {
-      console.error('[dailyBackup] auth failed', err);
-      await notifyAdmin({
-        status: 'failed',
-        dedupeKey: 'backup-auth-fail',
-        title: '每日備份失敗（auth）',
-        fields: [
-          {icon: '📅', label: '日期', value: dateKey},
-          {icon: '💬', label: '錯誤', value: String(err?.message || err).slice(0, 200)},
-        ],
-      });
+      console.error('[dailyBackup] CRITICAL auth failed', {dateKey, error: String(err?.message || err)});
       return;
     }
 
@@ -462,31 +451,15 @@ export const dailyBackup = onSchedule(
         throw new Error(`HTTP ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
       }
 
-      console.log('[dailyBackup] export started', {operation: body.name, outputUriPrefix});
-
-      // 成功告警（每天一次，不必 dedupe — schedule 本身就是每天一次）
-      await notifyAdmin({
-        status: 'success',
-        dedupeKey: `backup-success-${dateKey}`,
-        title: '每日 Firestore 備份完成',
-        fields: [
-          {icon: '📅', label: '日期', value: dateKey},
-          {icon: '🪣', label: 'Bucket', value: 'photopoet-ha364-backups'},
-          {icon: '📂', label: '路徑', value: dateKey},
-          {icon: '🗄️', label: 'Collections', value: 'users, poems'},
-        ],
-        footerNote: '保留 30 天後自動清除',
+      console.log('[dailyBackup] export started', {
+        operation: body.name,
+        outputUriPrefix,
+        dateKey,
       });
     } catch (err: any) {
-      console.error('[dailyBackup] export failed', err);
-      await notifyAdmin({
-        status: 'failed',
-        dedupeKey: `backup-fail-${dateKey}`,
-        title: '每日 Firestore 備份失敗',
-        fields: [
-          {icon: '📅', label: '日期', value: dateKey},
-          {icon: '💬', label: '錯誤', value: String(err?.message || err).slice(0, 250)},
-        ],
+      console.error('[dailyBackup] CRITICAL export failed', {
+        dateKey,
+        error: String(err?.message || err).slice(0, 500),
       });
     }
   }
