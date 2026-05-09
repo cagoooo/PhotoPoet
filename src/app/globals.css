@@ -205,3 +205,80 @@ body {
   }
 }
 
+
+/* ─────────────────────────────────────────────────────────────────
+   F4 列印 A4 — window.print() + @media print 完整支援。
+   平時 #poem-print-area 隱藏，列印時才顯示，且其餘元件都隱藏。
+   設計：A4 直立，照片佔上半，詩文置中下半，底部小字。
+   ───────────────────────────────────────────────────────────── */
+
+@media screen {
+  #poem-print-area {
+    display: none;
+  }
+}
+
+@media print {
+  /* 列印時把整頁清空，只剩 print area */
+  body * {
+    visibility: hidden;
+  }
+  #poem-print-area,
+  #poem-print-area * {
+    visibility: visible;
+  }
+  #poem-print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: white;
+    color: #1a1a1a;
+    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  }
+  /* 隱藏瀏覽器自動產生的 header/footer URL */
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  .poem-print-photo-wrap {
+    text-align: center;
+    margin-bottom: 12mm;
+  }
+  .poem-print-photo {
+    max-width: 100%;
+    max-height: 130mm;
+    object-fit: contain;
+    border-radius: 4mm;
+    box-shadow: 0 2mm 6mm rgba(0, 0, 0, 0.15);
+  }
+  .poem-print-title {
+    text-align: center;
+    font-size: 22pt;
+    font-weight: 800;
+    margin: 6mm 0 4mm;
+    color: #6d28d9;
+    letter-spacing: 2pt;
+  }
+  .poem-print-poem {
+    text-align: center;
+    font-size: 18pt;
+    line-height: 1.9;
+    color: #1a1a1a;
+    margin: 4mm auto 8mm;
+    max-width: 160mm;
+  }
+  .poem-print-poem p {
+    margin: 0;
+    padding: 0;
+  }
+  .poem-print-footer {
+    text-align: center;
+    font-size: 10pt;
+    color: #888;
+    margin-top: auto;
+    padding-top: 4mm;
+    border-top: 0.4pt solid #ccc;
+  }
+}

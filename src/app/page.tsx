@@ -34,6 +34,14 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { PoemPlaceholder } from '@/components/PoemPlaceholder';
 import { PoemTTSButton } from '@/components/PoemTTSButton';
 import { compressImage } from '@/lib/compress-image';
+import {
+  renderPoemImage,
+  triggerDownload,
+  FORMAT_LABELS,
+  FORMAT_FILENAMES,
+  type PoemFormat,
+} from '@/lib/poem-image';
+import { Printer } from 'lucide-react';
 
 const DAILY_LIMIT_FALLBACK = 20;
 
@@ -66,6 +74,7 @@ export default function Home() {
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const [poemStyle, setPoemStyle] = useState<PoemStyleValue>('modern');
   const [publishToWall, setPublishToWall] = useState(false);
+  const [downloadFormat, setDownloadFormat] = useState<PoemFormat>('embed');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
@@ -314,6 +323,36 @@ export default function Home() {
       fileInputRef.current.click();
     }
   };
+
+    // F4 多版型下載 — 取代舊的 generateDownloadImageDataUrl / generateEmbedImageDataUrl
+    const handleFormatDownload = useCallback(async () => {
+      if (!photo || !poem) {
+        toast({title: '錯誤！', description: '請先上傳照片並生成詩詞。'});
+        return;
+      }
+      setIsDownloadGenerating(true);
+      try {
+        const dataUrl = await renderPoemImage(photo, poem, downloadFormat, {isMobile});
+        triggerDownload(dataUrl, FORMAT_FILENAMES[downloadFormat]);
+        toast({
+          title: '下載成功！',
+          description: `已產出${FORMAT_LABELS[downloadFormat].replace(/^[\p{Emoji}\s]+/u, '')}版型。`,
+        });
+      } catch (err: any) {
+        console.error(err);
+        toast({title: '下載失敗', description: err?.message || '產出圖片失敗。'});
+      } finally {
+        setIsDownloadGenerating(false);
+      }
+    }, [photo, poem, downloadFormat, isMobile]);
+
+    const handlePrint = () => {
+      if (!photo || !poem) {
+        toast({title: '錯誤！', description: '請先上傳照片並生成詩詞。'});
+        return;
+      }
+      window.print();
+    };
 
     const generateDownloadImageDataUrl = useCallback(async () => {
         if (!photo || !poem) {
@@ -776,25 +815,39 @@ export default function Home() {
                   </Button>
                   <PoemTTSButton poem={poem} />
 
+                  <div className="rounded-md border border-purple-200 bg-purple-50/60 p-3">
+                    <label htmlFor="download-format" className="block text-xs font-medium text-purple-900 mb-1.5">
+                      🎨 選擇下載版型：
+                    </label>
+                    <Select value={downloadFormat} onValueChange={(v) => setDownloadFormat(v as PoemFormat)}>
+                      <SelectTrigger id="download-format" className="w-full bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(FORMAT_LABELS) as PoemFormat[]).map(k => (
+                          <SelectItem key={k} value={k}>{FORMAT_LABELS[k]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="gradient"
+                      style={{ '--gradient-start': '#a78bfa', '--gradient-end': '#f472b6' } as React.CSSProperties}
+                      className="w-full mt-2"
+                      onClick={handleFormatDownload}
+                      disabled={!poem || isDownloadGenerating}
+                    >
+                      {isDownloadGenerating ? '產出中...' : '下載這個版型'}
+                      <Download className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                   <Button
                     variant="lightblue"
                     className="w-full"
-                    onClick={handleDownload}
- disabled={!poem || isDownloadGenerating}
+                    onClick={handlePrint}
+                    disabled={!poem}
                   >
-下載圖文組合
-                    <Download className="ml-2 h-4 w-4" /> {/* Keep the download icon here */}
-                  </Button>
-                  <Button
- variant="gradient"
- style={{ '--gradient-start': '#a78bfa', '--gradient-end': '#f472b6' } as React.CSSProperties} // Pink to Pink gradient
-                    className="w-full"
-
-                    onClick={handleEmbed}
-                    disabled={!poem || isEmbedGenerating}  // Disable while generating
-                  >
-                      {isEmbedGenerating ? '下載中...請稍待片刻' : '下載妙用長輩圖！'}  {/* Change text while generating */}
-                    <Download className="ml-2 h-4 w-4" />
+                    🖨️ 列印 A4（紙本紀念版）
+                    <Printer className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
                 <Button
@@ -812,6 +865,24 @@ export default function Home() {
         </CardContent>
       </Card>
       <SiteFooter />
+
+      {/* 列印 A4 專用版型 — 平時 hidden by @media screen, 只在列印時顯示 */}
+      {photo && poem && (
+        <div id="poem-print-area" aria-hidden="true">
+          <div className="poem-print-photo-wrap">
+            <img src={photo} alt="" className="poem-print-photo" />
+          </div>
+          <h1 className="poem-print-title">點亮詩意 Pro</h1>
+          <div className="poem-print-poem">
+            {poem.split('\n').map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+          <div className="poem-print-footer">
+            PhotoPoet Pro · 點亮詩意 · {new Date().toLocaleDateString('zh-TW')}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
