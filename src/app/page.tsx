@@ -869,17 +869,42 @@ export default function Home() {
       {/* 列印 A4 專用版型 — 平時 hidden by @media screen, 只在列印時顯示 */}
       {photo && poem && (
         <div id="poem-print-area" aria-hidden="true">
-          <div className="poem-print-photo-wrap">
-            <img src={photo} alt="" className="poem-print-photo" />
-          </div>
-          <h1 className="poem-print-title">點亮詩意 Pro</h1>
-          <div className="poem-print-poem">
-            {poem.split('\n').map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
-          <div className="poem-print-footer">
-            PhotoPoet Pro · 點亮詩意 · {new Date().toLocaleDateString('zh-TW')}
+          <div className="poem-print-frame">
+            <div className="poem-print-header">
+              <span className="poem-print-deco">❀</span>
+              <h1 className="poem-print-title">點亮詩意 Pro</h1>
+              <span className="poem-print-deco">❀</span>
+            </div>
+            <div className="poem-print-subtitle">
+              {POEM_STYLE_OPTIONS.find(o => o.value === poemStyle)?.label ?? '詩'}
+            </div>
+
+            <div className="poem-print-photo-wrap">
+              <img src={photo} alt="" className="poem-print-photo" />
+            </div>
+
+            <div className="poem-print-divider" data-deco="✦" />
+
+            <div className="poem-print-poem">
+              {poem.split('\n').map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+
+            <div className="poem-print-divider" data-deco="✦" />
+
+            {user?.displayName && (
+              <div className="poem-print-author">— {user.displayName} —</div>
+            )}
+
+            <div className="poem-print-footer">
+              <div className="poem-print-footer-brand">PhotoPoet Pro · 點亮詩意</div>
+              <div className="poem-print-footer-meta">
+                <span>{new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: 'long', day: 'numeric'})}</span>
+                <span className="poem-print-footer-sep">·</span>
+                <span>cagoooo.github.io/PhotoPoet</span>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -207,9 +207,8 @@ body {
 
 
 /* ─────────────────────────────────────────────────────────────────
-   F4 列印 A4 — window.print() + @media print 完整支援。
-   平時 #poem-print-area 隱藏，列印時才顯示，且其餘元件都隱藏。
-   設計：A4 直立，照片佔上半，詩文置中下半，底部小字。
+   F4 列印 A4 — 紙本紀念詩集風格
+   雙邊框 / 花飾 / 上下裝飾線 / 浮水印背景 / 滿版排版
    ───────────────────────────────────────────────────────────── */
 
 @media screen {
@@ -233,52 +232,148 @@ body {
     width: 100%;
     padding: 0;
     margin: 0;
-    background: white;
+    background: #ffffff;
     color: #1a1a1a;
-    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC',
+      'Source Han Sans TC', sans-serif;
   }
-  /* 隱藏瀏覽器自動產生的 header/footer URL */
   @page {
     size: A4 portrait;
-    margin: 12mm;
+    margin: 8mm;
   }
-  .poem-print-photo-wrap {
+
+  /* 內外雙邊框 + 角落漸層光暈，撐滿整頁 */
+  .poem-print-frame {
+    border: 2pt double #c084fc;
+    border-radius: 3mm;
+    padding: 12mm 14mm;
+    margin: 0;
+    min-height: calc(297mm - 16mm - 4pt);
+    background:
+      radial-gradient(circle at 8% 0%, rgba(192, 132, 252, 0.07), transparent 35%),
+      radial-gradient(circle at 92% 100%, rgba(236, 72, 153, 0.07), transparent 35%),
+      #ffffff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header：花飾 + 標題 */
+  .poem-print-header {
     text-align: center;
-    margin-bottom: 12mm;
+    margin-bottom: 1mm;
   }
-  .poem-print-photo {
-    max-width: 100%;
-    max-height: 130mm;
-    object-fit: contain;
-    border-radius: 4mm;
-    box-shadow: 0 2mm 6mm rgba(0, 0, 0, 0.15);
+  .poem-print-deco {
+    color: #c084fc;
+    font-size: 16pt;
+    margin: 0 5mm;
+    vertical-align: middle;
   }
   .poem-print-title {
-    text-align: center;
-    font-size: 22pt;
-    font-weight: 800;
-    margin: 6mm 0 4mm;
+    display: inline-block;
+    font-size: 26pt;
+    font-weight: 900;
     color: #6d28d9;
-    letter-spacing: 2pt;
+    letter-spacing: 6pt;
+    margin: 0;
+    vertical-align: middle;
   }
+  .poem-print-subtitle {
+    text-align: center;
+    font-size: 11pt;
+    color: #a78bfa;
+    letter-spacing: 2pt;
+    margin: 1mm 0 5mm;
+  }
+
+  /* 照片：圓角 + 細紫邊 + 投影 */
+  .poem-print-photo-wrap {
+    text-align: center;
+    margin: 0 0 5mm;
+  }
+  .poem-print-photo {
+    max-width: 88%;
+    max-height: 100mm;
+    object-fit: contain;
+    border-radius: 3mm;
+    border: 0.6pt solid #d8b4fe;
+    box-shadow: 0 1.5mm 5mm rgba(109, 40, 217, 0.18);
+  }
+
+  /* 上下裝飾分隔線（中央 ✦ 浮在白底上） */
+  .poem-print-divider {
+    position: relative;
+    width: 65%;
+    height: 0;
+    border-top: 0.6pt solid #c084fc;
+    margin: 5mm auto;
+  }
+  .poem-print-divider::before {
+    content: attr(data-deco);
+    position: absolute;
+    top: -7pt;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ffffff;
+    padding: 0 5pt;
+    color: #c084fc;
+    font-size: 12pt;
+  }
+
+  /* 詩文主體 — 深紫色 + 寬鬆行高 + 微微字距 */
   .poem-print-poem {
     text-align: center;
-    font-size: 18pt;
-    line-height: 1.9;
-    color: #1a1a1a;
-    margin: 4mm auto 8mm;
-    max-width: 160mm;
+    font-size: 17pt;
+    font-weight: 600;
+    line-height: 2.0;
+    color: #4c1d95;
+    margin: 2mm auto;
+    max-width: 150mm;
+    letter-spacing: 1pt;
   }
   .poem-print-poem p {
     margin: 0;
     padding: 0;
   }
-  .poem-print-footer {
+
+  /* 作者署名 */
+  .poem-print-author {
     text-align: center;
-    font-size: 10pt;
-    color: #888;
+    font-size: 13pt;
+    font-style: italic;
+    color: #6d28d9;
+    margin: 4mm 0 2mm;
+    letter-spacing: 1pt;
+  }
+
+  /* Footer：品牌 + 日期 + URL，靠底 */
+  .poem-print-footer {
     margin-top: auto;
     padding-top: 4mm;
-    border-top: 0.4pt solid #ccc;
+    border-top: 0.4pt solid #e9d5ff;
+    text-align: center;
+    line-height: 1.7;
+  }
+  .poem-print-footer-brand {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #6d28d9;
+    letter-spacing: 1pt;
+  }
+  .poem-print-footer-meta {
+    font-size: 8.5pt;
+    color: #999;
+    letter-spacing: 0.5pt;
+  }
+  .poem-print-footer-sep {
+    margin: 0 2mm;
+    color: #c084fc;
+  }
+
+  /* 強制顏色印出（避免印表機 / PDF 預覽 默認去色） */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
