@@ -16,10 +16,11 @@ import * as logger from 'firebase-functions/logger';
 const LINE_PUSH_API = 'https://api.line.me/v2/bot/message/push';
 
 const CARD_THEMES = {
-  started: {headerBg: '#3B82F6', headerSubColor: '#DBEAFE', icon: '🆕'},
-  success: {headerBg: '#10B981', headerSubColor: '#D1FAE5', icon: '✅'},
-  failed: {headerBg: '#EF4444', headerSubColor: '#FEE2E2', icon: '❌'},
-  warning: {headerBg: '#F59E0B', headerSubColor: '#FEF3C7', icon: '⚠️'},
+  // PhotoPoet 主色：紫粉漸層的兩極（LINE Flex 不支援漸層，取其代表紫色）
+  started: {headerBg: '#3B82F6', headerSubColor: '#DBEAFE', icon: '🆕', accent: '#3B82F6'},
+  success: {headerBg: '#7C3AED', headerSubColor: '#E9D5FF', icon: '✨', accent: '#EC4899'},
+  failed: {headerBg: '#EF4444', headerSubColor: '#FEE2E2', icon: '❌', accent: '#DC2626'},
+  warning: {headerBg: '#F59E0B', headerSubColor: '#FEF3C7', icon: '⚠️', accent: '#D97706'},
 } as const;
 
 export type AlertStatus = keyof typeof CARD_THEMES;
@@ -29,6 +30,10 @@ export interface AlertCard {
   /** dedupe key — 同 key 在 dedupeWindowMs 內只推 1 次 */
   dedupeKey: string;
   title: string;
+  /** 主要顯示用大字突出（卡片正中央），通常是使用者名或重點 */
+  hero?: string;
+  /** 進度顯示，會渲染成 emoji bar：current / total */
+  progress?: {current: number; total: number; label?: string};
   fields: Array<{icon?: string; label: string; value: string}>;
   footerNote?: string;
 }
@@ -103,6 +108,12 @@ export async function notifyAdmin(card: AlertCard): Promise<void> {
   }
 }
 
+/** 把 5/20 渲染成 emoji bar：●●●●●○○○○○ */
+function progressBar(current: number, total: number, slots = 10): string {
+  const filled = Math.max(0, Math.min(slots, Math.round((current / total) * slots)));
+  return '●'.repeat(filled) + '○'.repeat(slots - filled);
+}
+
 function buildFlexBubble(card: AlertCard) {
   const theme = CARD_THEMES[card.status];
   const now = new Intl.DateTimeFormat('zh-TW', {
@@ -114,37 +125,40 @@ function buildFlexBubble(card: AlertCard) {
     hour12: false,
   }).format(new Date());
 
-  return {
-    type: 'bubble',
-    size: 'kilo',
-    header: {
+  const bodyContents: any[] = [];
+
+  // Hero：主要強調的字（如使用者名）— 大字置中
+  if (card.hero) {
+    bodyContents.push({
       type: 'box',
       layout: 'vertical',
-      backgroundColor: theme.headerBg,
-      paddingAll: '16px',
+      paddingAll: 'sm',
       contents: [
         {
           type: 'text',
-          text: `${theme.icon}  ${card.title}`,
-          color: '#FFFFFF',
+          text: card.hero,
           weight: 'bold',
-          size: 'md',
+          size: 'xl',
+          color: theme.accent,
+          align: 'center',
           wrap: true,
         },
-        {
-          type: 'text',
-          text: 'PhotoPoet · 點亮詩意',
-          color: theme.headerSubColor,
-          size: 'xs',
-          margin: 'sm',
-        },
       ],
-    },
-    body: {
+    });
+    bodyContents.push({
+      type: 'separator',
+      color: '#E5E7EB',
+      margin: 'md',
+    });
+  }
+
+  // 一般 fields：icon + label : value
+  if (card.fields && card.fields.length > 0) {
+    bodyContents.push({
       type: 'box',
       layout: 'vertical',
       spacing: 'md',
-      paddingAll: '16px',
+      margin: 'md',
       contents: card.fields.map(f => ({
         type: 'box',
         layout: 'horizontal',
@@ -152,32 +166,133 @@ function buildFlexBubble(card: AlertCard) {
         contents: [
           {
             type: 'text',
-            text: `${f.icon ? f.icon + ' ' : ''}${f.label}`,
-            color: '#888888',
+            text: `${f.icon ? f.icon + '  ' : ''}${f.label}`,
+            color: '#6B7280',
             size: 'sm',
-            flex: 3,
+            flex: 4,
           },
           {
             type: 'text',
             text: f.value || '—',
-            color: '#1E293B',
+            color: '#111827',
             size: 'sm',
-            flex: 7,
+            weight: 'bold',
+            flex: 6,
             wrap: true,
+            align: 'end',
           },
         ],
       })),
-    },
-    footer: {
+    });
+  }
+
+  // Progress bar (emoji)
+  if (card.progress) {
+    const {current, total, label} = card.progress;
+    const pct = Math.round((current / total) * 100);
+    bodyContents.push({
+      type: 'separator',
+      color: '#E5E7EB',
+      margin: 'md',
+    });
+    bodyContents.push({
       type: 'box',
       layout: 'vertical',
-      paddingAll: '12px',
+      spacing: 'xs',
+      margin: 'md',
+      contents: [
+        {
+          type: 'box',
+          layout: 'horizontal',
+          contents: [
+            {
+              type: 'text',
+              text: label || '今日進度',
+              color: '#6B7280',
+              size: 'sm',
+              flex: 5,
+            },
+            {
+              type: 'text',
+              text: `${current} / ${total}（${pct}%）`,
+              color: theme.accent,
+              size: 'sm',
+              weight: 'bold',
+              flex: 5,
+              align: 'end',
+            },
+          ],
+        },
+        {
+          type: 'text',
+          text: progressBar(current, total),
+          color: theme.accent,
+          size: 'md',
+          align: 'center',
+          margin: 'sm',
+        },
+      ],
+    });
+  }
+
+  return {
+    type: 'bubble',
+    size: 'mega',
+    header: {
+      type: 'box',
+      layout: 'vertical',
+      backgroundColor: theme.headerBg,
+      paddingAll: '20px',
+      paddingBottom: '16px',
       contents: [
         {
           type: 'text',
-          text: card.footerNote ? `${now} · ${card.footerNote}` : now,
-          color: '#94A3B8',
+          text: theme.icon + '  ' + card.title,
+          color: '#FFFFFF',
+          weight: 'bold',
+          size: 'lg',
+          wrap: true,
+        },
+        {
+          type: 'text',
+          text: 'PhotoPoet Pro · 點亮詩意',
+          color: theme.headerSubColor,
+          size: 'xs',
+          margin: 'sm',
+          weight: 'bold',
+        },
+      ],
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      paddingAll: '20px',
+      paddingTop: '16px',
+      backgroundColor: '#FAFAFA',
+      contents: bodyContents,
+    },
+    footer: {
+      type: 'box',
+      layout: 'horizontal',
+      paddingAll: '12px',
+      paddingTop: '8px',
+      backgroundColor: '#FFFFFF',
+      borderColor: '#E5E7EB',
+      borderWidth: 'light',
+      contents: [
+        {
+          type: 'text',
+          text: now,
+          color: '#9CA3AF',
           size: 'xxs',
+          flex: 4,
+        },
+        {
+          type: 'text',
+          text: card.footerNote || '✨',
+          color: '#9CA3AF',
+          size: 'xxs',
+          flex: 6,
           align: 'end',
           wrap: true,
         },
@@ -188,14 +303,28 @@ function buildFlexBubble(card: AlertCard) {
 
 function cardToPlainText(card: AlertCard): string {
   const theme = CARD_THEMES[card.status];
-  return [
+  const lines: string[] = [
     `${theme.icon} ${card.title}`,
-    '(PhotoPoet · 點亮詩意)',
+    '(PhotoPoet Pro · 點亮詩意)',
     '',
-    ...card.fields.map(f => `${f.icon || ''} ${f.label}：${f.value || '—'}`),
-    card.footerNote ? `\n${card.footerNote}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n')
-    .substring(0, 4900);
+  ];
+  if (card.hero) {
+    lines.push(`▸ ${card.hero}`);
+    lines.push('');
+  }
+  for (const f of card.fields) {
+    lines.push(`${f.icon || ''} ${f.label}：${f.value || '—'}`);
+  }
+  if (card.progress) {
+    const {current, total, label} = card.progress;
+    const pct = Math.round((current / total) * 100);
+    lines.push('');
+    lines.push(`📊 ${label || '今日進度'}：${current} / ${total}（${pct}%）`);
+    lines.push(progressBar(current, total));
+  }
+  if (card.footerNote) {
+    lines.push('');
+    lines.push(card.footerNote);
+  }
+  return lines.join('\n').substring(0, 4900);
 }

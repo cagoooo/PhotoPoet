@@ -57,6 +57,16 @@ const STYLE_INSTRUCTIONS: Record<PoemStyle, string> = {
     '請寫一段溫暖正向的繁體中文早安問候語（2-4 行），適合長輩使用，加上祝福或人生小哲理。',
 };
 
+/** 給 LINE 通知 / 詩文牆 等 UI 顯示用的中文標籤（含 emoji） */
+const STYLE_DISPLAY: Record<PoemStyle, string> = {
+  'modern': '🌸 現代詩',
+  'seven-jueju': '🏯 七言絕句',
+  'five-jueju': '🎋 五言絕句',
+  'haiku': '🍃 俳句',
+  'taigi': '🌾 台語白話',
+  'elder': '🌅 早安問候語',
+};
+
 function isPoemStyle(s: unknown): s is PoemStyle {
   return typeof s === 'string' && (POEM_STYLES as readonly string[]).includes(s);
 }
@@ -201,16 +211,18 @@ export const generatePoem = onRequest(
         day: '2-digit',
       }).format(new Date());
       const usedToday = DAILY_LIMIT - quota.remaining; // 含本次
+      const heroName = user.name || user.email?.split('@')[0] || '匿名詩人';
       notifyAdmin({
         status: 'success',
         dedupeKey: `user-active-${user.uid}-${todayKeyTaipei}`,
-        title: '有使用者來生詩了',
+        title: '有人來寫詩了',
+        hero: `${heroName}，第 ${usedToday} 首詩誕生 ✨`,
         fields: [
-          {icon: '👤', label: '使用者', value: user.name || user.email || user.uid.slice(0, 8)},
-          {icon: '🎨', label: '風格', value: style},
-          {icon: '📊', label: '今日已生', value: `${usedToday} / ${DAILY_LIMIT}`},
+          {icon: '🎨', label: '風格', value: STYLE_DISPLAY[style]},
+          {icon: '🌐', label: '版本', value: 'PhotoPoet Pro'},
         ],
-        footerNote: '同一人每天只通知一次',
+        progress: {current: usedToday, total: DAILY_LIMIT, label: '今日進度'},
+        footerNote: '同一人每天只通知一次 🌸',
       }).catch(() => {});
 
       res.status(200).json({
