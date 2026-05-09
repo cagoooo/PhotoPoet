@@ -38,13 +38,13 @@ export interface AlertCard {
   footerNote?: string;
 }
 
-const DEDUPE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const DEDUPE_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours for successful sends
+const FAIL_BACKOFF_MS = 10 * 60 * 1000; // 10 min before retry on failed push (429 等)
 const lastSentByKey = new Map<string, number>();
 
 function shouldSend(dedupeKey: string): boolean {
   const last = lastSentByKey.get(dedupeKey);
   if (last && Date.now() - last < DEDUPE_WINDOW_MS) return false;
-  lastSentByKey.set(dedupeKey, Date.now());
   // 順手清理舊 entries（避免 instance 跑很久 map 變大）
   if (lastSentByKey.size > 100) {
     const cutoff = Date.now() - DEDUPE_WINDOW_MS * 2;
@@ -53,6 +53,22 @@ function shouldSend(dedupeKey: string): boolean {
     }
   }
   return true;
+}
+
+/**
+ * 推送結果 → 更新 dedupe map：
+ *   • success → 標記為 now，下次要等 DEDUPE_WINDOW_MS (24h) 才能再推
+ *   • failed  → 標記為「已過大半時間」，FAIL_BACKOFF_MS (10 min) 後可重試
+ *     避免 LINE 月額度滿 / network blip 時把今天的「使用者活躍」通知卡死
+ */
+function markSent(dedupeKey: string, success: boolean) {
+  if (success) {
+    lastSentByKey.set(dedupeKey, Date.now());
+  } else {
+    // shouldSend 條件: now - last >= DEDUPE_WINDOW_MS
+    // 我們希望 FAIL_BACKOFF_MS 後即可重試 → 設 last = now - (DEDUPE_WINDOW_MS - FAIL_BACKOFF_MS)
+    lastSentByKey.set(dedupeKey, Date.now() - (DEDUPE_WINDOW_MS - FAIL_BACKOFF_MS));
+  }
 }
 
 export async function notifyAdmin(card: AlertCard): Promise<void> {
@@ -70,6 +86,7 @@ export async function notifyAdmin(card: AlertCard): Promise<void> {
   const flex = buildFlexBubble(card);
   const altText = `${CARD_THEMES[card.status].icon} ${card.title}`;
 
+  let pushSucceeded = false;
   try {
     const res = await fetch(LINE_PUSH_API, {
       method: 'POST',
@@ -83,28 +100,30 @@ export async function notifyAdmin(card: AlertCard): Promise<void> {
       }),
     });
 
-    if (res.ok) return;
-
-    const status = res.status;
-    if (status === 429) {
+    if (res.ok) {
+      pushSucceeded = true;
+    } else if (res.status === 429) {
       logger.warn('[notify-line] LINE monthly quota exhausted (429)');
-      return;
+    } else {
+      // 雷 #9：Flex 失敗自動降級純文字
+      logger.warn('[notify-line] flex failed, falling back to text', {status: res.status});
+      const fb = await fetch(LINE_PUSH_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          to: userId,
+          messages: [{type: 'text', text: cardToPlainText(card)}],
+        }),
+      });
+      if (fb.ok) pushSucceeded = true;
     }
-    // 雷 #9：Flex 失敗自動降級純文字
-    logger.warn('[notify-line] flex failed, falling back to text', {status});
-    await fetch(LINE_PUSH_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        to: userId,
-        messages: [{type: 'text', text: cardToPlainText(card)}],
-      }),
-    });
   } catch (err: any) {
     logger.warn('[notify-line] push failed', {msg: err?.message});
+  } finally {
+    markSent(card.dedupeKey, pushSucceeded);
   }
 }
 
