@@ -29,6 +29,9 @@ const notoSansTC = Noto_Sans_TC({
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://photopoet-ha364.web.app';
 const OG_IMAGE = `${SITE_URL}/og.png`;
+// og:url / canonical 必須用「最終 URL」(含 trailing slash) 跟 GitHub Pages 的
+// 301 規範化對齊，否則 FB 會看到 redirect chain 卡住舊 cache。
+const CANONICAL_URL = `${SITE_URL}/`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -37,11 +40,11 @@ export const metadata: Metadata = {
   applicationName: 'PhotoPoet Pro',
   authors: [{name: '阿凱老師', url: 'https://github.com/cagoooo'}],
   keywords: ['PhotoPoet', '點亮詩意', '長輩圖', '繁體中文詩', 'Gemini', '早安圖', 'AI 生詩'],
-  alternates: {canonical: SITE_URL},
+  alternates: {canonical: CANONICAL_URL},
   openGraph: {
     type: 'website',
     locale: 'zh_TW',
-    url: SITE_URL,
+    url: CANONICAL_URL,
     siteName: 'PhotoPoet Pro · 點亮詩意',
     title: '點亮詩意 Pro · 照亮靈感',
     description: '上傳照片，AI 為你寫一首繁體中文詩。Pro 版多風格 / 雲端歷史 / 詩文牆。',
