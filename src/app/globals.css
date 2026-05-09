@@ -286,18 +286,25 @@ body {
     margin: 1mm 0 5mm;
   }
 
-  /* 照片：圓角 + 細紫邊 + 投影 */
+  /* 照片：圓角 + 細紫邊 + 投影；用 flex 強制水平置中 */
   .poem-print-photo-wrap {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin: 0 0 5mm;
+    width: 100%;
   }
   .poem-print-photo {
+    display: block;
     max-width: 88%;
     max-height: 100mm;
+    width: auto;
+    height: auto;
     object-fit: contain;
     border-radius: 3mm;
     border: 0.6pt solid #d8b4fe;
     box-shadow: 0 1.5mm 5mm rgba(109, 40, 217, 0.18);
+    margin: 0 auto;
   }
 
   /* 上下裝飾分隔線（中央 ✦ 浮在白底上） */
