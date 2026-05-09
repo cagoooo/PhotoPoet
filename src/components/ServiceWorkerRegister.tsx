@@ -1,19 +1,24 @@
 "use client";
 
-import {useEffect} from 'react';
-import {toast} from '@/hooks/use-toast';
-import {Button} from '@/components/ui/button';
-import {RefreshCcw} from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {UpdateBanner} from './UpdateBanner';
 
 /**
- * 1. 註冊 SW（root: Firebase Hosting / subpath: GitHub Pages 都 work）
- * 2. 偵測新版本 → toast 提示「點此載入新版」（V2-5）
+ * SW 註冊 + 偵測新版本 + 顯示頂部 banner（取代 toast，比較顯眼且持久）
  *
- * 注意配套：public/sw.js 不再 install 階段就 skipWaiting，等使用者按 toast
- * 才 postMessage SKIP_WAITING + reload，避免使用者頁面正在用舊 cache 時
- * 被新 SW 突襲取代。
+ * 流程：
+ *   1. 註冊 sw.js (basePath aware)
+ *   2. 監聽 updatefound + statechange
+ *   3. 新 SW installed (且有舊 controller) → setShowBanner(true)
+ *   4. 使用者按「立即更新」→ postMessage SKIP_WAITING → controllerchange → reload
+ *   5. 使用者按 X → setShowBanner(false)，下次造訪會再偵測
+ *
+ * 配套：public/sw.js 不在 install 時 skipWaiting，等 message 觸發
  */
 export function ServiceWorkerRegister() {
+  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const [showBanner, setShowBanner] = useState(false);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!('serviceWorker' in navigator)) return;
@@ -27,28 +32,8 @@ export function ServiceWorkerRegister() {
       .register(swUrl, {scope})
       .then(reg => {
         const promptForUpdate = (worker: ServiceWorker) => {
-          toast({
-            title: '✨ 有新版可用',
-            description: '點選「重新載入」取得最新功能與修正',
-            action: (
-              <Button
-                size="sm"
-                onClick={() => {
-                  worker.postMessage({type: 'SKIP_WAITING'});
-                  // 等 controllerchange 觸發後 reload，避免太早 reload 拿到舊版
-                  navigator.serviceWorker.addEventListener(
-                    'controllerchange',
-                    () => window.location.reload(),
-                    {once: true}
-                  );
-                }}
-              >
-                <RefreshCcw className="h-4 w-4 mr-1" />
-                重新載入
-              </Button>
-            ),
-            duration: 60_000, // 給使用者 1 分鐘決定
-          });
+          setWaitingWorker(worker);
+          setShowBanner(true);
         };
 
         // 1) 已有 waiting worker（重新整理後遇到上次未升的版本）
@@ -65,7 +50,6 @@ export function ServiceWorkerRegister() {
               installing.state === 'installed' &&
               navigator.serviceWorker.controller
             ) {
-              // 已有 active worker + 新 worker 已 installed = 真的有更新
               promptForUpdate(installing);
             }
           });
@@ -74,5 +58,34 @@ export function ServiceWorkerRegister() {
       .catch(err => console.warn('[sw] register failed:', err));
   }, []);
 
-  return null;
+  const handleUpdate = () => {
+    if (!waitingWorker) {
+      // 萬一 worker 引用遺失，直接 reload 也能拿到新版
+      window.location.reload();
+      return;
+    }
+    waitingWorker.postMessage({type: 'SKIP_WAITING'});
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      () => window.location.reload(),
+      {once: true}
+    );
+  };
+
+  const handleDismiss = () => {
+    setShowBanner(false);
+    // 不改 SW state — 下次造訪 / reload 時會再偵測，再次顯示
+  };
+
+  // SHA 顯示用：剪短前 7 字
+  const buildSha = (process.env.NEXT_PUBLIC_BUILD_SHA || '').slice(0, 7) || null;
+
+  return (
+    <UpdateBanner
+      show={showBanner}
+      buildSha={buildSha}
+      onUpdate={handleUpdate}
+      onDismiss={handleDismiss}
+    />
+  );
 }
