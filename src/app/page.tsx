@@ -615,8 +615,11 @@ export default function Home() {
             </button>
           </div>
           <h1 className="rainbow-text text-3xl font-extrabold tracking-tight mb-2 drop-shadow-md">
-            ✨ 點亮詩意，照亮靈感 ✨
+            ✨ 點亮詩意 Pro ✨
           </h1>
+          <div className="inline-block rounded-full bg-gradient-to-r from-amber-300 to-yellow-400 text-gray-900 text-[10px] font-bold tracking-wider px-2 py-0.5 mb-2 shadow">
+            🚀 PRO · 升級版
+          </div>
           <CardDescription className="text-md text-gray-200 drop-shadow-md">
             上傳一張照片，<br/>
             讓 AI 為你創作一首繁體中文詩詞，<br/>

@@ -20,6 +20,7 @@ const USED_TEXT = `
 照片變詩
 分享你的詩意
 詩
+升級版多種風雲端歷史社群牆
 `;
 
 const chars = Array.from(

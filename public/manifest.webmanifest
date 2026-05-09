@@ -1,7 +1,7 @@
 {
-  "name": "PhotoPoet · 點亮詩意",
-  "short_name": "PhotoPoet",
-  "description": "上傳照片，AI 為你寫一首繁體中文詩。",
+  "name": "PhotoPoet Pro · 點亮詩意",
+  "short_name": "PhotoPoet Pro",
+  "description": "上傳照片，AI 為你寫一首繁體中文詩。Pro 版升級：6 種詩風、雲端歷史、社群詩文牆。",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

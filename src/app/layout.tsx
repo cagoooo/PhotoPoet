@@ -32,9 +32,9 @@ const OG_IMAGE = `${SITE_URL}/og.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: '點亮詩意 · PhotoPoet（早安長輩圖產生器）',
-  description: '上傳照片，AI 為你寫一首繁體中文詩，一鍵產出超實用長輩圖。',
-  applicationName: 'PhotoPoet',
+  title: '點亮詩意 Pro · PhotoPoet Pro（早安長輩圖產生器）',
+  description: '上傳照片，AI 為你寫一首繁體中文詩，一鍵產出超實用長輩圖。Pro 版升級：6 種詩風、雲端歷史、社群詩文牆。',
+  applicationName: 'PhotoPoet Pro',
   authors: [{name: '阿凱老師', url: 'https://github.com/cagoooo'}],
   keywords: ['PhotoPoet', '點亮詩意', '長輩圖', '繁體中文詩', 'Gemini', '早安圖', 'AI 生詩'],
   alternates: {canonical: SITE_URL},
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'zh_TW',
     url: SITE_URL,
-    siteName: 'PhotoPoet · 點亮詩意',
-    title: '點亮詩意，照亮靈感',
-    description: '上傳照片，AI 為你寫一首繁體中文詩。',
+    siteName: 'PhotoPoet Pro · 點亮詩意',
+    title: '點亮詩意 Pro · 照亮靈感',
+    description: '上傳照片，AI 為你寫一首繁體中文詩。Pro 版多風格 / 雲端歷史 / 詩文牆。',
     images: [
       {
         url: OG_IMAGE,
@@ -52,14 +52,14 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         type: 'image/png',
-        alt: 'PhotoPoet · 點亮詩意，照亮靈感',
+        alt: 'PhotoPoet Pro · 點亮詩意 · 照亮靈感',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '點亮詩意，照亮靈感',
-    description: '上傳照片，AI 為你寫一首繁體中文詩。',
+    title: '點亮詩意 Pro · 照亮靈感',
+    description: '上傳照片，AI 為你寫一首繁體中文詩。Pro 版多風格 / 雲端歷史 / 詩文牆。',
     images: [OG_IMAGE],
   },
   icons: {
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'PhotoPoet',
+    title: 'PhotoPoet Pro',
   },
 };
 

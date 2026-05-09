@@ -45,9 +45,9 @@ export function UseGuideDialog({open, onOpenChange}: UseGuideDialogProps) {
     <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(true) : handleClose())}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl">📖 PhotoPoet 使用指南</DialogTitle>
+          <DialogTitle className="text-xl">📖 PhotoPoet Pro 使用指南</DialogTitle>
           <DialogDescription>
-            5 個步驟，把照片變成詩文 ✨
+            5 個步驟，把照片變成詩文 ✨（升級版含多風格 / 雲端歷史 / 詩文牆）
           </DialogDescription>
         </DialogHeader>
 

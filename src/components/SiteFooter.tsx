@@ -51,7 +51,7 @@ export function SiteFooter() {
         <ShareLinkButton />
       </div>
       <div className="mt-1 text-gray-500">
-        © {year} PhotoPoet · 點亮詩意
+        © {year} PhotoPoet Pro · 點亮詩意
         {process.env.NEXT_PUBLIC_BUILD_SHA && (
           <span
             className="ml-2 text-gray-400"

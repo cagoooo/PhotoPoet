@@ -67,23 +67,50 @@ function drawOg() {
   }
   ctx.globalAlpha = 1;
 
-  // 主標題（漸層文字效果用 stroke + fill 模擬）
-  const title = '點亮詩意，照亮靈感';
-  ctx.font = '900 96px "NotoSansTC"';
+  // 主標題
+  const title = '點亮詩意 Pro';
+  ctx.font = '900 110px "NotoSansTC"';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // 白色描邊讓字浮出
-  ctx.lineWidth = 12;
+  // 黑色描邊讓字浮出
+  ctx.lineWidth = 14;
   ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-  ctx.strokeText(title, W / 2, H / 2 - 60);
+  ctx.strokeText(title, W / 2, H / 2 - 80);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(title, W / 2, H / 2 - 60);
+  ctx.fillText(title, W / 2, H / 2 - 80);
+
+  // PRO 升級徽章（金色膠囊）
+  const badgeText = '🚀 PRO 升級版';
+  ctx.font = '900 28px "NotoSansTC"';
+  const badgeMetrics = ctx.measureText(badgeText);
+  const badgeW = badgeMetrics.width + 40;
+  const badgeH = 44;
+  const badgeX = (W - badgeW) / 2;
+  const badgeY = H / 2;
+  const grad2 = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
+  grad2.addColorStop(0, '#fde047');
+  grad2.addColorStop(1, '#fbbf24');
+  ctx.fillStyle = grad2;
+  // roundRect for badge
+  const br = badgeH / 2;
+  ctx.beginPath();
+  ctx.moveTo(badgeX + br, badgeY);
+  ctx.arcTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + badgeH, br);
+  ctx.arcTo(badgeX + badgeW, badgeY + badgeH, badgeX, badgeY + badgeH, br);
+  ctx.arcTo(badgeX, badgeY + badgeH, badgeX, badgeY, br);
+  ctx.arcTo(badgeX, badgeY, badgeX + badgeW, badgeY, br);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#1f2937';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(badgeText, W / 2, badgeY + badgeH / 2 + 1);
 
   // 副標題
-  ctx.font = '700 36px "NotoSansTC"';
+  ctx.font = '700 32px "NotoSansTC"';
   ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.fillText('上傳照片，AI 為你寫一首繁體中文詩', W / 2, H / 2 + 50);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('多種詩風 · 雲端歷史 · 社群詩文牆', W / 2, H / 2 + 90);
 
   // 上方裝飾線（彩虹色 — 呼應網站詩文配色）
   const barW = W - 320;
@@ -103,7 +130,7 @@ function drawOg() {
 
   ctx.font = '500 22px "NotoSansTC"';
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.fillText('PhotoPoet · 早安長輩圖產生器', W / 2, H - 38);
+  ctx.fillText('PhotoPoet Pro · 早安長輩圖產生器', W / 2, H - 38);
 
   writeFileSync(OG_OUT, canvas.toBuffer('image/png'));
   console.log(`✨ OG image: ${OG_OUT} (${W}×${H})`);
