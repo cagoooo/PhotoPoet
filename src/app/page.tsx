@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 
 import {toast} from '@/hooks/use-toast';
-import {useIsMobile} from '@/hooks/use-mobile';
+import {useIsMobile, useIsDesktop} from '@/hooks/use-mobile';
 import {useAuth} from '@/hooks/useAuth';
 import {useUsage, todayKeyTaipei} from '@/hooks/useUsage';
 
@@ -437,8 +437,8 @@ export default function Home() {
     <>
       <UseGuideDialog open={showGuide} onOpenChange={setShowGuide} />
 
-      <div style={{padding: '24px 12px', minHeight: '100vh'}}>
-        <NightShell>
+      <div className="photopoet-page-wrap" style={{minHeight: '100vh'}}>
+        <NightShell wide>
           {showResult ? (
             <ResultView
               photo={photo!}
@@ -576,6 +576,163 @@ interface HomeViewProps {
 }
 
 function HomeView(p: HomeViewProps) {
+  const isDesktop = useIsDesktop();
+  return isDesktop ? <HomeViewDesktop {...p} /> : <HomeViewMobile {...p} />;
+}
+
+// ── 共用子區塊：FormGrid / PublishToggle / ErrorBanner / CtaLabel ────
+function FormGrid({
+  value,
+  onChange,
+  columns,
+}: {
+  value: PoemStyleValue;
+  onChange: (v: PoemStyleValue) => void;
+  columns: 2 | 3;
+}) {
+  return (
+    <div style={{display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: columns === 3 ? 10 : 8}}>
+      {POEM_STYLE_OPTIONS.map(s => {
+        const active = s.value === value;
+        return (
+          <div
+            key={s.value}
+            onClick={() => onChange(s.value)}
+            style={{
+              padding: columns === 3 ? '12px 14px' : '10px 12px',
+              border: `1px solid ${active ? t.gold : 'rgba(141,138,120,0.25)'}`,
+              background: active ? 'rgba(184,154,74,0.10)' : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all .2s',
+              boxShadow: active ? '0 0 18px rgba(184,154,74,0.18) inset' : 'none',
+            }}
+          >
+            <span style={{fontFamily: t.serif, fontSize: columns === 3 ? 14 : 13, color: t.ink, letterSpacing: 2}}>
+              {s.zh}
+            </span>
+            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 10, color: t.inkMute, marginTop: 2}}>
+              {s.en}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PublishToggle({value, onChange}: {value: boolean; onChange: (v: boolean) => void}) {
+  return (
+    <div
+      onClick={() => onChange(!value)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 14px',
+        border: `1px solid ${t.divider}`,
+        cursor: 'pointer',
+      }}
+    >
+      <div>
+        <div style={{fontSize: 11.5, color: t.ink}}>分享至詩牆</div>
+        <div style={{fontSize: 10, color: t.inkMute, marginTop: 2}}>以暱稱公開展示，其他人看得到</div>
+      </div>
+      <div
+        style={{
+          width: 38,
+          height: 20,
+          borderRadius: 999,
+          background: value ? t.gold : 'rgba(141,138,120,0.3)',
+          position: 'relative',
+          flexShrink: 0,
+          boxShadow: value ? '0 0 14px rgba(184,154,74,0.5)' : 'none',
+          transition: 'all .25s',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 2,
+            left: value ? 20 : 2,
+            width: 16,
+            height: 16,
+            background: '#0a0c14',
+            borderRadius: '50%',
+            transition: 'left .25s',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ErrorBanner({message, onDismiss}: {message: string; onDismiss: () => void}) {
+  return (
+    <div
+      role="alert"
+      style={{
+        padding: '12px 14px',
+        border: `1px solid var(--theme-gold-bright)`,
+        background: 'var(--theme-badge-bg)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 10,
+        fontSize: 12,
+        color: t.ink,
+        lineHeight: 1.7,
+      }}
+    >
+      <span style={{fontFamily: t.serif, fontSize: 18, color: 'var(--theme-gold-bright)', lineHeight: 1, flexShrink: 0}}>
+        ✦
+      </span>
+      <div style={{flex: 1}}>
+        <div
+          style={{
+            fontFamily: t.serif,
+            fontSize: 12,
+            color: 'var(--theme-gold-bright)',
+            letterSpacing: 2,
+            marginBottom: 4,
+          }}
+        >
+          生成失敗 ⸺
+        </div>
+        <div style={{color: t.ink}}>{message}</div>
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="關閉錯誤訊息"
+        title="關閉"
+        style={{
+          background: 'transparent',
+          border: 0,
+          color: t.inkMute,
+          fontSize: 14,
+          cursor: 'pointer',
+          padding: '0 4px',
+          lineHeight: 1,
+          flexShrink: 0,
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
+function ctaLabel(p: HomeViewProps): string {
+  if (p.needsLogin) return '以 Google 登 入';
+  if (!p.hasPhoto) return '先 選 一 張 照 片';
+  return '提 筆 賦 詩';
+}
+
+// ────────────────────────────────────────────────────────────────────
+// HomeViewMobile — 原本的單欄 (mobile / tablet) 排版，保留不動
+// ────────────────────────────────────────────────────────────────────
+function HomeViewMobile(p: HomeViewProps) {
   return (
     <div style={{position: 'relative', zIndex: 1, padding: '0 22px 24px'}}>
       <TopBar
@@ -594,16 +751,7 @@ function HomeView(p: HomeViewProps) {
 
       {/* Hero */}
       <div style={{marginTop: 36, position: 'relative', zIndex: 2}}>
-        <div
-          style={{
-            fontFamily: t.italic,
-            fontStyle: 'italic',
-            fontSize: 14,
-            color: t.gold,
-            letterSpacing: 1,
-            marginBottom: 4,
-          }}
-        >
+        <div style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 14, color: t.gold, letterSpacing: 1, marginBottom: 4}}>
           by night, a verse
         </div>
         <h1
@@ -643,7 +791,6 @@ function HomeView(p: HomeViewProps) {
 
       <NightAuthBar remaining={p.remaining} dailyLimit={p.dailyLimit} />
 
-      {/* I. photograph */}
       <Panel label="i. photograph" style={{marginBottom: 16}}>
         {p.photo ? (
           <PhotoPreview photo={p.photo} onClear={p.onClearPhoto} />
@@ -660,173 +807,193 @@ function HomeView(p: HomeViewProps) {
         )}
       </Panel>
 
-      {/* II. form */}
       <Panel label="ii. form">
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
-          {POEM_STYLE_OPTIONS.map(s => {
-            const active = s.value === p.poemStyle;
-            return (
-              <div
-                key={s.value}
-                onClick={() => p.setPoemStyle(s.value)}
-                style={{
-                  padding: '10px 12px',
-                  border: `1px solid ${active ? t.gold : 'rgba(141,138,120,0.25)'}`,
-                  background: active ? 'rgba(184,154,74,0.10)' : 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'all .2s',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: t.serif,
-                    fontSize: 13,
-                    color: t.ink,
-                    letterSpacing: 2,
-                  }}
-                >
-                  {s.zh}
-                </span>
-                <span
-                  style={{
-                    fontFamily: t.italic,
-                    fontStyle: 'italic',
-                    fontSize: 10,
-                    color: t.inkMute,
-                    marginTop: 2,
-                  }}
-                >
-                  {s.en}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <FormGrid value={p.poemStyle} onChange={p.setPoemStyle} columns={2} />
       </Panel>
 
-      {/* Share toggle */}
-      <div
-        onClick={() => p.setPublishToWall(!p.publishToWall)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginTop: 18,
-          padding: '12px 14px',
-          border: `1px solid ${t.divider}`,
-          cursor: 'pointer',
-        }}
-      >
-        <div>
-          <div style={{fontSize: 11.5, color: t.ink}}>分享至詩牆</div>
-          <div style={{fontSize: 10, color: t.inkMute, marginTop: 2}}>
-            以暱稱公開展示，其他人看得到
-          </div>
-        </div>
-        <div
-          style={{
-            width: 38,
-            height: 20,
-            borderRadius: 999,
-            background: p.publishToWall ? t.gold : 'rgba(141,138,120,0.3)',
-            position: 'relative',
-            flexShrink: 0,
-            boxShadow: p.publishToWall ? '0 0 14px rgba(184,154,74,0.5)' : 'none',
-            transition: 'all .25s',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: 2,
-              left: p.publishToWall ? 20 : 2,
-              width: 16,
-              height: 16,
-              background: '#0a0c14',
-              borderRadius: '50%',
-              transition: 'left .25s',
-            }}
-          />
-        </div>
+      <div style={{marginTop: 18}}>
+        <PublishToggle value={p.publishToWall} onChange={p.setPublishToWall} />
       </div>
 
-      {/* Turnstile */}
       <div style={{marginTop: 14}}>
         <TurnstileGate onToken={p.setTurnstileToken} resetSignal={p.turnstileResetSignal} />
       </div>
 
-      {/* 上次失敗的錯誤訊息（toast 補強：給持久可見的 inline banner） */}
       {p.lastError && (
-        <div
-          role="alert"
-          style={{
-            marginTop: 14,
-            padding: '12px 14px',
-            border: `1px solid var(--theme-gold-bright)`,
-            background: 'var(--theme-badge-bg)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 10,
-            fontSize: 12,
-            color: t.ink,
-            lineHeight: 1.7,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: t.serif,
-              fontSize: 18,
-              color: 'var(--theme-gold-bright)',
-              lineHeight: 1,
-              flexShrink: 0,
-            }}
-          >
-            ✦
-          </span>
-          <div style={{flex: 1}}>
-            <div
-              style={{
-                fontFamily: t.serif,
-                fontSize: 12,
-                color: 'var(--theme-gold-bright)',
-                letterSpacing: 2,
-                marginBottom: 4,
-              }}
-            >
-              生成失敗 ⸺
-            </div>
-            <div style={{color: t.ink}}>{p.lastError}</div>
-          </div>
-          <button
-            type="button"
-            onClick={p.onDismissError}
-            aria-label="關閉錯誤訊息"
-            title="關閉"
-            style={{
-              background: 'transparent',
-              border: 0,
-              color: t.inkMute,
-              fontSize: 14,
-              cursor: 'pointer',
-              padding: '0 4px',
-              lineHeight: 1,
-              flexShrink: 0,
-            }}
-          >
-            ✕
-          </button>
+        <div style={{marginTop: 14}}>
+          <ErrorBanner message={p.lastError} onDismiss={p.onDismissError} />
         </div>
       )}
 
       <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 22}}>
-        {p.needsLogin
-          ? '以 Google 登 入'
-          : !p.hasPhoto
-          ? '先 選 一 張 照 片'
-          : '提 筆 賦 詩'}
+        {ctaLabel(p)}
       </GoldButton>
+
+      <NightSiteFooter />
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// HomeViewDesktop — >=1024px 編輯雜誌式兩欄排版
+// 左欄：Hero（巨型標題）+ 照片面板；右欄：詩體選擇 + 公開 toggle + Turnstile + CTA
+// ────────────────────────────────────────────────────────────────────
+function HomeViewDesktop(p: HomeViewProps) {
+  return (
+    <div style={{position: 'relative', zIndex: 1, padding: '0 56px 32px'}}>
+      <TopBar
+        rightSlot={
+          <>
+            <Link href="/wall" style={{color: t.inkSoft, textDecoration: 'none', cursor: 'pointer'}}>
+              詩牆
+            </Link>
+            <span onClick={p.onShowGuide} style={{cursor: 'pointer'}}>
+              說明
+            </span>
+            <ThemeToggle />
+          </>
+        }
+      />
+
+      {/* Hero — 巨型標題 + 描述，水平兩欄 */}
+      <div
+        style={{
+          marginTop: 48,
+          position: 'relative',
+          zIndex: 2,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(280px, 0.95fr) 1fr',
+          gap: 64,
+          alignItems: 'center',
+          paddingBottom: 12,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontFamily: t.italic,
+              fontStyle: 'italic',
+              fontSize: 18,
+              color: t.gold,
+              letterSpacing: 5,
+              marginBottom: 14,
+            }}
+          >
+            by night, a verse
+          </div>
+          <h1
+            style={{
+              fontFamily: t.serif,
+              fontSize: 116,
+              fontWeight: 300,
+              lineHeight: 1,
+              letterSpacing: 22,
+              color: 'var(--theme-hero-ink)',
+              margin: 0,
+              textShadow: '0 0 60px var(--theme-glow)',
+            }}
+          >
+            夜<span style={{color: 'var(--theme-hero-accent)'}}>讀</span>
+            <br />
+            影<span style={{color: 'var(--theme-hero-accent)'}}>詩</span>
+          </h1>
+        </div>
+        <div style={{paddingLeft: 8, borderLeft: `1px solid ${t.divider}`, paddingTop: 8, paddingBottom: 8}}>
+          <div
+            style={{
+              fontFamily: t.italic,
+              fontStyle: 'italic',
+              fontSize: 13,
+              color: t.gold,
+              letterSpacing: 3,
+              marginBottom: 16,
+              opacity: 0.8,
+            }}
+          >
+            ⸺ prologue
+          </div>
+          <div
+            style={{
+              fontFamily: t.serif,
+              fontSize: 18,
+              fontWeight: 300,
+              color: t.ink,
+              lineHeight: 2.0,
+              letterSpacing: 1.5,
+              marginBottom: 14,
+            }}
+          >
+            上傳一張照片，
+            <br />
+            月光替你謄寫詩句。
+          </div>
+          <div
+            style={{
+              fontFamily: t.serif,
+              fontSize: 14,
+              fontWeight: 300,
+              color: t.inkSoft,
+              lineHeight: 2.0,
+              letterSpacing: 1.2,
+            }}
+          >
+            一張影像，一首屬於你的繁體中文詩。
+            <br />
+            六種詩體任選，再寫一首皆不同。
+          </div>
+        </div>
+      </div>
+
+      <GlowRule style={{margin: '36px 0 24px'}} />
+
+      <NightAuthBar remaining={p.remaining} dailyLimit={p.dailyLimit} />
+
+      {/* 兩欄工作區：左 = 照片，右 = 詩體 / 設定 / CTA */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1.18fr 1fr',
+          gap: 44,
+          marginTop: 28,
+          alignItems: 'start',
+        }}
+      >
+        {/* Left col: photograph */}
+        <Panel label="i. photograph" style={{padding: 18}}>
+          {p.photo ? (
+            <PhotoPreview photo={p.photo} onClear={p.onClearPhoto} />
+          ) : (
+            <UploadEmpty
+              onUploadClick={p.onUploadClick}
+              onFileChange={p.onFileChange}
+              fileInputRef={p.fileInputRef}
+              url={p.url}
+              setUrl={p.setUrl}
+              onUrlSubmit={p.onUrlSubmit}
+              isGenerating={p.isGenerating}
+            />
+          )}
+        </Panel>
+
+        {/* Right col: form + toggle + turnstile + error + CTA */}
+        <div style={{display: 'flex', flexDirection: 'column', gap: 18}}>
+          <Panel label="ii. form" style={{padding: 18}}>
+            <FormGrid value={p.poemStyle} onChange={p.setPoemStyle} columns={3} />
+          </Panel>
+
+          <PublishToggle value={p.publishToWall} onChange={p.setPublishToWall} />
+
+          <div>
+            <TurnstileGate onToken={p.setTurnstileToken} resetSignal={p.turnstileResetSignal} />
+          </div>
+
+          {p.lastError && <ErrorBanner message={p.lastError} onDismiss={p.onDismissError} />}
+
+          <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 6}}>
+            {ctaLabel(p)}
+          </GoldButton>
+        </div>
+      </div>
 
       <NightSiteFooter />
     </div>
@@ -1054,6 +1221,171 @@ interface ResultViewProps {
 }
 
 function ResultView(p: ResultViewProps) {
+  const isDesktop = useIsDesktop();
+  return isDesktop ? <ResultViewDesktop {...p} /> : <ResultViewMobile {...p} />;
+}
+
+// ── 共用子區塊：照片+詩 / 動作群組 / 下載卡 / Tip ──────────────────────
+function PoemPhotoFrame({
+  photo,
+  lines,
+  vertical,
+  formZh,
+  aspectRatio,
+}: {
+  photo: string;
+  lines: string[];
+  vertical: boolean;
+  formZh: string;
+  aspectRatio: string;
+}) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        aspectRatio,
+        overflow: 'hidden',
+        border: `1px solid ${t.panelBorder}`,
+        animation: 'scaleFadeIn .5s ease forwards',
+        boxShadow: '0 30px 60px -20px rgba(0,0,0,0.6)',
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo}
+        alt=""
+        style={{width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.85) contrast(1.05)'}}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, transparent 30%, rgba(10,12,20,0.95) 100%)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: 14,
+          right: 14,
+          padding: '4px 12px',
+          background: 'rgba(10,12,20,0.5)',
+          border: `1px solid ${t.panelBorder}`,
+          backdropFilter: 'blur(8px)',
+          fontFamily: t.italic,
+          fontStyle: 'italic',
+          fontSize: 11,
+          color: t.gold,
+          letterSpacing: 1.5,
+        }}
+      >
+        {formZh}
+      </div>
+      <PoemReveal lines={lines} vertical={vertical} />
+    </div>
+  );
+}
+
+function DownloadCard({
+  format,
+  setFormat,
+  onDownload,
+  isGenerating,
+}: {
+  format: PoemFormat;
+  setFormat: (v: PoemFormat) => void;
+  onDownload: () => void;
+  isGenerating: boolean;
+}) {
+  return (
+    <div style={{padding: 12, border: `1px solid ${t.panelBorder}`, background: t.panel}}>
+      <div
+        style={{
+          fontFamily: t.italic,
+          fontStyle: 'italic',
+          fontSize: 11,
+          color: t.gold,
+          letterSpacing: 1.5,
+          marginBottom: 8,
+        }}
+      >
+        download as ⸺
+      </div>
+      <select
+        value={format}
+        onChange={e => setFormat(e.target.value as PoemFormat)}
+        style={{
+          width: '100%',
+          background: t.bgSoft,
+          color: t.ink,
+          border: `1px solid ${t.panelBorder}`,
+          padding: '10px 12px',
+          fontFamily: t.serif,
+          fontSize: 13,
+          letterSpacing: 1,
+          cursor: 'pointer',
+          outline: 'none',
+        }}
+      >
+        {(Object.keys(FORMAT_LABELS) as PoemFormat[]).map(k => (
+          <option key={k} value={k}>
+            {FORMAT_LABELS[k]}
+          </option>
+        ))}
+      </select>
+      <OutlineButton onClick={onDownload} disabled={isGenerating} style={{width: '100%', marginTop: 8}}>
+        {isGenerating ? '產出中…' : '下載這個版型 ↓'}
+      </OutlineButton>
+    </div>
+  );
+}
+
+function TipBox() {
+  return (
+    <div
+      style={{
+        padding: '12px 14px',
+        border: `1px dashed ${t.panelBorder}`,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        fontSize: 11,
+        color: t.inkSoft,
+      }}
+    >
+      <span style={{fontSize: 18, fontFamily: t.serif}}>✦</span>
+      <div style={{flex: 1, lineHeight: 1.6}}>
+        <div style={{color: t.ink, marginBottom: 2}}>喜歡這首詩？</div>
+        <div style={{fontSize: 10, color: t.inkMute}}>更換詩體、再寫一首，會有不同感覺的版本。</div>
+      </div>
+    </div>
+  );
+}
+
+function ResultMetaRow({dateStr, publish}: {dateStr: string; publish: boolean}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: 10,
+        color: t.inkMute,
+        letterSpacing: 2,
+        paddingBottom: 10,
+        borderBottom: `1px solid ${t.divider}`,
+      }}
+    >
+      <span>{dateStr}</span>
+      <span>{publish ? '已分享至詩牆 ✦' : '私人收藏'}</span>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// ResultViewMobile — 單欄垂直流（原本的設計，保留）
+// ────────────────────────────────────────────────────────────────────
+function ResultViewMobile(p: ResultViewProps) {
   const lines = p.poem.split('\n').filter(l => l.trim().length > 0);
   const dt = new Date();
   const dateStr = `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(
@@ -1065,176 +1397,188 @@ function ResultView(p: ResultViewProps) {
       <TopBar onBack={p.onBack} backLabel="另作" rightSlot={<ThemeToggle />} />
 
       <div style={{padding: '8px 0 24px'}}>
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '4/5',
-            marginTop: 14,
-            overflow: 'hidden',
-            border: `1px solid ${t.panelBorder}`,
-            animation: 'scaleFadeIn .5s ease forwards',
-            boxShadow: '0 30px 60px -20px rgba(0,0,0,0.6)',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={p.photo}
-            alt=""
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              filter: 'brightness(0.85) contrast(1.05)',
-            }}
+        <div style={{marginTop: 14}}>
+          <PoemPhotoFrame
+            photo={p.photo}
+            lines={lines}
+            vertical={p.styleMeta.vertical}
+            formZh={p.styleMeta.zh}
+            aspectRatio="4/5"
           />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, transparent 30%, rgba(10,12,20,0.95) 100%)',
-            }}
-          />
-          {/* form label */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 14,
-              padding: '4px 12px',
-              background: 'rgba(10,12,20,0.5)',
-              border: `1px solid ${t.panelBorder}`,
-              backdropFilter: 'blur(8px)',
-              fontFamily: t.italic,
-              fontStyle: 'italic',
-              fontSize: 11,
-              color: t.gold,
-              letterSpacing: 1.5,
-            }}
-          >
-            {p.styleMeta.zh}
-          </div>
-          <PoemReveal lines={lines} vertical={p.styleMeta.vertical} />
         </div>
 
-        {/* metadata */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 10,
-            color: t.inkMute,
-            letterSpacing: 2,
-            marginTop: 14,
-            paddingBottom: 10,
-            borderBottom: `1px solid ${t.divider}`,
-          }}
-        >
-          <span>{dateStr}</span>
-          <span>{p.publish ? '已分享至詩牆 ✦' : '私人收藏'}</span>
+        <div style={{marginTop: 14}}>
+          <ResultMetaRow dateStr={dateStr} publish={p.publish} />
         </div>
 
-        {/* Actions */}
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 14}}>
           <OutlineButton onClick={p.onCopy}>{p.isCopied ? '已複製 ✓' : '複製詩句'}</OutlineButton>
           <OutlineButton onClick={p.onPrint}>列印 A4 紙本 🖨</OutlineButton>
         </div>
 
-        {/* TTS button (uses existing dark-styled component) */}
         <div style={{marginTop: 8}}>{p.poemTTS}</div>
 
-        {/* Download format */}
-        <div
-          style={{
-            marginTop: 14,
-            padding: 12,
-            border: `1px solid ${t.panelBorder}`,
-            background: t.panel,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: t.italic,
-              fontStyle: 'italic',
-              fontSize: 11,
-              color: t.gold,
-              letterSpacing: 1.5,
-              marginBottom: 8,
-            }}
-          >
-            download as ⸺
-          </div>
-          <select
-            value={p.downloadFormat}
-            onChange={e => p.setDownloadFormat(e.target.value as PoemFormat)}
-            style={{
-              width: '100%',
-              background: t.bgSoft,
-              color: t.ink,
-              border: `1px solid ${t.panelBorder}`,
-              padding: '10px 12px',
-              fontFamily: t.serif,
-              fontSize: 13,
-              letterSpacing: 1,
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            {(Object.keys(FORMAT_LABELS) as PoemFormat[]).map(k => (
-              <option key={k} value={k}>
-                {FORMAT_LABELS[k]}
-              </option>
-            ))}
-          </select>
-          <OutlineButton
-            onClick={p.onFormatDownload}
-            disabled={p.isDownloadGenerating}
-            style={{width: '100%', marginTop: 8}}
-          >
-            {p.isDownloadGenerating ? '產出中…' : '下載這個版型 ↓'}
-          </OutlineButton>
+        <div style={{marginTop: 14}}>
+          <DownloadCard
+            format={p.downloadFormat}
+            setFormat={p.setDownloadFormat}
+            onDownload={p.onFormatDownload}
+            isGenerating={p.isDownloadGenerating}
+          />
         </div>
 
-        {/* Mobile share */}
         {typeof navigator !== 'undefined' && (
-          <OutlineButton
-            onClick={p.onShare}
-            disabled={p.isEmbedGenerating}
-            style={{width: '100%', marginTop: 10}}
-          >
+          <OutlineButton onClick={p.onShare} disabled={p.isEmbedGenerating} style={{width: '100%', marginTop: 10}}>
             {p.isEmbedGenerating ? '產出中…' : '一鍵分享長輩圖（行動端）↗'}
           </OutlineButton>
         )}
 
-        {/* Re-write */}
         <GoldButton onClick={p.onRegenerate} disabled={p.isRegenerating} style={{marginTop: 18}}>
           {p.isRegenerating ? '重 詠 中 …' : '再 寫 一 首'}
         </GoldButton>
 
-        <div
-          style={{
-            marginTop: 22,
-            padding: '12px 14px',
-            border: `1px dashed ${t.panelBorder}`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 11,
-            color: t.inkSoft,
-          }}
-        >
-          <span style={{fontSize: 18, fontFamily: t.serif}}>✦</span>
-          <div style={{flex: 1, lineHeight: 1.6}}>
-            <div style={{color: t.ink, marginBottom: 2}}>喜歡這首詩？</div>
-            <div style={{fontSize: 10, color: t.inkMute}}>
-              更換詩體、再寫一首，會有不同感覺的版本。
-            </div>
-          </div>
+        <div style={{marginTop: 22}}>
+          <TipBox />
         </div>
 
         <NightSiteFooter />
       </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// ResultViewDesktop — 兩欄式：左側大照片+詩，右側動作面板
+// ────────────────────────────────────────────────────────────────────
+function ResultViewDesktop(p: ResultViewProps) {
+  const lines = p.poem.split('\n').filter(l => l.trim().length > 0);
+  const dt = new Date();
+  const dateStr = `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(
+    dt.getDate(),
+  ).padStart(2, '0')} · ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+
+  return (
+    <div style={{position: 'relative', zIndex: 1, padding: '0 56px 32px'}}>
+      <TopBar onBack={p.onBack} backLabel="另作" rightSlot={<ThemeToggle />} />
+
+      {/* Editorial header — 詩體標 + 詩牆狀態 */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          marginTop: 36,
+          paddingBottom: 16,
+          borderBottom: `1px solid ${t.divider}`,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontFamily: t.italic,
+              fontStyle: 'italic',
+              fontSize: 14,
+              color: t.gold,
+              letterSpacing: 4,
+              marginBottom: 6,
+            }}
+          >
+            tonight&apos;s verse ⸺ {p.styleMeta.en}
+          </div>
+          <h2
+            style={{
+              fontFamily: t.serif,
+              fontSize: 38,
+              fontWeight: 300,
+              letterSpacing: 8,
+              color: 'var(--theme-hero-ink)',
+              margin: 0,
+              lineHeight: 1.1,
+            }}
+          >
+            {p.styleMeta.zh} ·{' '}
+            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 26, color: t.gold, letterSpacing: 2}}>
+              一帖月光
+            </span>
+          </h2>
+        </div>
+        <div style={{textAlign: 'right', fontSize: 11, color: t.inkMute, letterSpacing: 2, lineHeight: 1.8}}>
+          <div>{dateStr}</div>
+          <div style={{marginTop: 2, color: p.publish ? t.gold : t.inkMute}}>
+            {p.publish ? '已分享至詩牆 ✦' : '私人收藏'}
+          </div>
+        </div>
+      </div>
+
+      {/* 兩欄主區：左 = 大照片+詩；右 = 動作面板 */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.35fr) minmax(280px, 1fr)',
+          gap: 48,
+          marginTop: 32,
+          alignItems: 'start',
+        }}
+      >
+        {/* 左欄：照片 + 詩（aspect 4/5，大尺寸） */}
+        <div style={{maxWidth: 620}}>
+          <PoemPhotoFrame
+            photo={p.photo}
+            lines={lines}
+            vertical={p.styleMeta.vertical}
+            formZh={p.styleMeta.zh}
+            aspectRatio="4/5"
+          />
+        </div>
+
+        {/* 右欄：動作群組 */}
+        <div style={{display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24}}>
+          <div
+            style={{
+              fontFamily: t.italic,
+              fontStyle: 'italic',
+              fontSize: 12,
+              color: t.gold,
+              letterSpacing: 3,
+            }}
+          >
+            ⸺ actions
+          </div>
+
+          {/* 複製 / 列印 */}
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
+            <OutlineButton onClick={p.onCopy}>{p.isCopied ? '已複製 ✓' : '複製詩句'}</OutlineButton>
+            <OutlineButton onClick={p.onPrint}>列印 A4 紙本 🖨</OutlineButton>
+          </div>
+
+          {/* TTS */}
+          <div>{p.poemTTS}</div>
+
+          {/* 下載卡 */}
+          <DownloadCard
+            format={p.downloadFormat}
+            setFormat={p.setDownloadFormat}
+            onDownload={p.onFormatDownload}
+            isGenerating={p.isDownloadGenerating}
+          />
+
+          {/* 分享（行動裝置才會生效，桌面 navigator.share 通常無效；保留按鈕但設提示） */}
+          {typeof navigator !== 'undefined' && (
+            <OutlineButton onClick={p.onShare} disabled={p.isEmbedGenerating} style={{width: '100%'}}>
+              {p.isEmbedGenerating ? '產出中…' : '一鍵分享長輩圖（行動端）↗'}
+            </OutlineButton>
+          )}
+
+          {/* 主 CTA：再寫一首 */}
+          <GoldButton onClick={p.onRegenerate} disabled={p.isRegenerating} style={{marginTop: 4}}>
+            {p.isRegenerating ? '重 詠 中 …' : '再 寫 一 首'}
+          </GoldButton>
+
+          <TipBox />
+        </div>
+      </div>
+
+      <NightSiteFooter />
     </div>
   );
 }
