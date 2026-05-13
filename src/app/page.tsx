@@ -80,7 +80,9 @@ export default function Home() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
-  const {user, configured: authConfigured, getIdToken} = useAuth();
+  /** 上一次 submit 失敗的訊息（顯示在 home view CTA 上方 banner，比 toast 持久） */
+  const [lastError, setLastError] = useState<string | null>(null);
+  const {user, configured: authConfigured, getIdToken, signIn} = useAuth();
   const {usage} = useUsage(user?.uid);
 
   const router = useRouter();
@@ -199,6 +201,7 @@ export default function Home() {
     }
     if (isRegen) setIsRegenerating(true);
     else setIsGenerating(true);
+    setLastError(null);
     const idToken = authConfigured ? await getIdToken() : null;
     const buildBody = () =>
       JSON.stringify({photo, turnstileToken, style: poemStyle, regenerate: isRegen, publishToWall});
@@ -225,18 +228,36 @@ export default function Home() {
         delay *= 3;
       }
       if (!response.ok) {
-        let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
-        if (response.status === 404) {
-          errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
+        let errorMessage = `生成失敗（HTTP ${response.status}），請稍後再試。`;
+        let bodyError: string | undefined;
+        // 嘗試解析後端 JSON error，拿 message + 用量資訊
+        try {
+          const errBody = await response.json();
+          if (errBody?.error) bodyError = String(errBody.error);
+          if (typeof errBody?.dailyLimit === 'number') setDailyLimit(errBody.dailyLimit);
+          if (typeof errBody?.remaining === 'number') setRemaining(errBody.remaining);
+        } catch {}
+
+        // 偵測 Gemini quota 訊息（優先級最高，無論 status code）
+        const looksLikeQuota =
+          response.status === 429 ||
+          /quota|RESOURCE_EXHAUSTED|Too Many Requests|rate ?limit/i.test(
+            bodyError || '',
+          );
+        if (looksLikeQuota) {
+          errorMessage =
+            'AI 今日的免費額度暫時用完了 ⸺ 請稍後再試（通常隔日重置），或請站長升級付費方案。';
+        } else if (response.status === 404) {
+          errorMessage = '找不到生詩 API（可能後端尚未部署），請稍後再試。';
         } else if (response.status === 503) {
-          errorMessage = 'AI模型目前過載，請稍後再試。';
-        } else if (response.status === 401 || response.status === 403 || response.status === 429) {
-          try {
-            const errBody = await response.json();
-            if (errBody?.error) errorMessage = errBody.error;
-            if (typeof errBody?.dailyLimit === 'number') setDailyLimit(errBody.dailyLimit);
-            if (typeof errBody?.remaining === 'number') setRemaining(errBody.remaining);
-          } catch {}
+          errorMessage = 'AI 模型目前過載，已重試數次仍失敗。請稍後再試。';
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage =
+            bodyError ||
+            '登入狀態失效或權限不足。請重新登入後再試。';
+        } else if (bodyError) {
+          // 其他錯誤但後端有提供原因 → 顯示後端的 message
+          errorMessage = bodyError;
         }
         throw new Error(errorMessage);
       }
@@ -244,10 +265,13 @@ export default function Home() {
       setPoem(data.poem);
       if (typeof data.remaining === 'number') setRemaining(data.remaining);
       if (typeof data.dailyLimit === 'number') setDailyLimit(data.dailyLimit);
+      setLastError(null);
       toast({title: '詩成 ✦', description: '靈感之詩翩然降臨。'});
     } catch (error: any) {
       console.error('Error:', error);
-      toast({title: '生成失敗！', description: error.message || '無法生成詩詞，請稍後再試。'});
+      const message = error?.message || '無法生成詩詞，請稍後再試。';
+      setLastError(message);
+      toast({title: '生成失敗 ⸺', description: message});
     } finally {
       setIsGenerating(false);
       setIsRegenerating(false);
@@ -383,12 +407,30 @@ export default function Home() {
   const styleMeta = findStyle(poemStyle);
   const showResult = !!poem && !isGenerating && !isRegenerating;
   const showOverlay = isGenerating || isRegenerating;
+  const isBusy = isGenerating || isRegenerating;
+  const needsLogin = authConfigured && !user;
   const canSubmit =
     !!photo &&
-    !isGenerating &&
-    !isRegenerating &&
+    !isBusy &&
     (!turnstileEnabled || !!turnstileToken) &&
-    (!authConfigured || !!user);
+    !needsLogin;
+
+  // 主 CTA：未登入時點下去觸發 Google 登入；登入後才走生詩流程
+  const handleCtaClick = () => {
+    if (needsLogin) {
+      signIn().catch(e => {
+        console.error('signIn failed', e);
+        toast({
+          title: '登入失敗',
+          description: e?.message || '請稍後再試。',
+        });
+      });
+      return;
+    }
+    handleSubmit();
+  };
+  // 「請先登入」狀態下按鈕仍可按（按下去登入），其餘 disabled 條件照舊
+  const ctaDisabled = isBusy || (!needsLogin && !canSubmit);
 
   // ─── 渲染 ────────────────────────────────────────────────────────
   return (
@@ -437,11 +479,13 @@ export default function Home() {
               turnstileEnabled={turnstileEnabled}
               setTurnstileToken={setTurnstileToken}
               turnstileResetSignal={turnstileResetSignal}
-              authConfigured={authConfigured}
-              user={user}
-              canSubmit={canSubmit}
-              onSubmit={() => handleSubmit()}
+              needsLogin={needsLogin}
+              hasPhoto={!!photo}
+              ctaDisabled={ctaDisabled}
+              onCta={handleCtaClick}
               onShowGuide={() => setShowGuide(true)}
+              lastError={lastError}
+              onDismissError={() => setLastError(null)}
             />
           )}
         </NightShell>
@@ -522,11 +566,13 @@ interface HomeViewProps {
   turnstileEnabled: boolean;
   setTurnstileToken: (v: string) => void;
   turnstileResetSignal: number;
-  authConfigured: boolean;
-  user: ReturnType<typeof useAuth>['user'];
-  canSubmit: boolean;
-  onSubmit: () => void;
+  needsLogin: boolean;
+  hasPhoto: boolean;
+  ctaDisabled: boolean;
+  onCta: () => void;
   onShowGuide: () => void;
+  lastError: string | null;
+  onDismissError: () => void;
 }
 
 function HomeView(p: HomeViewProps) {
@@ -711,10 +757,73 @@ function HomeView(p: HomeViewProps) {
         <TurnstileGate onToken={p.setTurnstileToken} resetSignal={p.turnstileResetSignal} />
       </div>
 
-      <GoldButton onClick={p.onSubmit} disabled={!p.canSubmit} style={{marginTop: 22}}>
-        {p.authConfigured && !p.user
-          ? '請 先 登 入'
-          : !p.photo
+      {/* 上次失敗的錯誤訊息（toast 補強：給持久可見的 inline banner） */}
+      {p.lastError && (
+        <div
+          role="alert"
+          style={{
+            marginTop: 14,
+            padding: '12px 14px',
+            border: `1px solid var(--theme-gold-bright)`,
+            background: 'var(--theme-badge-bg)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+            fontSize: 12,
+            color: t.ink,
+            lineHeight: 1.7,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: t.serif,
+              fontSize: 18,
+              color: 'var(--theme-gold-bright)',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            ✦
+          </span>
+          <div style={{flex: 1}}>
+            <div
+              style={{
+                fontFamily: t.serif,
+                fontSize: 12,
+                color: 'var(--theme-gold-bright)',
+                letterSpacing: 2,
+                marginBottom: 4,
+              }}
+            >
+              生成失敗 ⸺
+            </div>
+            <div style={{color: t.ink}}>{p.lastError}</div>
+          </div>
+          <button
+            type="button"
+            onClick={p.onDismissError}
+            aria-label="關閉錯誤訊息"
+            title="關閉"
+            style={{
+              background: 'transparent',
+              border: 0,
+              color: t.inkMute,
+              fontSize: 14,
+              cursor: 'pointer',
+              padding: '0 4px',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 22}}>
+        {p.needsLogin
+          ? '以 Google 登 入'
+          : !p.hasPhoto
           ? '先 選 一 張 照 片'
           : '提 筆 賦 詩'}
       </GoldButton>
