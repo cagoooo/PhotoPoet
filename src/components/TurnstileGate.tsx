@@ -52,7 +52,7 @@ export function TurnstileGate({onToken, resetSignal}: TurnstileGateProps) {
       try {
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: SITE_KEY,
-          theme: 'light',
+          theme: 'dark',
           size: 'flexible',
           callback: (token: string) => onTokenRef.current(token),
           'expired-callback': () => onTokenRef.current(''),
