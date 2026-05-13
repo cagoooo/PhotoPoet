@@ -32,24 +32,33 @@ export const nightTokens = {
 
 /**
  * 響應式 max-width 外殼，取代 prototype 的 420×920 phone frame。
- * 桌面：max-width 480px 居中、附星空背景；手機：滿版。
+ *
+ * - 預設 (`wide=false`)：手機/平板/桌面都鎖 480px 居中（適合詩牆 / 我的詩 這種 feed 型頁面）。
+ * - `wide=true`：>=1024px 改用 1180px 廣域佈局，留給首頁 / 結果頁這種需要兩欄編輯式排版的場景。
+ *   className 內含 `night-shell--wide`，可在 globals.css 加 media query 細部微調。
  */
 export function NightShell({
   children,
   showStars = true,
+  wide = false,
   className,
 }: {
   children: ReactNode;
   showStars?: boolean;
+  wide?: boolean;
   className?: string;
 }) {
+  const composedClass = wide
+    ? `night-shell night-shell--wide${className ? ` ${className}` : ''}`
+    : `night-shell${className ? ` ${className}` : ''}`;
   return (
     <div
-      className={className}
+      className={composedClass}
       style={{
         position: 'relative',
         width: '100%',
-        maxWidth: 480,
+        // 透過 CSS 媒體查詢覆寫；inline 提供 SSR / 未支援 var 環境的 fallback
+        maxWidth: 'var(--shell-max-w, 480px)',
         margin: '0 auto',
         minHeight: '100vh',
         color: nightTokens.ink,
