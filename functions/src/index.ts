@@ -234,8 +234,60 @@ export const generatePoem = onRequest(
       });
     } catch (err: any) {
       console.error('[generatePoem] error', err);
-      const status = err?.status === 429 ? 429 : err?.status === 503 ? 503 : 500;
-      res.status(status).json({error: err?.message || '生成詩詞失敗'});
+      const errStatus = err?.status === 429 ? 429 : err?.status === 503 ? 503 : 500;
+      const errMsg = String(err?.message || err || '生成詩詞失敗');
+
+      // ─────────────────────────────────────────────────────────────
+      // LINE 失敗告警 (best-effort，絕不擋 response)
+      //
+      // 三類錯誤分流，dedupe key 也分開避免互相蓋掉：
+      //   • Gemini quota 用盡 (429 / RESOURCE_EXHAUSTED) — 同日只通知 1 次
+      //   • Gemini 暫時過載 (503) — warning 主題；10 min backoff 自動處理
+      //   • 其他 5xx — failed 主題；同錯誤碼同日 1 次
+      //
+      // 不通知：401 (Auth) / 403 (Turnstile) / 後端 quota 已達 (429 from
+      //   consumeQuota) — 那些是使用者端問題或正常設計，站長無需救火
+      // ─────────────────────────────────────────────────────────────
+      const looksLikeQuota =
+        errStatus === 429 ||
+        /quota|RESOURCE_EXHAUSTED|Too Many Requests|rate ?limit/i.test(errMsg);
+      const looksLikeOverload =
+        errStatus === 503 || /overload|503/i.test(errMsg);
+
+      const todayKeyForErr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
+      const heroNameForErr =
+        user.name || user.email?.split('@')[0] || '匿名詩人';
+
+      notifyAdmin({
+        status: looksLikeOverload ? 'warning' : 'failed',
+        dedupeKey: looksLikeQuota
+          ? `gemini-quota-exhausted-${todayKeyForErr}`
+          : `gemini-error-${errStatus}-${todayKeyForErr}`,
+        title: looksLikeQuota
+          ? 'Gemini 免費額度用盡 ⸺'
+          : looksLikeOverload
+          ? 'Gemini 暫時過載 ⸺'
+          : '生詩失敗 ⸺',
+        hero: looksLikeQuota ? '今日 quota 已耗盡 ✦' : undefined,
+        fields: [
+          {icon: '👤', label: '使用者', value: heroNameForErr},
+          {icon: '🎨', label: '風格', value: STYLE_DISPLAY[style]},
+          {icon: '⚠️', label: '錯誤碼', value: String(errStatus)},
+          {icon: '💬', label: '原因', value: errMsg.slice(0, 200)},
+        ],
+        footerNote: looksLikeQuota
+          ? '免費 tier 通常隔日 reset；考慮升 paid 或加 cap'
+          : looksLikeOverload
+          ? '常見現象，AI 服務側問題；頻繁出現可加重試'
+          : '請查 Cloud Functions logs 排查',
+      }).catch(() => {});
+
+      res.status(errStatus).json({error: errMsg});
     }
   }
 );
