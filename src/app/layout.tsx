@@ -1,9 +1,11 @@
 import type {Metadata, Viewport} from 'next';
 import Script from 'next/script';
 import {Geist, Geist_Mono} from 'next/font/google';
-import {Noto_Sans_TC} from 'next/font/google';
+import {Noto_Sans_TC, Noto_Serif_TC, Cormorant_Garamond} from 'next/font/google';
 import './globals.css';
 import {ServiceWorkerRegister} from '@/components/ServiceWorkerRegister';
+import {ThemeProvider} from '@/components/night/ThemeProvider';
+import {THEME_INLINE_SCRIPT} from '@/lib/theme';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -18,7 +20,20 @@ const geistMono = Geist_Mono({
 const notoSansTC = Noto_Sans_TC({
   variable: '--font-noto-sans-tc',
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  weight: ['300', '400', '500', '700'],
+});
+
+const notoSerifTC = Noto_Serif_TC({
+  variable: '--font-noto-serif-tc',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '900'],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: '--font-cormorant-garamond',
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  weight: ['300', '400', '500', '600'],
 });
 
 // 雙部署 SITE_URL 由 build-time env 決定：
@@ -71,7 +86,12 @@ export const metadata: Metadata = {
     icon: [{url: `${SITE_URL}/icon.png`, type: 'image/png', sizes: '512x512'}],
     apple: [{url: `${SITE_URL}/icon.png`, type: 'image/png', sizes: '512x512'}],
   },
-  manifest: `${SITE_URL}/manifest.webmanifest`,
+  // dev 模式 (NODE_ENV !== 'production') 用本地 path 避免 CORS noise；
+  // production build 仍指向 SITE_URL（GitHub Pages / Firebase Hosting 各自指自己 host）
+  manifest:
+    process.env.NODE_ENV === 'production'
+      ? `${SITE_URL}/manifest.webmanifest`
+      : '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -80,7 +100,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#7e22ce',
+  themeColor: [
+    {media: '(prefers-color-scheme: dark)', color: '#06070d'},
+    {media: '(prefers-color-scheme: light)', color: '#efe6d2'},
+  ],
   width: 'device-width',
   initialScale: 1,
 };
@@ -91,12 +114,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant">
+    <html lang="zh-Hant" suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
+        {/* 主題 SSR-safe 預設：在 React hydration 前先讀 localStorage / system pref
+            設好 <html data-theme>，避免從預設 dark flash 到使用者選的 light */}
+        <script
+          dangerouslySetInnerHTML={{__html: THEME_INLINE_SCRIPT}}
+        />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSansTC.variable} antialiased`}>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSansTC.variable} ${notoSerifTC.variable} ${cormorantGaramond.variable} antialiased`}>
+        <ThemeProvider>{children}</ThemeProvider>
         <ServiceWorkerRegister />
         <Script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"

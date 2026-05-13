@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * 我的詩 — 夜空風（night theme）
+ * 對應 prototype sheet-mypoems.jsx
+ */
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -14,24 +18,29 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import {ArrowLeft, Loader2, Copy, Check} from 'lucide-react';
 
 import {firebaseDb, isFirebaseConfigured} from '@/lib/firebase';
 import {useAuth} from '@/hooks/useAuth';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {SiteFooter} from '@/components/SiteFooter';
-import {PoemTTSButton} from '@/components/PoemTTSButton';
 import {toast} from '@/hooks/use-toast';
+import {PoemTTSButton} from '@/components/PoemTTSButton';
+
+import {
+  nightTokens as t,
+  NightShell,
+  TopBar,
+  OutlineButton,
+} from '@/components/night/atoms';
+import {NightSiteFooter} from '@/components/night/NightSiteFooter';
+import {ThemeToggle} from '@/components/night/ThemeToggle';
 
 const PAGE_SIZE = 20;
 const STYLE_LABEL: Record<string, string> = {
-  'modern': '🌸 現代詩',
-  'seven-jueju': '🏯 七言絕句',
-  'five-jueju': '🎋 五言絕句',
-  'haiku': '🍃 俳句',
-  'taigi': '🌾 台語白話',
-  'elder': '🌅 早安語',
+  modern: '現代詩',
+  'seven-jueju': '七言絕句',
+  'five-jueju': '五言絕句',
+  haiku: '俳句',
+  taigi: '台語白話',
+  elder: '早安語',
 };
 
 interface Poem {
@@ -44,7 +53,6 @@ interface Poem {
 function formatDate(d: Date | null) {
   if (!d) return '';
   return d.toLocaleString('zh-TW', {
-    year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -116,7 +124,6 @@ export default function HistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, configured, user?.uid]);
 
-  // 未登入：跳回主頁（Next.js router 會自動處理 basePath）
   useEffect(() => {
     if (!authLoading && configured && !user) {
       router.replace('/');
@@ -124,111 +131,255 @@ export default function HistoryPage() {
   }, [authLoading, configured, user, router]);
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-8 px-4 bg-gradient-to-br from-sky-100 to-pink-100">
-      <div className="w-full max-w-2xl">
-        {/* admin-route-back-to-home: 回主頁按鈕（顯眼位置） */}
-        <div className="mb-4">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-purple-700 hover:text-purple-900 hover:underline"
+    <div style={{padding: '24px 12px', minHeight: '100vh'}}>
+      <NightShell>
+        <div style={{position: 'relative', zIndex: 1, padding: '0 22px 24px'}}>
+          <TopBar
+            onBack={() => (window.location.href = '/')}
+            backLabel="回首頁"
+            rightSlot={<ThemeToggle />}
+          />
+
+          {/* Header */}
+          <div style={{marginTop: 32, marginBottom: 6}}>
+            <div
+              style={{
+                fontFamily: t.italic,
+                fontStyle: 'italic',
+                fontSize: 13,
+                color: t.gold,
+                letterSpacing: 1,
+              }}
+            >
+              my poems
+            </div>
+            <h1
+              style={{
+                fontFamily: t.serif,
+                fontWeight: 300,
+                fontSize: 38,
+                letterSpacing: 8,
+                margin: '4px 0 0',
+                color: '#f0e8c8',
+              }}
+            >
+              我的詩
+            </h1>
+          </div>
+
+          <div
+            style={{
+              fontSize: 11,
+              color: t.inkMute,
+              letterSpacing: 1,
+              marginBottom: 18,
+            }}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            回主頁
-          </Link>
+            {configured && user ? (
+              <>
+                共 <span style={{color: t.gold}}>{poems.length}</span> 首詩，依時間排序
+              </>
+            ) : (
+              <>登入後可在此查看你的歷史詩篇</>
+            )}
+          </div>
+
+          {!configured && (
+            <EmptyState>Firebase 尚未設定</EmptyState>
+          )}
+          {configured && authLoading && (
+            <EmptyState>登入狀態檢查中…</EmptyState>
+          )}
+          {configured && !authLoading && !user && (
+            <EmptyState>未登入。即將返回主頁…</EmptyState>
+          )}
+
+          {configured && user && error && (
+            <div
+              style={{
+                textAlign: 'center',
+                color: '#ef9b8a',
+                fontSize: 12,
+                padding: '24px 0',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {configured && user && !error && poems.length === 0 && !loading && (
+            <EmptyState>
+              還沒有任何詩。
+              <br />
+              <Link
+                href="/"
+                style={{
+                  color: t.gold,
+                  textDecoration: 'none',
+                  fontFamily: t.italic,
+                  fontStyle: 'italic',
+                }}
+              >
+                回主頁上傳第一張照片 ↗
+              </Link>
+            </EmptyState>
+          )}
+
+          {configured && user && poems.length > 0 && (
+            <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+              {poems.map(p => (
+                <PoemRow
+                  key={p.id}
+                  poem={p}
+                  copied={copiedId === p.id}
+                  onCopy={() => handleCopy(p.id, p.poem)}
+                />
+              ))}
+            </div>
+          )}
+
+          {configured && user && hasMore && poems.length > 0 && (
+            <div style={{display: 'flex', justifyContent: 'center', marginTop: 18}}>
+              <OutlineButton onClick={() => loadPage(cursor)} disabled={loading}>
+                {loading ? '載入中…' : '載入更多 ↓'}
+              </OutlineButton>
+            </div>
+          )}
+
+          {configured && user && !hasMore && poems.length > 0 && (
+            <div
+              style={{
+                textAlign: 'center',
+                marginTop: 18,
+                padding: 12,
+                color: t.inkMute,
+                fontSize: 10,
+                letterSpacing: 2,
+              }}
+            >
+              ⸺ 已是最早的一首 ⸺
+            </div>
+          )}
+
+          <NightSiteFooter />
         </div>
+      </NightShell>
+    </div>
+  );
+}
 
-        <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-          <CardHeader className="bg-gradient-to-br from-purple-700 to-pink-700 text-white">
-            <CardTitle className="text-2xl">📜 我的詩歷史</CardTitle>
-            <p className="text-sm text-gray-200 mt-1">
-              你登入後生成的詩，最新的在最上方。
-            </p>
-          </CardHeader>
-          <CardContent className="p-4">
-            {!configured && (
-              <p className="text-center text-sm text-gray-500 py-8">
-                Firebase 尚未設定。
-              </p>
-            )}
-            {configured && authLoading && (
-              <p className="text-center text-sm text-gray-500 py-8 inline-flex items-center justify-center w-full">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                登入狀態檢查中…
-              </p>
-            )}
-            {configured && !authLoading && !user && (
-              <p className="text-center text-sm text-gray-500 py-8">
-                未登入。即將返回主頁…
-              </p>
-            )}
-            {configured && user && error && (
-              <p className="text-center text-sm text-red-600 py-4">{error}</p>
-            )}
-            {configured && user && !error && poems.length === 0 && !loading && (
-              <p className="text-center text-sm text-gray-500 py-8">
-                還沒有任何詩。回主頁上傳第一張照片開始 ✨
-              </p>
-            )}
-            {configured && user && (
-              <ul className="space-y-3">
-                {poems.map(p => (
-                  <li
-                    key={p.id}
-                    className="rounded-lg border bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4 shadow"
-                  >
-                    <div className="flex items-center justify-between text-xs text-gray-300 mb-2">
-                      <span>{p.style ? STYLE_LABEL[p.style] ?? p.style : '🌸 詩'}</span>
-                      <span>{formatDate(p.createdAt)}</span>
-                    </div>
-                    <div className="whitespace-pre-line text-base leading-relaxed">
-                      {p.poem}
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-gray-700">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCopy(p.id, p.poem)}
-                        className="flex-1 bg-transparent border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white"
-                      >
-                        {copiedId === p.id ? (
-                          <>
-                            <Check className="h-4 w-4 mr-1.5" />
-                            已複製
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-4 w-4 mr-1.5" />
-                            複製
-                          </>
-                        )}
-                      </Button>
-                      <div className="flex-1">
-                        <PoemTTSButton poem={p.poem} className="!h-9 !text-sm bg-transparent !border-amber-500/40 !text-amber-300 hover:!bg-amber-900/20" />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+function EmptyState({children}: {children: React.ReactNode}) {
+  return (
+    <div
+      style={{
+        textAlign: 'center',
+        color: t.inkMute,
+        fontSize: 12,
+        padding: '40px 0',
+        lineHeight: 1.9,
+      }}
+    >
+      <div style={{fontSize: 32, color: t.gold, marginBottom: 10}}>✦</div>
+      {children}
+    </div>
+  );
+}
 
-            {configured && user && hasMore && poems.length > 0 && (
-              <div className="mt-4 flex justify-center">
-                <Button variant="outline" onClick={() => loadPage(cursor)} disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      載入中…
-                    </>
-                  ) : (
-                    '載入更多'
-                  )}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <SiteFooter />
+function PoemRow({
+  poem,
+  copied,
+  onCopy,
+}: {
+  poem: Poem;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  const styleLabel = poem.style ? STYLE_LABEL[poem.style] || poem.style : '詩';
+  const previewLines = poem.poem.split('\n').slice(0, 3);
+  return (
+    <div
+      style={{
+        background: t.panel,
+        border: `1px solid ${t.panelBorder}`,
+        padding: '12px 14px',
+        transition: 'border-color .2s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = t.gold;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = t.panelBorder;
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 6,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: t.italic,
+            fontStyle: 'italic',
+            fontSize: 11,
+            color: t.gold,
+            letterSpacing: 1,
+          }}
+        >
+          {styleLabel}
+        </span>
+        <span style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
+          {formatDate(poem.createdAt)}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: t.serif,
+          fontSize: 13,
+          color: '#f0e8c8',
+          lineHeight: 1.8,
+          letterSpacing: 1.5,
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {previewLines.join('\n')}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          marginTop: 10,
+          paddingTop: 8,
+          borderTop: `1px solid ${t.divider}`,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onCopy}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: `1px solid ${t.panelBorder}`,
+            color: copied ? t.gold : t.inkSoft,
+            padding: '7px 10px',
+            fontFamily: t.italic,
+            fontStyle: 'italic',
+            fontSize: 11,
+            letterSpacing: 1.5,
+            cursor: 'pointer',
+            transition: 'all .2s',
+          }}
+        >
+          {copied ? '已複製 ✓' : '複製詩句 ↗'}
+        </button>
+        <div style={{flex: 1}}>
+          <PoemTTSButton
+            poem={poem.poem}
+            className="!h-9 !text-xs !w-full !bg-transparent !border-amber-500/40 !text-amber-300 hover:!bg-amber-900/20"
+          />
+        </div>
       </div>
     </div>
   );

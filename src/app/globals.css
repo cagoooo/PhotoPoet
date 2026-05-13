@@ -3,8 +3,193 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+/* ─────────────────────────────────────────────────────────────────
+   點亮詩意 · 雙主題 token 系統（dark / light）
+   切換方式：<html data-theme="dark|light">
+   ───────────────────────────────────────────────────────────── */
+
+/* 字體 var 與主題無關 */
+:root {
+  --theme-serif: var(--font-noto-serif-tc), 'Noto Serif TC', 'Songti TC', serif;
+  --theme-sans: var(--font-noto-sans-tc), 'Noto Sans TC', sans-serif;
+  --theme-italic: var(--font-cormorant-garamond), 'Cormorant Garamond', serif;
+}
+
+/* dark 是預設主題（也作 fallback，避免 SSR 時沒 data-theme 一片白） */
+:root,
+:root[data-theme='dark'] {
+  --theme-bg: #06070d;
+  --theme-bg-soft: #10131c;
+  --theme-panel: rgba(232, 228, 210, 0.04);
+  --theme-panel-border: rgba(184, 154, 74, 0.25);
+  --theme-divider: rgba(141, 138, 120, 0.18);
+  --theme-ink: #e7e4d8;
+  --theme-ink-soft: #a8a290;
+  --theme-ink-mute: #8d8a78;
+  --theme-ink-faint: #6f6c5e;
+  --theme-gold: #b89a4a;
+  --theme-gold-bright: #f0e4b8;
+  /** Hero 大字裡被點亮的字色（夜空：金；月白：朱印紅） */
+  --theme-hero-accent: #b89a4a;
+  --theme-body-gradient:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(40, 55, 100, 0.55), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(184, 154, 74, 0.10), transparent 70%),
+    var(--theme-bg);
+  --theme-star-color: #f0e4b8;
+  --theme-star-opacity-scale: 1;
+  --theme-card-gradient: linear-gradient(135deg, #2a3148, #1c2235);
+  --theme-hero-ink: #f0e8c8;
+  --theme-poem-reveal: #f0e8c8;
+  --theme-moon-gradient: radial-gradient(circle at 30% 30%, #f0e4b8, #b89a4a);
+  /* 月光投影色 — dark 用金色 glow */
+  --theme-glow: rgba(232, 210, 140, 0.4);
+  --theme-glow-strong: rgba(232, 210, 140, 0.8);
+  /* Modal panel 漸層底 + 角落微光 + 數字徽章 tint */
+  --theme-modal-gradient:
+    radial-gradient(ellipse at 50% 0%, #1c2235 0%, #10131c 60%, #0a0c14 100%);
+  --theme-modal-corner-glow:
+    radial-gradient(circle, rgba(232, 210, 140, 0.12) 0%, transparent 70%);
+  --theme-badge-bg: rgba(184, 154, 74, 0.10);
+  /* meta theme color (mobile address bar) */
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  /* 米黃宣紙底 — 加深 saturation 以及加重中央 vignette */
+  --theme-bg: #ebe1cc;
+  --theme-bg-soft: #f7f1e1;
+
+  /* panel 接近不透明、邊框深褐 — 視覺對比強一個檔位 */
+  --theme-panel: rgba(255, 250, 230, 0.92);
+  --theme-panel-border: rgba(110, 72, 38, 0.65);
+  --theme-divider: rgba(110, 72, 38, 0.4);
+
+  /* 墨色加深、層次更分明 */
+  --theme-ink: #1f1408;
+  --theme-ink-soft: #3d2e16;
+  --theme-ink-mute: #5a3f1f;
+  --theme-ink-faint: #7a5a2c;
+
+  --theme-gold: #6f4a26;
+  --theme-gold-bright: #b8362c;
+  /* Hero accent 在月白主題改用朱印紅，視覺更強 */
+  --theme-hero-accent: #b8362c;
+
+  /* 紙紋 noise + 雙 radial vignette + 角落朱紅暈染 — 給「老紙」感 */
+  --theme-body-gradient:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.30 0 0 0 0 0.13 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 240px 240px repeat,
+    radial-gradient(ellipse 60% 45% at 50% 0%, rgba(110, 72, 38, 0.18), transparent 65%),
+    radial-gradient(ellipse 70% 55% at 50% 110%, rgba(184, 54, 44, 0.10), transparent 70%),
+    radial-gradient(ellipse 100% 80% at 50% 50%, transparent 30%, rgba(110, 72, 38, 0.10) 100%),
+    var(--theme-bg);
+
+  --theme-star-color: #6f4a26;
+  --theme-star-opacity-scale: 0.55;
+  --theme-card-gradient: linear-gradient(135deg, #f7f1e1, #e3d5b1);
+  --theme-hero-ink: #1f1408;
+  --theme-poem-reveal: #1f1408;
+  --theme-moon-gradient: radial-gradient(circle at 30% 30%, #fff5d8, #b89a4a);
+  --theme-glow: rgba(184, 54, 44, 0.22);
+  --theme-glow-strong: rgba(184, 54, 44, 0.5);
+  /* Modal panel 月白風 — 米黃宣紙漸層 + 紙紋 + 朱紅角落微光 */
+  --theme-modal-gradient:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.30 0 0 0 0 0.13 0 0 0 0.13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat,
+    radial-gradient(ellipse at 50% 0%, #fbf5e2 0%, #f3ead2 60%, #e8dcbe 100%);
+  --theme-modal-corner-glow:
+    radial-gradient(circle, rgba(184, 54, 44, 0.16) 0%, transparent 70%);
+  --theme-badge-bg: rgba(184, 54, 44, 0.10);
+  color-scheme: light;
+}
+
+/* ─── 全域底色 / 字體 ───────────────────────────────────────────── */
+html, body {
+  background: var(--theme-body-gradient);
+  color: var(--theme-ink);
+  min-height: 100%;
+  font-family: var(--theme-sans);
+  /* 主題切換時平滑過渡（避免閃爍） */
+  transition: background-color 0.4s ease, color 0.3s ease;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--theme-gold);
+  opacity: 0.5;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─── 舊命名 var 別名（避免破壞既有 inline style 引用）──────────── */
+:root {
+  --night-bg: var(--theme-bg);
+  --night-bg-soft: var(--theme-bg-soft);
+  --night-panel: var(--theme-panel);
+  --night-panel-border: var(--theme-panel-border);
+  --night-divider: var(--theme-divider);
+  --night-ink: var(--theme-ink);
+  --night-ink-soft: var(--theme-ink-soft);
+  --night-ink-mute: var(--theme-ink-mute);
+  --night-ink-faint: var(--theme-ink-faint);
+  --night-gold: var(--theme-gold);
+  --night-gold-bright: var(--theme-gold-bright);
+  --night-serif: var(--theme-serif);
+  --night-sans: var(--theme-sans);
+  --night-italic: var(--theme-italic);
+}
+
+/* ---- Reveal / typing animations (night theme) ---- */
+@keyframes nightFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes moonPulse {
+  0%, 100% { box-shadow: 0 0 16px var(--theme-glow); }
+  50%      { box-shadow: 0 0 28px var(--theme-glow-strong); }
+}
+@keyframes shimmerSweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+@keyframes scaleFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes inkRise {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 12px var(--theme-glow); }
+  50%      { text-shadow: 0 0 24px var(--theme-glow-strong); }
+}
+
+.star-twinkle {
+  animation: starTwinkle 3s ease-in-out infinite;
+}
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--theme-ink-mute) 0%,
+    var(--theme-gold-bright) 50%,
+    var(--theme-ink-mute) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmerSweep 2.5s linear infinite;
+}
+.night-ink-rise > span {
+  display: inline-block;
+  animation: inkRise 0.7s ease both;
 }
 
 @layer base {
