@@ -80,7 +80,7 @@ export default function Home() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
-  const {user, configured: authConfigured, getIdToken} = useAuth();
+  const {user, configured: authConfigured, getIdToken, signIn} = useAuth();
   const {usage} = useUsage(user?.uid);
 
   const router = useRouter();
@@ -383,12 +383,30 @@ export default function Home() {
   const styleMeta = findStyle(poemStyle);
   const showResult = !!poem && !isGenerating && !isRegenerating;
   const showOverlay = isGenerating || isRegenerating;
+  const isBusy = isGenerating || isRegenerating;
+  const needsLogin = authConfigured && !user;
   const canSubmit =
     !!photo &&
-    !isGenerating &&
-    !isRegenerating &&
+    !isBusy &&
     (!turnstileEnabled || !!turnstileToken) &&
-    (!authConfigured || !!user);
+    !needsLogin;
+
+  // 主 CTA：未登入時點下去觸發 Google 登入；登入後才走生詩流程
+  const handleCtaClick = () => {
+    if (needsLogin) {
+      signIn().catch(e => {
+        console.error('signIn failed', e);
+        toast({
+          title: '登入失敗',
+          description: e?.message || '請稍後再試。',
+        });
+      });
+      return;
+    }
+    handleSubmit();
+  };
+  // 「請先登入」狀態下按鈕仍可按（按下去登入），其餘 disabled 條件照舊
+  const ctaDisabled = isBusy || (!needsLogin && !canSubmit);
 
   // ─── 渲染 ────────────────────────────────────────────────────────
   return (
@@ -437,10 +455,10 @@ export default function Home() {
               turnstileEnabled={turnstileEnabled}
               setTurnstileToken={setTurnstileToken}
               turnstileResetSignal={turnstileResetSignal}
-              authConfigured={authConfigured}
-              user={user}
-              canSubmit={canSubmit}
-              onSubmit={() => handleSubmit()}
+              needsLogin={needsLogin}
+              hasPhoto={!!photo}
+              ctaDisabled={ctaDisabled}
+              onCta={handleCtaClick}
               onShowGuide={() => setShowGuide(true)}
             />
           )}
@@ -522,10 +540,10 @@ interface HomeViewProps {
   turnstileEnabled: boolean;
   setTurnstileToken: (v: string) => void;
   turnstileResetSignal: number;
-  authConfigured: boolean;
-  user: ReturnType<typeof useAuth>['user'];
-  canSubmit: boolean;
-  onSubmit: () => void;
+  needsLogin: boolean;
+  hasPhoto: boolean;
+  ctaDisabled: boolean;
+  onCta: () => void;
   onShowGuide: () => void;
 }
 
@@ -711,10 +729,10 @@ function HomeView(p: HomeViewProps) {
         <TurnstileGate onToken={p.setTurnstileToken} resetSignal={p.turnstileResetSignal} />
       </div>
 
-      <GoldButton onClick={p.onSubmit} disabled={!p.canSubmit} style={{marginTop: 22}}>
-        {p.authConfigured && !p.user
-          ? '請 先 登 入'
-          : !p.photo
+      <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 22}}>
+        {p.needsLogin
+          ? '以 Google 登 入'
+          : !p.hasPhoto
           ? '先 選 一 張 照 片'
           : '提 筆 賦 詩'}
       </GoldButton>
