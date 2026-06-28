@@ -176,6 +176,20 @@ function drawCover(
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
+function drawContain(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+) {
+  const scale = Math.min(dw / img.width, dh / img.height);
+  const w = img.width * scale;
+  const h = img.height * scale;
+  ctx.drawImage(img, dx + (dw - w) / 2, dy + (dh - h) / 2, w, h);
+}
+
 function roundRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -348,6 +362,62 @@ function drawPoemLines(
   }
 }
 
+function wrapPoemLines(
+  ctx: CanvasRenderingContext2D,
+  lines: string[],
+  maxWidth: number,
+) {
+  const wrapped: string[] = [];
+  for (const raw of lines) {
+    let line = '';
+    for (const char of Array.from(raw)) {
+      const next = line + char;
+      if (line && ctx.measureText(next).width > maxWidth) {
+        wrapped.push(line);
+        line = char;
+      } else {
+        line = next;
+      }
+    }
+    if (line) wrapped.push(line);
+  }
+  return wrapped.length ? wrapped : lines;
+}
+
+function fitPoemLines(
+  ctx: CanvasRenderingContext2D,
+  poem: string,
+  maxWidth: number,
+  maxHeight: number,
+  maxFontSize: number,
+  minFontSize: number,
+  lineRatio = 1.55,
+) {
+  const rawLines = poemLines(poem);
+  for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 2) {
+    ctx.font = `${fontSize}px ${SERIF_STACK}`;
+    const lines = wrapPoemLines(ctx, rawLines, maxWidth);
+    const lineHeight = fontSize * lineRatio;
+    const totalHeight = lines.length * lineHeight;
+    const widest = Math.max(...lines.map(line => ctx.measureText(line).width), 0);
+    if (totalHeight <= maxHeight && widest <= maxWidth) {
+      return {lines, fontSize, lineHeight, totalHeight, widest};
+    }
+  }
+
+  const fontSize = minFontSize;
+  ctx.font = `${fontSize}px ${SERIF_STACK}`;
+  const lines = wrapPoemLines(ctx, rawLines, maxWidth);
+  const lineHeight = fontSize * lineRatio;
+  return {
+    lines,
+    fontSize,
+    lineHeight,
+    totalHeight: lines.length * lineHeight,
+    widest: Math.max(...lines.map(line => ctx.measureText(line).width), 0),
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────
 // 1) embed — 沿用照片 ratio，詩烙印右下，加微暗漸層讓字浮起來
 // ────────────────────────────────────────────────────────────────────
@@ -464,12 +534,9 @@ function renderSidebar(img: HTMLImageElement, poem: string, palette: CardPalette
   drawHeader(ctx, rightX + 40, 50, palette, 1.2);
 
   // 詩文居中
-  const lines = poemLines(poem);
-  const fontSize = lines.length > 6 ? 36 : 44;
-  const lineHeight = fontSize * 1.6;
-  const totalH = lines.length * lineHeight;
-  const startY = (H - totalH) / 2 - 20;
-  drawPoemLines(ctx, lines, rightCx, startY, fontSize, lineHeight, palette, {strokeWidth: 0});
+  const fitted = fitPoemLines(ctx, poem, rightW - 120, 350, 44, 24, 1.5);
+  const startY = 120 + (350 - fitted.totalHeight) / 2;
+  drawPoemLines(ctx, fitted.lines, rightCx, startY, fitted.fontSize, fitted.lineHeight, palette, {strokeWidth: 0});
 
   // 分隔線 + footer
   drawDivider(ctx, rightX + 60, W - 60, H - 60, palette);
@@ -517,13 +584,11 @@ function renderStory(img: HTMLImageElement, poem: string, palette: CardPalette):
   ctx.restore();
 
   // 詩文
-  const lines = poemLines(poem);
-  const fontSize = lines.length > 6 ? 56 : 70;
-  const lineHeight = fontSize * 1.6;
-  const totalH = lines.length * lineHeight;
-  const poemArea = H - photoH - 200;
-  const startY = photoH + (poemArea - totalH) / 2;
-  drawPoemLines(ctx, lines, W / 2, startY, fontSize, lineHeight, palette);
+  const poemAreaTop = photoH + 70;
+  const poemAreaHeight = H - poemAreaTop - 280;
+  const fitted = fitPoemLines(ctx, poem, W - 160, poemAreaHeight, 66, 32, 1.5);
+  const startY = poemAreaTop + (poemAreaHeight - fitted.totalHeight) / 2;
+  drawPoemLines(ctx, fitted.lines, W / 2, startY, fitted.fontSize, fitted.lineHeight, palette);
 
   // 分隔線
   drawDivider(ctx, 240, W - 240, H - 160, palette);
@@ -559,23 +624,14 @@ function renderWallpaper(img: HTMLImageElement, poem: string, palette: CardPalet
   ctx.fillRect(0, 0, W, H);
 
   // 詩文面板（右側 1/2）
-  const lines = poemLines(poem);
-  const fontSize = lines.length > 6 ? 38 : 46;
-  const lineHeight = fontSize * 1.55;
-
-  ctx.font = `${fontSize}px ${SERIF_STACK}`;
-  let maxLineW = 0;
-  for (const line of lines) {
-    const m = ctx.measureText(line);
-    if (m.width > maxLineW) maxLineW = m.width;
-  }
-
   const padX = 60;
   const padY = 50;
-  const panelW = Math.min(W * 0.55, maxLineW + padX * 2 + 20);
-  const panelH = lines.length * lineHeight + padY * 2 + 60;
-  const panelX = W - panelW - 80;
-  const panelY = (H - panelH) / 2;
+  const panelW = 820;
+  const maxTextWidth = panelW - padX * 2 - 80;
+  const fitted = fitPoemLines(ctx, poem, maxTextWidth, 180, 40, 24, 1.45);
+  const panelH = Math.max(260, fitted.totalHeight + padY * 2 + 70);
+  const panelX = W - panelW - 90;
+  const panelY = H - panelH - 90;
 
   // 半透明面板 + 圓角 + 金邊
   ctx.fillStyle = palette.panel;
@@ -589,20 +645,20 @@ function renderWallpaper(img: HTMLImageElement, poem: string, palette: CardPalet
   drawHeader(ctx, panelX + padX, panelY + 40, palette, 1.1);
 
   // 詩文
-  const startY = panelY + padY + 40;
+  const startY = panelY + 84 + (panelH - 134 - fitted.totalHeight) / 2;
   drawPoemLines(
     ctx,
-    lines,
-    panelX + panelW / 2,
+    fitted.lines,
+    panelX + panelW / 2 - 20,
     startY,
-    fontSize,
-    lineHeight,
+    fitted.fontSize,
+    fitted.lineHeight,
     palette,
     {strokeWidth: 0},
   );
 
   // 印章右下角面板內
-  drawSeal(ctx, panelX + panelW - 40, panelY + panelH - 40, palette, 50);
+  drawSeal(ctx, panelX + panelW - 44, panelY + panelH - 44, palette, 50);
 
   return canvas.toDataURL('image/png');
 }
@@ -732,7 +788,7 @@ function renderPostcard(img: HTMLImageElement, poem: string, palette: CardPalett
   // 照片框
   ctx.fillStyle = palette.bgGradientStop;
   ctx.fillRect(innerLeft, photoY, photoW, photoH);
-  drawCover(ctx, img, innerLeft, photoY, photoW, photoH);
+  drawContain(ctx, img, innerLeft, photoY, photoW, photoH);
   ctx.strokeStyle = palette.gold;
   ctx.globalAlpha = 0.55;
   ctx.lineWidth = 2;
@@ -743,11 +799,9 @@ function renderPostcard(img: HTMLImageElement, poem: string, palette: CardPalett
   drawDivider(ctx, innerLeft + 80, innerRight - 80, photoY + photoH + 70, palette);
 
   // 詩文
-  const lines = poemLines(poem);
-  const fontSize = lines.length > 6 ? 50 : 60;
-  const lineHeight = fontSize * 1.7;
   const poemTopY = photoY + photoH + 130;
-  drawPoemLines(ctx, lines, innerCx, poemTopY, fontSize, lineHeight, palette);
+  const fitted = fitPoemLines(ctx, poem, innerW - 180, 470, 58, 30, 1.6);
+  drawPoemLines(ctx, fitted.lines, innerCx, poemTopY, fitted.fontSize, fitted.lineHeight, palette);
 
   // 朱印 / 月印 — 詩文右下角
   drawSeal(ctx, innerRight - 80, H - margin - 220, palette, 110);
