@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import {useState, useCallback, useRef, useEffect} from 'react';
 import {
@@ -76,7 +76,7 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (retries = 3, delay = 1000) => {
+  const handleSubmit = async () => {
     if (!photo) {
       toast({
         title: '錯誤！',
@@ -86,36 +86,31 @@ export default function Home() {
     }
     setIsGenerating(true);
     try {
-      let response = await fetch('/api/generate', {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json'
- },
- body: JSON.stringify({ photo }),
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ photo }),
       });
 
- while (!response.ok && response.status === 503 && retries > 0) {
- console.warn(`AI模型目前過載，重試中... 剩餘 ${retries} 次`);
- await new Promise(resolve => setTimeout(resolve, delay));
- response = await fetch('/api/generate', {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json'
- },
- body: JSON.stringify({ photo }),
-        });
- retries--;
- delay *= 3; // Exponential backoff
-      }
-
       if (!response.ok) {
-        let errorMessage = `HTTP 錯誤！狀態碼: ${response.status}`;
+        let errorMessage = `產生失敗，狀態碼：${response.status}`;
+        try {
+          const errorBody = await response.json();
+          if (errorBody && errorBody.error) {
+            errorMessage = errorBody.error;
+          }
+        } catch (e) {
+          // The response body is not JSON or is unreadable, use the default error message
+        }
         if (response.status === 404) {
           errorMessage = '生成失敗！找不到產生詩詞的API，請稍後再試。';
+        } else if (response.status === 429) {
+          errorMessage = '已達本小時產生上限。為了避免 AI API 額度被快速耗盡，每位使用者每小時最多可產生 5 次，請稍後再試。';
         } else if (response.status === 503) {
- errorMessage = 'AI模型目前過載，請稍後再試。';
+          errorMessage = 'AI模型目前過載，請稍後再試。';
         }
         throw new Error(errorMessage);
       }
@@ -123,12 +118,12 @@ export default function Home() {
       const data = await response.json();
       setPoem(data.poem);
 
- if (poemRef.current) {
-              toast({
-                title: '產生成功！',
-                description: '靈感之詩翩然降臨，請往下滑動檢視',
-            });
-        }
+      if (poemRef.current) {
+        toast({
+          title: '產生成功！',
+          description: '靈感之詩翩然降臨，請往下滑動檢視',
+        });
+      }
 
     } catch (error: any) {
       console.error('Error:', error);
@@ -549,6 +544,9 @@ export default function Home() {
             >
               {isGenerating ? '詠唱中...' : '生成詩詞'}
             </Button>
+            <p className="text-xs leading-relaxed text-slate-600">
+              為了讓大家都能穩定使用，AI 產生功能每位使用者每小時最多 5 次。請在真的要使用作品時再生成，避免連續測試耗盡 API 額度。
+            </p>
             {poem && (
               <div className="mt-4">
                 <h2 className="text-2xl font-semibold tracking-tight mt-4 text-center text-purple-700 drop-shadow-md">
@@ -616,4 +614,3 @@ export default function Home() {
     </div>
   );
 }
-
