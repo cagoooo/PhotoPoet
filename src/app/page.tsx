@@ -9,13 +9,173 @@ import {
 } from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
-import {Textarea} from '@/components/ui/textarea';
 import {toast} from '@/hooks/use-toast';
 import {useRouter} from 'next/navigation';
 import Image from 'next/image';
-import {cn} from '@/lib/utils';
 import {Check, Download} from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+type ExportLayout = 'sideBySide' | 'igStory' | 'wallpaper' | 'postcard' | 'overlay';
+
+const PAPER = '#f5eddd';
+const INK = '#4b3a2b';
+const SEAL = '#c0392b';
+const LINE = '#d8c7a8';
+const POEM_COLORS = [
+  '#ef5350',
+  '#f48fb1',
+  '#7e57c2',
+  '#2196f3',
+  '#26a69a',
+  '#43a047',
+  '#D97706',
+  '#f9a825',
+];
+
+const loadImage = async (src: string) => {
+  const image = new window.Image();
+  image.src = src;
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('Failed to load image'));
+  });
+  return image;
+};
+
+const drawImageCover = (
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) => {
+  const scale = Math.max(width / image.width, height / image.height);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (image.width - sourceWidth) / 2;
+  const sourceY = (image.height - sourceHeight) / 2;
+  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+};
+
+const drawImageContain = (
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) => {
+  const scale = Math.min(width / image.width, height / image.height);
+  const drawWidth = image.width * scale;
+  const drawHeight = image.height * scale;
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+};
+
+const wrapText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+) => {
+  const wrapped: string[] = [];
+  text.split('\n').forEach((rawLine) => {
+    const chars = Array.from(rawLine.trim());
+    let line = '';
+    chars.forEach((char) => {
+      const next = line + char;
+      if (line && ctx.measureText(next).width > maxWidth) {
+        wrapped.push(line);
+        line = char;
+      } else {
+        line = next;
+      }
+    });
+    wrapped.push(line);
+  });
+  return wrapped.filter(Boolean);
+};
+
+const fitPoem = (
+  ctx: CanvasRenderingContext2D,
+  poem: string,
+  maxWidth: number,
+  maxHeight: number,
+  maxFontSize: number,
+  minFontSize: number
+) => {
+  for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 2) {
+    ctx.font = `${fontSize}px "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif`;
+    const lines = wrapText(ctx, poem, maxWidth);
+    const lineHeight = fontSize * 1.55;
+    if (lines.length * lineHeight <= maxHeight && lines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+      return {fontSize, lineHeight, lines};
+    }
+  }
+
+  const fontSize = minFontSize;
+  ctx.font = `${fontSize}px "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif`;
+  return {fontSize, lineHeight: fontSize * 1.55, lines: wrapText(ctx, poem, maxWidth)};
+};
+
+const drawPoemBlock = (
+  ctx: CanvasRenderingContext2D,
+  poem: string,
+  box: {x: number; y: number; width: number; height: number},
+  options: {maxFontSize: number; minFontSize: number; align?: CanvasTextAlign; seal?: boolean}
+) => {
+  const padding = Math.min(box.width, box.height) * 0.08;
+  const textWidth = box.width - padding * 2 - (options.seal ? 84 : 0);
+  const textHeight = box.height - padding * 2;
+  const fitted = fitPoem(ctx, poem, textWidth, textHeight, options.maxFontSize, options.minFontSize);
+  const totalHeight = fitted.lines.length * fitted.lineHeight;
+  const startY = box.y + (box.height - totalHeight) / 2 + fitted.fontSize * 0.86;
+  const align = options.align ?? 'center';
+  const textX = align === 'left'
+    ? box.x + padding
+    : align === 'right'
+      ? box.x + box.width - padding - (options.seal ? 84 : 0)
+      : box.x + box.width / 2 - (options.seal ? 34 : 0);
+
+  ctx.save();
+  ctx.font = `${fitted.fontSize}px "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif`;
+  ctx.fillStyle = INK;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'alphabetic';
+  fitted.lines.forEach((line, index) => {
+    ctx.fillText(line, textX, startY + index * fitted.lineHeight);
+  });
+
+  if (options.seal) {
+    const sealSize = Math.max(44, Math.min(64, box.width * 0.055));
+    ctx.fillStyle = SEAL;
+    ctx.fillRect(box.x + box.width - padding - sealSize, box.y + box.height - padding - sealSize, sealSize, sealSize);
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${sealSize * 0.56}px "Microsoft JhengHei", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('詩', box.x + box.width - padding - sealSize / 2, box.y + box.height - padding - sealSize / 2);
+  }
+  ctx.restore();
+};
+
+const drawPoemHeader = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale = 1
+) => {
+  ctx.save();
+  ctx.fillStyle = '#9a3a25';
+  ctx.beginPath();
+  ctx.arc(x, y, 9 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#6b5a48';
+  ctx.font = `${15 * scale}px "Microsoft JhengHei", sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('點亮詩意', x + 20 * scale, y);
+  ctx.restore();
+};
 
 export default function Home() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -23,8 +183,7 @@ export default function Home() {
   const [url, setUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-    const [isEmbedGenerating, setIsEmbedGenerating] = useState(false); // New state for embed generation
-    const [isDownloadGenerating, setIsDownloadGenerating] = useState(false);
+  const [activeExport, setActiveExport] = useState<ExportLayout | null>(null);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const poemRef = useRef<HTMLDivElement>(null);
@@ -192,7 +351,7 @@ export default function Home() {
     }
   };
 
-    const generateDownloadImageDataUrl = useCallback(async () => {
+    const generateExportImageDataUrl = useCallback(async (layout: ExportLayout) => {
         if (!photo || !poem) {
             toast({
                 title: '錯誤！',
@@ -201,7 +360,6 @@ export default function Home() {
             return null;
         }
 
-
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -213,210 +371,145 @@ export default function Home() {
             return null;
         }
 
-        const image = new window.Image();
-        image.src = photo;
+        const image = await loadImage(photo);
 
-        await new Promise((resolve, reject) => {
-            image.onload = () => resolve(null);
-            image.onerror = () => reject(new Error('Failed to load image'));
-        });
-
-        const imageAspectRatio = image.width / image.height;
-        const canvasWidth = 1200;
-        const canvasHeight = 600;
-
-        let imageWidth = 600; // Reduced image width
-        let imageHeight = canvasHeight;
-
-        if (imageAspectRatio > 1) {
-            imageHeight = imageWidth / imageAspectRatio;
-        } else {
-            imageWidth = imageHeight * imageAspectRatio;
+        if (layout === 'sideBySide') {
+            canvas.width = 1200;
+            canvas.height = 600;
+            ctx.fillStyle = PAPER;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawImageCover(ctx, image, 0, 0, 600, 600);
+            drawPoemHeader(ctx, 646, 52, 1);
+            drawPoemBlock(ctx, poem, {x: 620, y: 110, width: 540, height: 350}, {maxFontSize: 48, minFontSize: 24, seal: true});
+            ctx.strokeStyle = LINE;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(680, 540);
+            ctx.lineTo(1140, 540);
+            ctx.stroke();
+            return canvas.toDataURL('image/png');
         }
 
-        const imageX = 0;
-        const imageY = (canvasHeight - imageHeight) / 2;
+        if (layout === 'igStory') {
+            canvas.width = 1080;
+            canvas.height = 1920;
+            ctx.fillStyle = PAPER;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawImageCover(ctx, image, 0, 0, canvas.width, 980);
+            const fade = ctx.createLinearGradient(0, 830, 0, 1080);
+            fade.addColorStop(0, 'rgba(245,237,221,0)');
+            fade.addColorStop(1, PAPER);
+            ctx.fillStyle = fade;
+            ctx.fillRect(0, 830, canvas.width, 250);
+            drawPoemBlock(ctx, poem, {x: 90, y: 1080, width: 900, height: 520}, {maxFontSize: 58, minFontSize: 30, seal: true});
+            ctx.strokeStyle = LINE;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(260, 1730);
+            ctx.lineTo(820, 1730);
+            ctx.stroke();
+            ctx.fillStyle = '#8f806f';
+            ctx.font = '22px Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('by night, a verse', 540, 1782);
+            return canvas.toDataURL('image/png');
+        }
 
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
+        if (layout === 'wallpaper') {
+            canvas.width = 1920;
+            canvas.height = 1080;
+            drawImageCover(ctx, image, 0, 0, canvas.width, canvas.height);
+            const card = {x: 980, y: 670, width: 820, height: 300};
+            ctx.fillStyle = 'rgba(245, 237, 221, 0.88)';
+            ctx.beginPath();
+            ctx.roundRect(card.x, card.y, card.width, card.height, 18);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(174, 126, 67, 0.65)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            drawPoemHeader(ctx, card.x + 58, card.y + 46, 1.05);
+            drawPoemBlock(ctx, poem, {x: card.x + 42, y: card.y + 68, width: card.width - 84, height: card.height - 92}, {maxFontSize: 40, minFontSize: 24, seal: true});
+            return canvas.toDataURL('image/png');
+        }
 
-        // Draw the image on the left
-        ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
+        if (layout === 'postcard') {
+            canvas.width = 1200;
+            canvas.height = 1600;
+            ctx.fillStyle = PAPER;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = LINE;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(58, 58, canvas.width - 116, canvas.height - 116);
+            ctx.strokeRect(70, 70, canvas.width - 140, canvas.height - 140);
+            drawPoemHeader(ctx, 520, 95, 1.15);
+            ctx.fillStyle = '#8f806f';
+            ctx.font = '22px Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('a verse for you', 600, 142);
+            const imageBox = {x: 110, y: 190, width: 980, height: 680};
+            ctx.fillStyle = '#fffaf0';
+            ctx.fillRect(imageBox.x, imageBox.y, imageBox.width, imageBox.height);
+            drawImageContain(ctx, image, imageBox.x, imageBox.y, imageBox.width, imageBox.height);
+            ctx.strokeStyle = LINE;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(180, 980);
+            ctx.lineTo(1020, 980);
+            ctx.stroke();
+            drawPoemBlock(ctx, poem, {x: 130, y: 1030, width: 940, height: 360}, {maxFontSize: 48, minFontSize: 28});
+            return canvas.toDataURL('image/png');
+        }
 
-        // Style and draw the poem on the right
-        ctx.fillStyle = '#222';
-        ctx.fillRect(imageWidth, 0, canvasWidth - imageWidth, canvasHeight); // Adjust fill rect width
-        ctx.font = 'bold 40px Arial'; // Larger font size
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle'; // Vertically center the text
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const fontSize = Math.max(20, Math.min(canvas.width / 18, canvas.height / 18));
+        ctx.font = `bold ${fontSize}px "Microsoft JhengHei", sans-serif`;
+        const lines = wrapText(ctx, poem, canvas.width * 0.74);
+        const lineHeight = fontSize * 1.25;
+        let y = canvas.height - Math.max(16, canvas.height * 0.025);
 
-        const lines = poem.split('\n');
-        const lineHeight = 48; // Space between lines
-        const startY = (canvasHeight - lines.length * lineHeight) / 2; // Center the poem vertically
-
-        const poemColors = [
-            '#ef5350', // Red
-            '#f48fb1', // Pink
-            '#7e57c2', // Purple
-            '#2196f3', // Blue
-            '#26a69a', // Teal
-            '#43a047', // Green
-            '#D97706', // Dark Orange
-            '#f9a825', // Amber
-        ];
-
-        // Add white stroke
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.lineWidth = isMobile ? 12 : 8;
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 10;
 
-        ctx.font = 'bold 48px Arial';
-
-        for (let i = 0; i < lines.length; i++) {
-            ctx.fillStyle = poemColors[i % poemColors.length];
-            ctx.fillText(lines[i], imageWidth + (canvasWidth - imageWidth) / 2, startY + i * lineHeight); // Adjust X position for right side
+        for (let i = lines.length - 1; i >= 0; i--) {
+            ctx.fillStyle = POEM_COLORS[i % POEM_COLORS.length];
+            ctx.strokeText(lines[i], canvas.width - Math.max(16, canvas.width * 0.025), y);
+            ctx.fillText(lines[i], canvas.width - Math.max(16, canvas.width * 0.025), y);
+            y -= lineHeight;
         }
 
-        // Convert canvas to data URL
-        return canvas.toDataURL('image/png');
+        return canvas.toDataURL('image/jpeg', isMobile ? 0.78 : 0.92);
+    }, [photo, poem, isMobile]);
 
-    }, [photo, poem]);
-
-    const handleDownload = useCallback(async () => {
-        setIsDownloadGenerating(true);
+    const handleExport = useCallback(async (layout: ExportLayout, filename: string) => {
+        setActiveExport(layout);
         try {
-            const dataURL = await generateDownloadImageDataUrl();
+            const dataURL = await generateExportImageDataUrl(layout);
             if (dataURL) {
                 const link = document.createElement('a');
                 link.href = dataURL;
-                link.download = 'poem_image.png';
+                link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 toast({
                     title: '下載成功！',
-                    description: '圖片已成功下載。',
+                    description: '版型已重新排好並下載。',
                 });
             }
         } catch (error: any) {
-            console.error('Error creating download image:', error);
+            console.error('Error creating export image:', error);
             toast({
                 title: '錯誤！',
                 description: '產出圖片失敗。',
             });
         } finally {
-            setIsDownloadGenerating(false);
+            setActiveExport(null);
         }
-    }, [generateDownloadImageDataUrl, isMobile]);
-
-    const generateEmbedImageDataUrl = useCallback(async () => {
-         if (!photo || !poem) {
-            toast({
-                title: '錯誤！',
-                description: '請先上傳照片並生成詩詞。',
-            });
-            return null;
-        }
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-            toast({
-                title: '錯誤！',
-                description: '無法建立畫布。',
-            });
-            return null;
-        }
-
-        const image = new window.Image();
-        image.src = photo;
-
-        await new Promise((resolve, reject) => {
-            image.onload = () => resolve(null);
-            image.onerror = () => reject(new Error('Failed to load image'));
-        });
-
-
-        const canvasWidth = image.width;
-        const canvasHeight = image.height;
-
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-
-        ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
-
-        // Font size calculation
-        const fontSize = Math.max(20, Math.min(canvasWidth / 18, canvasHeight / 18)); // Increased base font size
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'bottom';
-
-        const lines = poem.split('\n');
-        const lineHeight = fontSize * 1.2;
-        let y = canvasHeight - 10;
-
-        const poemColors = [
-            '#ef5350', // Red
-            '#f48fb1', // Pink
-            '#7e57c2', // Purple
-            '#2196f3', // Blue
-            '#26a69a', // Teal
-            '#43a047', // Green
-            '#D97706', // Dark Orange
-            '#f9a825', // Amber
-        ];
-
-        // Set font before setting stroke style and width
-        ctx.font = `bold ${fontSize}px Arial`; // Set font again after modifying stroke style
-
-        // Increased stroke width for better visibility on mobile
-        ctx.lineWidth = isMobile ? 12 : 8; // Set the width of the stroke
-        ctx.strokeStyle = 'white'; // Set stroke color to white
-
-        for (let i = lines.length - 1; i >= 0; i--) {
-            const color = poemColors[i % poemColors.length];
-            ctx.fillStyle = color;
-            ctx.strokeText(lines[i], canvasWidth - 10, y); // Stroke text
-            ctx.fillText(lines[i], canvasWidth - 10, y);
-            y -= lineHeight;
-        }
-
-        // Reduce quality for faster download on mobile. Adjust the quality as needed
-        return canvas.toDataURL('image/jpeg', isMobile ? 0.7 : 0.9);
-
-    }, [photo, poem, isMobile]);
-
-
-    const handleEmbed = useCallback(async () => {
-        setIsEmbedGenerating(true);
-
-        try {
-            const dataURL = await generateEmbedImageDataUrl();
-            if (dataURL) {
-                const link = document.createElement('a');
-                link.href = dataURL;
-                link.download = 'poem_image.png'; // Filename for the downloaded image
-                document.body.appendChild(link); // Required for Firefox
-
-                link.click();
-
-                document.body.removeChild(link);
-
-                toast({
-                    title: '嵌入成功！',
-                    description: '圖片已成功嵌入詩詞並下載。',
-                });
-            }
-        } catch (error: any) {
-            console.error('Error creating embed image:', error);
-            toast({
-                title: '錯誤！',
-                description: '嵌入圖片失敗。',
-            });
-        } finally {
-            setIsEmbedGenerating(false);
-        }
-    }, [generateEmbedImageDataUrl, isMobile]);
+    }, [generateExportImageDataUrl]);
 
     const handleShare = useCallback(async () => {
         if (!navigator.share) {
@@ -427,9 +520,9 @@ export default function Home() {
             return;
         }
 
-        setIsEmbedGenerating(true); // Use the same state as embed generation
+        setActiveExport('overlay');
         try {
-            const dataURL = await generateEmbedImageDataUrl();
+            const dataURL = await generateExportImageDataUrl('overlay');
             if (dataURL) {
                 const blob = await (await fetch(dataURL)).blob();
                 const file = new File([blob], 'poem_image.png', {type: 'image/png'});
@@ -441,8 +534,8 @@ export default function Home() {
             }
         } catch (error) {
             toast({ title: '分享失敗！', description: '分享圖片時發生錯誤。' });
-        } finally { setIsEmbedGenerating(false); }
-    }, [generateEmbedImageDataUrl]);
+        } finally { setActiveExport(null); }
+    }, [generateExportImageDataUrl]);
 
   const handleCopy = () => {
     if (poemRef.current) {
@@ -579,21 +672,47 @@ export default function Home() {
                   <Button
                     variant="lightblue"
                     className="w-full"
-                    onClick={handleDownload}
- disabled={!poem || isDownloadGenerating}
+                    onClick={() => handleExport('sideBySide', 'photopoet-side-by-side.png')}
+                    disabled={!poem || activeExport !== null}
                   >
-下載圖文組合
-                    <Download className="ml-2 h-4 w-4" /> {/* Keep the download icon here */}
+                    {activeExport === 'sideBySide' ? '下載中...' : '下載圖左詩右'}
+                    <Download className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
- variant="gradient"
- style={{ '--gradient-start': '#a78bfa', '--gradient-end': '#f472b6' } as React.CSSProperties} // Pink to Pink gradient
+                    variant="lightblue"
                     className="w-full"
-
-                    onClick={handleEmbed}
-                    disabled={!poem || isEmbedGenerating}  // Disable while generating
+                    onClick={() => handleExport('igStory', 'photopoet-ig-9x16.png')}
+                    disabled={!poem || activeExport !== null}
                   >
-                      {isEmbedGenerating ? '下載中...請稍待片刻' : '下載妙用長輩圖！'}  {/* Change text while generating */}
+                    {activeExport === 'igStory' ? '下載中...' : '下載 IG 9:16'}
+                    <Download className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="lightblue"
+                    className="w-full"
+                    onClick={() => handleExport('wallpaper', 'photopoet-wallpaper-16x9.png')}
+                    disabled={!poem || activeExport !== null}
+                  >
+                    {activeExport === 'wallpaper' ? '下載中...' : '下載桌布 16:9'}
+                    <Download className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="lightblue"
+                    className="w-full"
+                    onClick={() => handleExport('postcard', 'photopoet-postcard.png')}
+                    disabled={!poem || activeExport !== null}
+                  >
+                    {activeExport === 'postcard' ? '下載中...' : '下載明信片'}
+                    <Download className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="gradient"
+                    style={{ '--gradient-start': '#a78bfa', '--gradient-end': '#f472b6' } as React.CSSProperties}
+                    className="w-full"
+                    onClick={() => handleExport('overlay', 'photopoet-overlay.png')}
+                    disabled={!poem || activeExport !== null}
+                  >
+                    {activeExport === 'overlay' ? '下載中...請稍待片刻' : '下載照片嵌詩'}
                     <Download className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -602,7 +721,7 @@ export default function Home() {
                   style={{ '--gradient-start': '#f472b6', '--gradient-end': '#f472b6' } as React.CSSProperties} // Pink to Pink gradient
                   className="w-full mt-2" // Add margin top for spacing
                   onClick={handleShare} // Assuming this button also triggers embedding or sharing
-                  disabled={!poem} // Disable if no poem is generated
+                  disabled={!poem || activeExport !== null} // Disable if no poem is generated
                 >
                   一鍵分享長輩圖(僅支援手機端)😊
                 </Button>

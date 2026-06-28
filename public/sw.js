@@ -1,4 +1,4 @@
-const BUILD_VERSION = "0.1.0-460a16a3-202606280632";
+const BUILD_VERSION = "0.1.0-383306a0-202606281338";
 
 self.addEventListener('install', () => {
   console.info('[SW] installed', BUILD_VERSION);
