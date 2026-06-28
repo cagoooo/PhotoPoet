@@ -1677,6 +1677,8 @@ function GeneratingOverlay({
 }) {
   const messages = ['凝視這張照片 ⸺', '收集光與影 ⸺', '為你譜下詩句 ⸺'];
   const [phase, setPhase] = useState(0);
+  const {theme} = useTheme();
+  const isLight = theme === 'light';
   useEffect(() => {
     const id = setInterval(() => setPhase(p => (p + 1) % messages.length), 1200);
     return () => clearInterval(id);
@@ -1690,7 +1692,7 @@ function GeneratingOverlay({
         zIndex: 60,
         display: 'flex',
         flexDirection: 'column',
-        background: t.bg,
+        background: isLight ? '#efe6d2' : t.bg,
       }}
     >
       {photo && (
@@ -1701,8 +1703,8 @@ function GeneratingOverlay({
             backgroundImage: `url(${photo})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'blur(20px) brightness(0.35)',
-            opacity: 0.6,
+            filter: isLight ? 'blur(22px) brightness(1.08) saturate(0.85)' : 'blur(20px) brightness(0.35)',
+            opacity: isLight ? 0.34 : 0.6,
           }}
         />
       )}
@@ -1710,8 +1712,9 @@ function GeneratingOverlay({
         style={{
           position: 'absolute',
           inset: 0,
-          background:
-            'radial-gradient(ellipse at 50% 40%, rgba(10,12,20,0.4) 0%, rgba(10,12,20,0.95) 100%)',
+          background: isLight
+            ? 'radial-gradient(ellipse at 50% 38%, rgba(255,248,220,0.92) 0%, rgba(239,230,210,0.88) 46%, rgba(198,174,142,0.62) 100%)'
+            : 'radial-gradient(ellipse at 50% 40%, rgba(10,12,20,0.4) 0%, rgba(10,12,20,0.95) 100%)',
         }}
       />
 
@@ -1736,9 +1739,12 @@ function GeneratingOverlay({
             height: 120,
             borderRadius: '50%',
             background:
-              'radial-gradient(circle at 35% 30%, #fff5d8 0%, #f0e4b8 40%, #b89a4a 100%)',
-            boxShadow:
-              '0 0 80px rgba(232,210,140,0.5), 0 0 140px rgba(232,210,140,0.3)',
+              isLight
+                ? 'radial-gradient(circle at 35% 30%, #fff8dc 0%, #efd680 48%, #9b6a36 100%)'
+                : 'radial-gradient(circle at 35% 30%, #fff5d8 0%, #f0e4b8 40%, #b89a4a 100%)',
+            boxShadow: isLight
+              ? '0 0 44px rgba(155,106,54,0.28), 0 18px 50px rgba(62,43,24,0.18)'
+              : '0 0 80px rgba(232,210,140,0.5), 0 0 140px rgba(232,210,140,0.3)',
             marginBottom: 36,
             position: 'relative',
           }}
@@ -1781,7 +1787,7 @@ function GeneratingOverlay({
               position: 'absolute',
               inset: -20,
               borderRadius: '50%',
-              border: '1px solid rgba(232,210,140,0.3)',
+              border: isLight ? '1px solid rgba(111,74,38,0.34)' : '1px solid rgba(232,210,140,0.3)',
               animation: 'moonPulse 3s ease-in-out infinite',
             }}
           />
@@ -1792,9 +1798,10 @@ function GeneratingOverlay({
             fontFamily: t.italic,
             fontStyle: 'italic',
             fontSize: 14,
-            color: t.gold,
+            color: isLight ? '#7a4c24' : t.gold,
             letterSpacing: 2,
             marginBottom: 14,
+            textShadow: isLight ? '0 1px 0 rgba(255,248,220,0.82)' : 'none',
           }}
         >
           composing ⸺ {formZh}
@@ -1804,11 +1811,17 @@ function GeneratingOverlay({
           className="shimmer-text"
           style={{
             fontFamily: t.serif,
-            fontSize: 22,
-            letterSpacing: 6,
-            fontWeight: 300,
+            fontSize: 24,
+            letterSpacing: 4,
+            fontWeight: 500,
             textAlign: 'center',
             minHeight: 32,
+            background: isLight
+              ? 'linear-gradient(90deg, #4a2d18 0%, #b8362c 48%, #4a2d18 100%)'
+              : undefined,
+            textShadow: isLight
+              ? '0 1px 0 rgba(255,248,220,0.9), 0 10px 26px rgba(92,59,29,0.18)'
+              : '0 0 20px rgba(232,210,140,0.18)',
           }}
         >
           {messages[phase]}
@@ -1817,12 +1830,14 @@ function GeneratingOverlay({
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 12,
-            color: t.inkMute,
-            letterSpacing: 2,
-            marginTop: 36,
+            fontSize: 13,
+            color: isLight ? '#5a3a20' : t.inkMute,
+            letterSpacing: 1.2,
+            marginTop: 34,
             lineHeight: 1.9,
             textAlign: 'center',
+            fontWeight: 500,
+            textShadow: isLight ? '0 1px 0 rgba(255,248,220,0.8)' : 'none',
           }}
         >
           月光緩緩落入字裡行間，
