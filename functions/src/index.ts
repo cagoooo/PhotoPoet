@@ -13,13 +13,15 @@ import {onRequest} from 'firebase-functions/v2/https';
 import {onSchedule} from 'firebase-functions/v2/scheduler';
 import {defineSecret} from 'firebase-functions/params';
 import {setGlobalOptions} from 'firebase-functions/v2';
+import * as functionsV1 from 'firebase-functions/v1';
 import {genkit, z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {verifyTurnstile, getClientIp} from './turnstile';
 import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT, HOURLY_LIMIT} from './auth-quota';
-import {notifyAdmin} from './notify-line';
+import {notifyAdmin, type AlertCard} from './notify-line';
+import {notifyGoogleChat} from './notify-google-chat';
 
 setGlobalOptions({region: 'asia-east1', maxInstances: 10});
 
@@ -27,6 +29,43 @@ const GEMINI_KEY = defineSecret('GOOGLE_GENAI_API_KEY');
 const TURNSTILE_SECRET = defineSecret('TURNSTILE_SECRET');
 const LINE_TOKEN = defineSecret('PHOTOPOET_LINE_CHANNEL_ACCESS_TOKEN');
 const LINE_ADMIN = defineSecret('PHOTOPOET_LINE_ADMIN_USER_ID');
+const GOOGLE_CHAT_WEBHOOK_URL = defineSecret('GOOGLE_CHAT_WEBHOOK_URL');
+
+function notifyOps(card: AlertCard): void {
+  notifyAdmin(card).catch(() => {});
+  notifyGoogleChat(card).catch(() => {});
+}
+
+function todayKeyTaipei(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+export const onUserRegistered = functionsV1
+  .region('asia-east1')
+  .runWith({secrets: ['GOOGLE_CHAT_WEBHOOK_URL']})
+  .auth.user()
+  .onCreate(async user => {
+    const isAnonymous = !user.email && (!user.providerData || user.providerData.length === 0);
+    if (isAnonymous) return;
+
+    await notifyGoogleChat({
+      status: 'success',
+      dedupeKey: `auth-user-created-${user.uid}`,
+      title: '新使用者註冊成功',
+      hero: user.displayName || user.email || user.uid,
+      fields: [
+        {icon: '👤', label: '使用者', value: user.displayName || '未提供名稱'},
+        {icon: '✉️', label: 'Email', value: user.email || '未提供 Email'},
+        {icon: '🆔', label: 'UID', value: user.uid},
+      ],
+      footerNote: 'Firebase Auth onCreate',
+    });
+  });
 
 // ─────────────────────────────────────────────────────────────────
 // generatePoem
@@ -96,7 +135,7 @@ function getAI() {
 
 export const generatePoem = onRequest(
   {
-    secrets: [GEMINI_KEY, TURNSTILE_SECRET, LINE_TOKEN, LINE_ADMIN],
+    secrets: [GEMINI_KEY, TURNSTILE_SECRET, LINE_TOKEN, LINE_ADMIN, GOOGLE_CHAT_WEBHOOK_URL],
     cors: true,
     memory: '512MiB',
     timeoutSeconds: 60,
@@ -128,6 +167,18 @@ export const generatePoem = onRequest(
       getClientIp(req as any)
     );
     if (!turnstile.ok) {
+      notifyGoogleChat({
+        status: 'warning',
+        dedupeKey: `turnstile-blocked-${user.uid}-${todayKeyTaipei()}`,
+        title: 'Turnstile 驗證失敗',
+        hero: user.name || user.email || user.uid,
+        fields: [
+          {icon: '👤', label: '使用者', value: user.name || user.email || user.uid},
+          {icon: '🛡️', label: '階段', value: 'Turnstile'},
+          {icon: '📌', label: '原因', value: turnstile.reason || '驗證未通過'},
+        ],
+        footerNote: '已擋下請求，尚未呼叫 Gemini。',
+      }).catch(() => {});
       res.status(403).json({error: turnstile.reason || '人機驗證失敗'});
       return;
     }
@@ -135,6 +186,20 @@ export const generatePoem = onRequest(
     // 3️⃣ Per-user daily quota (transactional inc, no race)
     const quota = await consumeQuota(user);
     if (!quota.ok) {
+      const usedToday = DAILY_LIMIT - quota.remaining;
+      notifyGoogleChat({
+        status: 'warning',
+        dedupeKey: `quota-blocked-${user.uid}-${todayKeyTaipei()}`,
+        title: '使用者已達產生限制',
+        hero: user.name || user.email || user.uid,
+        fields: [
+          {icon: '👤', label: '使用者', value: user.name || user.email || user.uid},
+          {icon: '⏱️', label: '限制', value: `每日 ${DAILY_LIMIT} 首、每小時 ${HOURLY_LIMIT} 首`},
+          {icon: '📌', label: '原因', value: quota.reason || '已達使用上限'},
+        ],
+        progress: {current: usedToday, total: DAILY_LIMIT, label: '今日用量'},
+        footerNote: '已在 Gemini 呼叫前擋下，未消耗 API 額度。',
+      }).catch(() => {});
       res.status(429).json({error: quota.reason || '已達每日上限', remaining: 0, dailyLimit: DAILY_LIMIT});
       return;
     }
@@ -204,17 +269,12 @@ export const generatePoem = onRequest(
 
       // 「使用者活躍」LINE 告警：同 uid 每天第一首才推（in-memory dedupe）
       // → 一個活躍使用者最多耗 1 條 LINE 月額度/天
-      const todayKeyTaipei = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(new Date());
+      const todayKey = todayKeyTaipei();
       const usedToday = DAILY_LIMIT - quota.remaining; // 含本次
       const heroName = user.name || user.email?.split('@')[0] || '匿名詩人';
-      notifyAdmin({
+      notifyOps({
         status: 'success',
-        dedupeKey: `user-active-${user.uid}-${todayKeyTaipei}`,
+        dedupeKey: `user-active-${user.uid}-${todayKey}`,
         title: '有人來寫詩了',
         hero: `${heroName}，第 ${usedToday} 首詩誕生 ✨`,
         fields: [
@@ -223,7 +283,7 @@ export const generatePoem = onRequest(
         ],
         progress: {current: usedToday, total: DAILY_LIMIT, label: '今日進度'},
         footerNote: '同一人每天只通知一次 🌸',
-      }).catch(() => {});
+      });
 
       res.status(200).json({
         poem: output.poem,
@@ -264,7 +324,7 @@ export const generatePoem = onRequest(
       const heroNameForErr =
         user.name || user.email?.split('@')[0] || '匿名詩人';
 
-      notifyAdmin({
+      notifyOps({
         status: looksLikeOverload ? 'warning' : 'failed',
         dedupeKey: looksLikeQuota
           ? `gemini-quota-exhausted-${todayKeyForErr}`
@@ -286,7 +346,7 @@ export const generatePoem = onRequest(
           : looksLikeOverload
           ? '常見現象，AI 服務側問題；頻繁出現可加重試'
           : '請查 Cloud Functions logs 排查',
-      }).catch(() => {});
+      });
 
       res.status(errStatus).json({error: errMsg});
     }
