@@ -53,7 +53,7 @@ export function PoemTTSButton({poem, className}: PoemTTSButtonProps) {
   return (
     <Button
       variant="outline"
-      className={`w-full border-amber-300 text-amber-700 hover:bg-amber-50 ${className ?? ''}`}
+      className={`h-12 w-full rounded-md border border-[#9b6a36] bg-[#6f4a26] font-serif text-sm tracking-[0.16em] text-[#fff8dc] shadow-sm hover:bg-[#5c3b1d] hover:text-[#fff8dc] disabled:opacity-50 ${className ?? ''}`}
       onClick={handleToggle}
       disabled={!poem}
     >
@@ -65,7 +65,7 @@ export function PoemTTSButton({poem, className}: PoemTTSButtonProps) {
       ) : (
         <>
           <Volume2 className="mr-2 h-4 w-4" />
-          🔊 朗讀詩句
+          朗讀詩句
         </>
       )}
     </Button>

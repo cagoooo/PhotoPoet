@@ -266,13 +266,19 @@ export function OutlineButton({
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: 'transparent',
+        background: 'rgba(255, 248, 220, 0.5)',
         border: `1px solid ${nightTokens.panelBorder}`,
         color: disabled ? nightTokens.inkMute : nightTokens.ink,
-        padding: '11px 14px',
+        padding: '11px 16px',
         fontFamily: nightTokens.serif,
         fontSize: 12,
-        letterSpacing: 3,
+        letterSpacing: 2.2,
+        minHeight: 42,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        boxShadow: '0 8px 18px rgba(62, 43, 24, 0.08)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.55 : 1,
         transition: 'all .2s',
@@ -281,9 +287,11 @@ export function OutlineButton({
       onMouseEnter={e => {
         if (disabled) return;
         e.currentTarget.style.borderColor = 'var(--theme-gold)';
+        e.currentTarget.style.background = 'rgba(111, 74, 38, 0.12)';
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = 'var(--theme-panel-border)';
+        e.currentTarget.style.background = 'rgba(255, 248, 220, 0.5)';
       }}
     >
       {children}

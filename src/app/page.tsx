@@ -3,6 +3,7 @@
 import {useState, useCallback, useRef, useEffect, type CSSProperties} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
+import {Copy, Printer, Share2} from 'lucide-react';
 
 import {toast} from '@/hooks/use-toast';
 import {useIsMobile, useIsDesktop} from '@/hooks/use-mobile';
@@ -482,7 +483,7 @@ export default function Home() {
               setDownloadFormat={setDownloadFormat}
               onShare={handleShare}
               isEmbedGenerating={isEmbedGenerating}
-              poemTTS={<PoemTTSButton poem={poem} className="!h-9 !text-sm !bg-transparent !border-amber-500/40 !text-amber-300 hover:!bg-amber-900/20" />}
+              poemTTS={<PoemTTSButton poem={poem} />}
             />
           ) : (
             <HomeView
@@ -1277,15 +1278,17 @@ function PoemPhotoFrame({
           position: 'absolute',
           top: 14,
           right: 14,
-          padding: '4px 12px',
-          background: 'rgba(10,12,20,0.5)',
-          border: `1px solid ${t.panelBorder}`,
-          backdropFilter: 'blur(8px)',
+          padding: '6px 14px',
+          background: 'rgba(92, 59, 29, 0.92)',
+          border: '1px solid rgba(255, 248, 220, 0.42)',
+          boxShadow: '0 8px 22px rgba(0,0,0,0.28)',
           fontFamily: t.italic,
           fontStyle: 'italic',
-          fontSize: 11,
-          color: t.gold,
+          fontSize: 12,
+          color: '#fff8dc',
           letterSpacing: 1.5,
+          minWidth: 68,
+          textAlign: 'center',
         }}
       >
         {formZh}
@@ -1420,8 +1423,14 @@ function ResultViewMobile(p: ResultViewProps) {
         </div>
 
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 14}}>
-          <OutlineButton onClick={p.onCopy}>{p.isCopied ? '已複製 ✓' : '複製詩句'}</OutlineButton>
-          <OutlineButton onClick={p.onPrint}>列印 A4 紙本 🖨</OutlineButton>
+          <OutlineButton onClick={p.onCopy}>
+            <Copy size={16} strokeWidth={1.8} />
+            <span>{p.isCopied ? '已複製' : '複製詩句'}</span>
+          </OutlineButton>
+          <OutlineButton onClick={p.onPrint}>
+            <Printer size={16} strokeWidth={1.8} />
+            <span>列印 A4</span>
+          </OutlineButton>
         </div>
 
         <div style={{marginTop: 8}}>{p.poemTTS}</div>
@@ -1437,7 +1446,8 @@ function ResultViewMobile(p: ResultViewProps) {
 
         {typeof navigator !== 'undefined' && (
           <OutlineButton onClick={p.onShare} disabled={p.isEmbedGenerating} style={{width: '100%', marginTop: 10}}>
-            {p.isEmbedGenerating ? '產出中…' : '一鍵分享長輩圖（行動端）↗'}
+            <Share2 size={16} strokeWidth={1.8} />
+            <span>{p.isEmbedGenerating ? '產出中…' : '分享長輩圖'}</span>
           </OutlineButton>
         )}
 
@@ -1555,8 +1565,14 @@ function ResultViewDesktop(p: ResultViewProps) {
 
           {/* 複製 / 列印 */}
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
-            <OutlineButton onClick={p.onCopy}>{p.isCopied ? '已複製 ✓' : '複製詩句'}</OutlineButton>
-            <OutlineButton onClick={p.onPrint}>列印 A4 紙本 🖨</OutlineButton>
+            <OutlineButton onClick={p.onCopy}>
+              <Copy size={16} strokeWidth={1.8} />
+              <span>{p.isCopied ? '已複製' : '複製詩句'}</span>
+            </OutlineButton>
+            <OutlineButton onClick={p.onPrint}>
+              <Printer size={16} strokeWidth={1.8} />
+              <span>列印 A4</span>
+            </OutlineButton>
           </div>
 
           {/* TTS */}
@@ -1573,7 +1589,8 @@ function ResultViewDesktop(p: ResultViewProps) {
           {/* 分享（行動裝置才會生效，桌面 navigator.share 通常無效；保留按鈕但設提示） */}
           {typeof navigator !== 'undefined' && (
             <OutlineButton onClick={p.onShare} disabled={p.isEmbedGenerating} style={{width: '100%'}}>
-              {p.isEmbedGenerating ? '產出中…' : '一鍵分享長輩圖（行動端）↗'}
+              <Share2 size={16} strokeWidth={1.8} />
+              <span>{p.isEmbedGenerating ? '產出中…' : '分享長輩圖'}</span>
             </OutlineButton>
           )}
 
