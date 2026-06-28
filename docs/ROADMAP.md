@@ -630,7 +630,7 @@ match /poems/{poemId} {
 - 或用 GCP Cloud Logging 過濾 `severity>=ERROR`，加 alert policy
 - 結構化 log：每次 generatePoem 寫
   ```ts
-  console.log(JSON.stringify({event: 'poem_generated', uid, latencyMs, model: 'gemini-2.0-flash'}));
+  console.log(JSON.stringify({event: 'poem_generated', uid, latencyMs, model: 'gemini-2.5-flash'}));
   ```
 - 之後可導 BigQuery / Looker Studio 做 dashboard
 

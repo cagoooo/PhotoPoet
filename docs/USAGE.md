@@ -34,7 +34,7 @@
 | UI | shadcn/ui + Radix Primitives + Tailwind CSS + lucide-react |
 | 字體 | Geist Sans/Mono + Noto Sans TC |
 | AI 串接 | [Genkit](https://firebase.google.com/docs/genkit) `^1.0.4` + `@genkit-ai/googleai` |
-| AI 模型 | `googleai/gemini-2.0-flash` |
+| AI 模型 | `googleai/gemini-2.5-flash` |
 | 圖文合成 | 純 client-side `<canvas>` 繪圖（無外部相依） |
 | 表單/驗證 | react-hook-form + zod |
 | 開發環境 | Firebase Studio / Project IDX（[`.idx/dev.nix`](.idx/dev.nix)） |

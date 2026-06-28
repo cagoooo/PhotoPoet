@@ -127,7 +127,7 @@ function getAI() {
   if (!aiSingleton) {
     aiSingleton = genkit({
       plugins: [googleAI({apiKey: GEMINI_KEY.value()})],
-      model: 'googleai/gemini-2.0-flash',
+      model: 'googleai/gemini-2.5-flash',
     });
   }
   return aiSingleton;
