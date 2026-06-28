@@ -30,9 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant">
+    <html lang="zh-Hant" className="light" style={{colorScheme: 'light'}}>
       <head>
         <meta charSet="UTF-8" />
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#fce7f3" />
         {/* ─────────────────────────────────────────────────────────── */}
         {/* Akai 排行榜流量歸因 beacon (cagoooo/Akai · toolId 14 早安長輩圖) */}
         {/* 進站時送一次像素 beacon 給 Akai Cloud Function 累計 totalClicks */}
