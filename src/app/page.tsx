@@ -1175,23 +1175,6 @@ function PhotoPreview({photo, onClear}: {photo: string; onClear: () => void}) {
               'linear-gradient(180deg, transparent 60%, rgba(10,12,20,0.55) 100%)',
           }}
         />
-        <div
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 12,
-            padding: '2px 8px',
-            background: 'rgba(10,12,20,0.6)',
-            border: `1px solid ${t.panelBorder}`,
-            fontFamily: t.italic,
-            fontStyle: 'italic',
-            fontSize: 10,
-            color: t.gold,
-            letterSpacing: 1,
-          }}
-        >
-          ready
-        </div>
       </div>
     </div>
   );
