@@ -352,38 +352,68 @@ function renderEmbed(
   const {canvas, ctx} = makeCanvas(img.width, img.height);
   ctx.drawImage(img, 0, 0, img.width, img.height);
 
-  // 底部漸層 — 讓詩文浮起
-  const grad = ctx.createLinearGradient(0, img.height * 0.55, 0, img.height);
-  grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(1, palette.isDark ? 'rgba(6,7,13,0.85)' : 'rgba(0,0,0,0.6)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, img.height * 0.55, img.width, img.height * 0.45);
+  const lines = poem
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+  const padding = Math.max(24, img.width * 0.038);
+  const maxTextWidth = Math.min(img.width * 0.52, img.width - padding * 2);
+  const maxTextHeight = img.height * 0.5;
+  let fontSize = Math.min(38, Math.max(24, Math.min(img.width / 30, img.height / 15)));
+  let lineHeight = fontSize * 1.36;
 
-  // 詩文：靠右下
-  const lines = poem.split('\n');
-  const fontSize = Math.max(22, Math.min(img.width / 16, img.height / 16));
-  const lineHeight = fontSize * 1.4;
-  const padding = Math.max(20, img.width * 0.025);
-
-  ctx.font = `${fontSize}px ${SERIF_STACK}`;
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.lineWidth = opts.isMobile ? 8 : 6;
-  ctx.strokeStyle = palette.poemShadow;
-  ctx.lineJoin = 'round';
-  ctx.fillStyle = '#f0e8c8'; // embed 永遠用 cream 字色 — 印在照片上不論主題
+  while (fontSize > 20) {
+    ctx.font = `700 ${fontSize}px ${SERIF_STACK}`;
+    const widestLine = Math.max(...lines.map(line => ctx.measureText(line).width), 0);
+    if (widestLine <= maxTextWidth && lines.length * lineHeight <= maxTextHeight) break;
+    fontSize -= 1;
+    lineHeight = fontSize * 1.36;
+  }
 
-  let y = img.height - padding;
+  const textRight = img.width - padding;
+  const textBottom = img.height - padding * 0.75;
+  const textTop = textBottom - lines.length * lineHeight - fontSize * 0.15;
+  const panelLeft = Math.max(padding, textRight - maxTextWidth - padding * 0.8);
+  const panelTop = Math.max(0, textTop - padding * 0.7);
+
+  // 右下閱讀區：照片仍保留，但在亮背景上提供穩定對比。
+  const horizontalShade = ctx.createLinearGradient(panelLeft - img.width * 0.18, 0, img.width, 0);
+  horizontalShade.addColorStop(0, 'rgba(0,0,0,0)');
+  horizontalShade.addColorStop(0.45, 'rgba(0,0,0,0.32)');
+  horizontalShade.addColorStop(1, palette.isDark ? 'rgba(4,5,10,0.82)' : 'rgba(22,16,10,0.74)');
+  ctx.fillStyle = horizontalShade;
+  ctx.fillRect(panelLeft - img.width * 0.18, panelTop, img.width, img.height - panelTop);
+
+  const verticalShade = ctx.createLinearGradient(0, img.height * 0.52, 0, img.height);
+  verticalShade.addColorStop(0, 'rgba(0,0,0,0)');
+  verticalShade.addColorStop(1, palette.isDark ? 'rgba(4,5,10,0.72)' : 'rgba(22,16,10,0.62)');
+  ctx.fillStyle = verticalShade;
+  ctx.fillRect(0, img.height * 0.52, img.width, img.height * 0.48);
+
+  ctx.font = `700 ${fontSize}px ${SERIF_STACK}`;
+  ctx.lineWidth = Math.max(5, fontSize * (opts.isMobile ? 0.2 : 0.16));
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.78)';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.72)';
+  ctx.shadowBlur = Math.max(4, fontSize * 0.18);
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = Math.max(2, fontSize * 0.08);
+  ctx.fillStyle = '#fff8dc';
+
+  let y = textBottom;
   for (let i = lines.length - 1; i >= 0; i--) {
-    ctx.strokeText(lines[i], img.width - padding, y);
-    ctx.fillText(lines[i], img.width - padding, y);
+    ctx.strokeText(lines[i], textRight, y);
+    ctx.fillText(lines[i], textRight, y);
     y -= lineHeight;
   }
+  ctx.shadowColor = 'transparent';
 
   // 右下小印章
   drawSeal(
     ctx,
-    img.width - padding - 30,
+    textRight - 30,
     padding + 30,
     palette,
     Math.max(48, img.width / 28),
