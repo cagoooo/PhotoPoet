@@ -68,7 +68,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
             未登入
           </div>
           <div style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
-            登入後每日可賦詩 {dailyLimit ?? 20} 首
+            登入後每日可賦詩 {dailyLimit ?? 20} 首，每小時最多 5 首
           </div>
         </div>
         <button

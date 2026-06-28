@@ -29,7 +29,7 @@ export function ServiceWorkerRegister() {
     const scope = `${basePath}/`;
 
     navigator.serviceWorker
-      .register(swUrl, {scope})
+      .register(swUrl, {scope, updateViaCache: 'none'})
       .then(reg => {
         const promptForUpdate = (worker: ServiceWorker) => {
           setWaitingWorker(worker);

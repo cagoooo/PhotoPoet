@@ -110,13 +110,10 @@ export const THEME_INLINE_SCRIPT = `
   try {
     var stored = localStorage.getItem('photopoet-theme');
     var theme = stored;
-    if (!theme) {
-      var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-      theme = prefersLight ? 'light' : 'dark';
-    }
+    if (!theme) theme = 'light';
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {
-    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme', 'light');
   }
 })();
 `.trim();

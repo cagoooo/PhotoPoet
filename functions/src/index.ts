@@ -18,7 +18,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {verifyTurnstile, getClientIp} from './turnstile';
-import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT} from './auth-quota';
+import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT, HOURLY_LIMIT} from './auth-quota';
 import {notifyAdmin} from './notify-line';
 
 setGlobalOptions({region: 'asia-east1', maxInstances: 10});
@@ -230,6 +230,7 @@ export const generatePoem = onRequest(
         style,
         remaining: quota.remaining,
         dailyLimit: DAILY_LIMIT,
+        hourlyLimit: HOURLY_LIMIT,
         poemId,
       });
     } catch (err: any) {
