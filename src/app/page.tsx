@@ -59,8 +59,12 @@ function findStyle(v: string): PoemStyleOption {
   return POEM_STYLE_OPTIONS.find(o => o.value === v) ?? POEM_STYLE_OPTIONS[0];
 }
 
+function decodePoemText(poem: string): string {
+  return poem.replace(/\\r\\n|\\n|\\r/g, '\n');
+}
+
 function poemLinesForDisplay(poem: string, classical = false): string[] {
-  const rawLines = poem
+  const rawLines = decodePoemText(poem)
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean);
@@ -363,7 +367,7 @@ export default function Home() {
     ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    const lines = poem.split('\n');
+    const lines = poemLinesForDisplay(poem);
     const lineHeight = fontSize * 1.2;
     let y = canvasHeight - 10;
     const poemColors = ['#ef5350', '#f48fb1', '#7e57c2', '#2196f3', '#26a69a', '#43a047', '#D97706', '#f9a825'];

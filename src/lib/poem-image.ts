@@ -94,6 +94,14 @@ interface RenderOptions {
   theme?: ThemeName;
 }
 
+function poemLines(poem: string): string[] {
+  return poem
+    .replace(/\\r\\n|\\n|\\r/g, '\n')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
 export async function renderPoemImage(
   photoDataUrl: string,
   poem: string,
@@ -352,10 +360,7 @@ function renderEmbed(
   const {canvas, ctx} = makeCanvas(img.width, img.height);
   ctx.drawImage(img, 0, 0, img.width, img.height);
 
-  const lines = poem
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean);
+  const lines = poemLines(poem);
   const padding = Math.max(24, img.width * 0.038);
   const maxTextWidth = Math.min(img.width * 0.52, img.width - padding * 2);
   const maxTextHeight = img.height * 0.5;
@@ -459,7 +464,7 @@ function renderSidebar(img: HTMLImageElement, poem: string, palette: CardPalette
   drawHeader(ctx, rightX + 40, 50, palette, 1.2);
 
   // 詩文居中
-  const lines = poem.split('\n');
+  const lines = poemLines(poem);
   const fontSize = lines.length > 6 ? 36 : 44;
   const lineHeight = fontSize * 1.6;
   const totalH = lines.length * lineHeight;
@@ -512,7 +517,7 @@ function renderStory(img: HTMLImageElement, poem: string, palette: CardPalette):
   ctx.restore();
 
   // 詩文
-  const lines = poem.split('\n');
+  const lines = poemLines(poem);
   const fontSize = lines.length > 6 ? 56 : 70;
   const lineHeight = fontSize * 1.6;
   const totalH = lines.length * lineHeight;
@@ -554,7 +559,7 @@ function renderWallpaper(img: HTMLImageElement, poem: string, palette: CardPalet
   ctx.fillRect(0, 0, W, H);
 
   // 詩文面板（右側 1/2）
-  const lines = poem.split('\n');
+  const lines = poemLines(poem);
   const fontSize = lines.length > 6 ? 38 : 46;
   const lineHeight = fontSize * 1.55;
 
@@ -639,7 +644,7 @@ function renderSquare(
   ctx.restore();
 
   // 詩文
-  const lines = poem.split('\n');
+  const lines = poemLines(poem);
   const fontSize = lines.length > 6 ? 32 : 42;
   const lineHeight = fontSize * 1.6;
   const totalH = lines.length * lineHeight;
@@ -738,7 +743,7 @@ function renderPostcard(img: HTMLImageElement, poem: string, palette: CardPalett
   drawDivider(ctx, innerLeft + 80, innerRight - 80, photoY + photoH + 70, palette);
 
   // 詩文
-  const lines = poem.split('\n');
+  const lines = poemLines(poem);
   const fontSize = lines.length > 6 ? 50 : 60;
   const lineHeight = fontSize * 1.7;
   const poemTopY = photoY + photoH + 130;
