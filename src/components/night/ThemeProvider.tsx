@@ -18,7 +18,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import {THEME_STORAGE_KEY, type ThemeName} from '@/lib/theme';
+import {THEME_DEFAULT_MIGRATION_KEY, THEME_STORAGE_KEY, type ThemeName} from '@/lib/theme';
 
 interface ThemeContextValue {
   theme: ThemeName;
@@ -29,14 +29,14 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readDomTheme(): ThemeName {
-  if (typeof document === 'undefined') return 'dark';
+  if (typeof document === 'undefined') return 'light';
   return document.documentElement.getAttribute('data-theme') === 'light'
     ? 'light'
     : 'dark';
 }
 
 export function ThemeProvider({children}: {children: ReactNode}) {
-  // SSR 時 typeof document === 'undefined' → 'dark'；client 第一次 render 時
+  // SSR 時 typeof document === 'undefined' → 'light'；client 第一次 render 時
   // lazy initializer 會立刻讀真實 DOM attr（已被 head inline script 設好），
   // 確保 ThemeToggle 第一次 paint 顯示正確的 ☾/☀ icon，避免閃爍與點兩次才動的 race。
   const [theme, setThemeState] = useState<ThemeName>(() => readDomTheme());
@@ -55,6 +55,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.setItem(THEME_STORAGE_KEY, next);
+        window.localStorage.setItem(THEME_DEFAULT_MIGRATION_KEY, '1');
       } catch {
         /* 隱私模式忽略 */
       }
@@ -81,7 +82,7 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) {
     // Provider 未掛載 → 給 noop，避免 crash（例如 storybook、測試環境）
     return {
-      theme: 'dark',
+      theme: 'light',
       setTheme: () => {},
       toggleTheme: () => {},
     };

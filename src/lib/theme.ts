@@ -109,8 +109,13 @@ export const THEME_INLINE_SCRIPT = `
 (function() {
   try {
     var stored = localStorage.getItem('photopoet-theme');
-    var theme = stored;
+    var migrated = localStorage.getItem('photopoet-theme-default-v2');
+    var theme = migrated ? stored : 'light';
     if (!theme) theme = 'light';
+    if (!migrated) {
+      localStorage.setItem('photopoet-theme', 'light');
+      localStorage.setItem('photopoet-theme-default-v2', '1');
+    }
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {
     document.documentElement.setAttribute('data-theme', 'light');
@@ -119,3 +124,4 @@ export const THEME_INLINE_SCRIPT = `
 `.trim();
 
 export const THEME_STORAGE_KEY = 'photopoet-theme';
+export const THEME_DEFAULT_MIGRATION_KEY = 'photopoet-theme-default-v2';
