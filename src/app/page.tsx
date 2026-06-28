@@ -59,6 +59,27 @@ function findStyle(v: string): PoemStyleOption {
   return POEM_STYLE_OPTIONS.find(o => o.value === v) ?? POEM_STYLE_OPTIONS[0];
 }
 
+function poemLinesForDisplay(poem: string, classical = false): string[] {
+  const rawLines = poem
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  if (!classical) return rawLines;
+
+  const lines = rawLines.flatMap(line => {
+    if (line.length <= 12) return [line];
+    const segments = line.match(/[^，。！？；,.!?;]+[，。！？；,.!?;]?/g);
+    return segments?.map(segment => segment.trim()).filter(Boolean) ?? [line];
+  });
+
+  return lines.length ? lines : rawLines;
+}
+
+function normalizePoemTextForStyle(poem: string, style: PoemStyleOption): string {
+  return poemLinesForDisplay(poem, style.vertical).join('\n');
+}
+
 export default function Home() {
   // ─── 後端 / 業務狀態（保留原邏輯）─────────────────────────────────
   const [photo, setPhoto] = useState<string | null>(null);
@@ -262,7 +283,7 @@ export default function Home() {
         throw new Error(errorMessage);
       }
       const data = await response.json();
-      setPoem(data.poem);
+      setPoem(normalizePoemTextForStyle(data.poem, findStyle(poemStyle)));
       if (typeof data.remaining === 'number') setRemaining(data.remaining);
       if (typeof data.dailyLimit === 'number') setDailyLimit(data.dailyLimit);
       setLastError(null);
@@ -517,7 +538,7 @@ export default function Home() {
             </div>
             <div className="poem-print-divider" data-deco="✦" />
             <div className="poem-print-poem">
-              {poem.split('\n').map((line, i) => (
+              {poemLinesForDisplay(poem, styleMeta.vertical).map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
             </div>
@@ -1369,7 +1390,7 @@ function ResultMetaRow({dateStr, publish}: {dateStr: string; publish: boolean}) 
 // ResultViewMobile — 單欄垂直流（原本的設計，保留）
 // ────────────────────────────────────────────────────────────────────
 function ResultViewMobile(p: ResultViewProps) {
-  const lines = p.poem.split('\n').filter(l => l.trim().length > 0);
+  const lines = poemLinesForDisplay(p.poem, p.styleMeta.vertical);
   const dt = new Date();
   const dateStr = `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(
     dt.getDate(),
@@ -1434,7 +1455,7 @@ function ResultViewMobile(p: ResultViewProps) {
 // ResultViewDesktop — 兩欄式：左側大照片+詩，右側動作面板
 // ────────────────────────────────────────────────────────────────────
 function ResultViewDesktop(p: ResultViewProps) {
-  const lines = p.poem.split('\n').filter(l => l.trim().length > 0);
+  const lines = poemLinesForDisplay(p.poem, p.styleMeta.vertical);
   const dt = new Date();
   const dateStr = `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(
     dt.getDate(),
