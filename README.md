@@ -2,6 +2,8 @@
 
 > 上傳照片 → Gemini 2.0 Flash 生成繁體中文詩 → 一鍵下載長輩圖。
 
+🌐 **線上使用：[點亮詩意~『早安長輩圖產生器』](https://cagoooo.github.io/PhotoPoet/)**
+
 🌐 **線上版**：https://photopoet-ha364.web.app
 
 **架構**：Next.js 15 (static export) + Firebase Hosting + Cloud Functions (gen2, asia-east1) + Genkit + Cloudflare Turnstile。
@@ -62,7 +64,7 @@ firebase deploy --account=ipad@mail2.smes.tyc.edu.tw
 - Repository：`cagoooo/PhotoPoet`
 - 可見性：公開
 - 主要技術：TypeScript、React、Next.js、Firebase、Tailwind CSS
-- 線上入口：未在 GitHub repository metadata 設定
+- 線上入口：<https://cagoooo.github.io/PhotoPoet/>
 
 ### 可以怎麼應用
 
