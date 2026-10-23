@@ -17,7 +17,7 @@ import {getFirestore, FieldValue} from 'firebase-admin/firestore';
 
 if (getApps().length === 0) initializeApp();
 
-export const DAILY_LIMIT = 20;
+export const DAILY_LIMIT = 10;
 export const HOURLY_LIMIT = 5;
 
 export interface QuotaResult {

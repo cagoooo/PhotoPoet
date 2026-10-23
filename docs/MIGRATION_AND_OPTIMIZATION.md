@@ -15,7 +15,7 @@
 | §1 | 撤銷外洩 Gemini key + .env 從 git 移除 | ✅ |
 | §2 | Firebase 遷移（Hosting + Functions + 9 步驟） | ✅ |
 | §3.1 | Cloudflare Turnstile 防 bot | ✅ |
-| §3.2 | Firebase Auth + Firestore 詩歷史 + 每日限額（20/人/日） | ✅ |
+| §3.2 | Firebase Auth + Firestore 詩歷史 + 每日限額（10/人/日） | ✅ |
 | §3.3 | proxy.ts SSRF 修補 | ✅ |
 | §3.5 | OG Image / 社群分享預覽 | ✅ |
 | §5 | GitHub repo + CI/CD push-to-deploy | ✅ |

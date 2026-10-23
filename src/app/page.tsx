@@ -37,7 +37,7 @@ import {NightSiteFooter} from '@/components/night/NightSiteFooter';
 import {ThemeToggle} from '@/components/night/ThemeToggle';
 import {useTheme} from '@/components/night/ThemeProvider';
 
-const DAILY_LIMIT_FALLBACK = 20;
+const DAILY_LIMIT_FALLBACK = 10;
 
 interface PoemStyleOption {
   value: string;

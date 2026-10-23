@@ -34,7 +34,7 @@
 | AI | 重新生成（同照片不同詩，temperature 0.95） | ✅ Q1 |
 | 安全 | Cloudflare Turnstile bot 防護 | ✅ Stage 3 |
 | 安全 | Firebase Auth (Google) | ✅ Stage 4 |
-| 安全 | 每人每日 20 首限額（Firestore transactional） | ✅ Stage 4 |
+| 安全 | 每人每日 10 首限額（2026-10-23 由 20 調降）（Firestore transactional） | ✅ Stage 4 |
 | 安全 | proxyImage SSRF 防護 6 層 | ✅ Stage 1 |
 | 安全 | API key referrer + API target 限制 | ✅ |
 | 使用者體驗 | onboarding 5 步驟彈窗（localStorage 記住） | ✅ Q4 |
@@ -430,7 +430,7 @@ match /poems/{poemId} {
 
 **📋 實作大綱**
 - 前端：multi-file `<input>` + 列表化進度顯示
-- 注意 quota：每張消耗 1 次（20 上限），到了就停
+- 注意 quota：每張消耗 1 次（10 上限），到了就停
 - ZIP 打包：用 `jszip` client-side 打包 + 下載
 
 ---

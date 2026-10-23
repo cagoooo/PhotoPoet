@@ -30,7 +30,7 @@ export function AuthBar({remaining, dailyLimit, showHistoryLink = true}: AuthBar
           以 Google 帳號登入
         </Button>
         <p className="text-xs text-gray-500">
-          登入後每日可生成 {dailyLimit ?? 20} 首詩，每小時最多 5 首，請珍惜 AI 額度。
+          登入後每日可生成 {dailyLimit ?? 10} 首詩，每小時最多 5 首，請珍惜 AI 額度。
         </p>
       </div>
     );

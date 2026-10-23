@@ -445,7 +445,7 @@ gcloud firestore operations list --project=photopoet-ha364 | head
 | 前端「以 Google 帳號登入」失敗 | (1) 看 console error；(2) Browser API key referrer 是否含當前 domain；(3) Firebase Auth authorized domains |
 | 生詩回 401「請先用 Google 帳號登入」 | 沒帶 ID token 或 token expired — 重新登入 |
 | 生詩回 403 turnstile 失敗 | Turnstile widget 沒載入或 token 過期 — Ctrl+F5 |
-| 生詩回 429 已達上限 | 今日 20 首用完 — Firestore 看 `users/{uid}.usage`；要退 see 7.7 |
+| 生詩回 429 已達上限 | 今日 10 首用完 — Firestore 看 `users/{uid}.usage`；要退 see 7.7 |
 | 生詩回 500 + Functions log「Secret Version is in DISABLED state」 | rotate Gemini key 後忘了 redeploy functions — 跑 7.1 step 3 |
 | Functions deploy 失敗：billing API 403 | github-deploy SA 漏了 billing.viewer（billing-account 層級） |
 | GitHub Pages 跨域 fetch fail | (1) Functions cors:true？(2) authorized domain 含 cagoooo.github.io？(3) Browser key referrer 含 cagoooo.github.io/*？ |
@@ -471,7 +471,7 @@ gcloud firestore operations list --project=photopoet-ha364 | head
 | GitHub Actions | 2000 分鐘/月（私 repo） | public repo 無限 |
 | Artifact Registry | 0.5 GB free + cleanup-policy 1d | 設了 1 day cleanup |
 
-**最容易爆的**：Gemini RPD 1500 — 加上 Auth + Quota（20/人/日）+ Turnstile，要爆需要 75+ 真人帳號每天用滿。實際上幾乎不會。
+**最容易爆的**：Gemini RPD 1500 — 加上 Auth + Quota（10/人/日）+ Turnstile，要爆需要 150+ 真人帳號每天用滿。實際上幾乎不會。
 
 ### LINE 告警設計
 
