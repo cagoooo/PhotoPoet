@@ -1,6 +1,6 @@
 # PhotoPoet **Pro** · 點亮詩意（早安長輩圖產生器）
 
-> 上傳照片 → Gemini 2.0 Flash 生成繁體中文詩 → 一鍵下載長輩圖。
+> 上傳照片 → Gemini 2.5 Flash 生成繁體中文詩 → 一鍵下載長輩圖。
 
 🌐 **線上使用：[點亮詩意~『早安長輩圖產生器』](https://cagoooo.github.io/PhotoPoet/)**
 
@@ -14,6 +14,7 @@
 - Gemini API key 受限只能呼叫 `generativelanguage.googleapis.com`，存於 Firebase Secret Manager
 - `proxyImage` 配 SSRF 防護（私有 IP 黑名單、redirect 重檢、Content-Type 白名單、10MB / 8s 上限）
 - `generatePoem` 受 Cloudflare Turnstile 保護，無 token 直接 403
+- 生詩需 Google 登入，額度以 Firestore transaction 計算：**每人每日 10 首、每小時最多 5 首**（2026-10-23 由每日 20 首調降，設定在 `functions/src/auth-quota.ts`）
 
 **CI/CD**：push 到 `main` → GitHub Actions 自動 deploy 到 Firebase。
 
