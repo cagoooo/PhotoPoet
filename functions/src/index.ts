@@ -127,7 +127,8 @@ function getAI() {
   if (!aiSingleton) {
     aiSingleton = genkit({
       plugins: [googleAI({apiKey: GEMINI_KEY.value()})],
-      model: 'googleai/gemini-2.5-flash',
+      // 2026-11 改用 2.5-flash-lite：單價約 2.5-flash 的 1/3～1/6
+      model: 'googleai/gemini-2.5-flash-lite',
     });
   }
   return aiSingleton;
@@ -240,6 +241,8 @@ export const generatePoem = onRequest(
         config: {
           temperature: isRegenerate ? 0.95 : 0.8,
           topP: 0.95,
+          // 明確關閉思考，避免多付思考字詞費用（日後預設改變也不受影響）
+          thinkingConfig: {thinkingBudget: 0},
         },
         prompt:
           '你是一位細膩的詩人。仔細觀察下面的照片：注意主體、光線、色調、氛圍與可能的情緒。\n\n{{styleInstruction}}\n\n{{#if freshSeed}}{{freshSeed}}\n\n{{/if}}只輸出詩本身，不要加任何解釋或前言。\n\nPhoto: {{media url=photoDataUri}}',
