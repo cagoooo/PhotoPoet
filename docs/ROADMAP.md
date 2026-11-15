@@ -34,7 +34,7 @@
 | AI | 重新生成（同照片不同詩，temperature 0.95） | ✅ Q1 |
 | 安全 | Cloudflare Turnstile bot 防護 | ✅ Stage 3 |
 | 安全 | Firebase Auth (Google) | ✅ Stage 4 |
-| 安全 | 每人每日 10 首限額（2026-10-23 由 20 調降）（Firestore transactional） | ✅ Stage 4 |
+| 安全 | 每人每天 5 首限額（2026-11-15 由每日 10 首＋每小時 5 首改為每天 5 首；2026-10-23 由 20 調降）（Firestore transactional） | ✅ Stage 4 |
 | 安全 | proxyImage SSRF 防護 6 層 | ✅ Stage 1 |
 | 安全 | API key referrer + API target 限制 | ✅ |
 | 使用者體驗 | onboarding 5 步驟彈窗（localStorage 記住） | ✅ Q4 |

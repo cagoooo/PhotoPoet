@@ -14,12 +14,13 @@
 
 import {getApps, initializeApp} from 'firebase-admin/app';
 import {getAuth, type DecodedIdToken} from 'firebase-admin/auth';
-import {getFirestore, FieldValue} from 'firebase-admin/firestore';
+import {getFirestore, FieldValue, type Transaction} from 'firebase-admin/firestore';
 
 if (getApps().length === 0) initializeApp();
 
-export const DAILY_LIMIT = 10;
-export const HOURLY_LIMIT = 5;
+// 2026-11-15：改成每位 Google 登入使用者每天 5 首（台北時間午夜重置），拿掉每小時限制
+export const DAILY_LIMIT = 5;
+export const QUOTA_EXCEEDED_MESSAGE = `今天的 ${DAILY_LIMIT} 次已用完，明天（台北時間午夜後）再來`;
 
 export interface QuotaResult {
   ok: boolean;
@@ -38,11 +39,6 @@ const TZ_OFFSET_MIN = 8 * 60; // Asia/Taipei
 function todayKey(): string {
   const now = new Date(Date.now() + TZ_OFFSET_MIN * 60_000);
   return now.toISOString().slice(0, 10);
-}
-
-function hourKey(): string {
-  const now = new Date(Date.now() + TZ_OFFSET_MIN * 60_000);
-  return now.toISOString().slice(0, 13);
 }
 
 export async function verifyIdToken(authHeader: string | undefined): Promise<AuthedUser | null> {
@@ -78,30 +74,18 @@ export async function consumeQuota(user: AuthedUser): Promise<QuotaResult> {
   const db = getFirestore();
   const userRef = db.collection('users').doc(user.uid);
   const today = todayKey();
-  const hour = hourKey();
 
-  return db.runTransaction(async tx => {
+  return db.runTransaction(async (tx: Transaction) => {
     const snap = await tx.get(userRef);
     const data = snap.exists ? snap.data() : null;
     const usage: {date: string; count: number} = data?.usage ?? {date: today, count: 0};
-    const hourlyUsage: {hour: string; count: number} = data?.hourlyUsage ?? {hour, count: 0};
     const currentCount = usage.date === today ? usage.count : 0;
-    const currentHourCount = hourlyUsage.hour === hour ? hourlyUsage.count : 0;
 
     if (currentCount >= DAILY_LIMIT) {
-      return {ok: false, remaining: 0, reason: `今日已達上限 ${DAILY_LIMIT} 首，明天再來。`};
-    }
-
-    if (currentHourCount >= HOURLY_LIMIT) {
-      return {
-        ok: false,
-        remaining: DAILY_LIMIT - currentCount,
-        reason: `為了避免 AI API 額度被快速耗盡，每位使用者每小時最多可產生 ${HOURLY_LIMIT} 次。請稍後再試，謝謝你一起珍惜資源。`,
-      };
+      return {ok: false, remaining: 0, reason: QUOTA_EXCEEDED_MESSAGE};
     }
 
     const newCount = currentCount + 1;
-    const newHourCount = currentHourCount + 1;
     const profile = {
       displayName: user.name ?? null,
       email: user.email ?? null,
@@ -115,7 +99,6 @@ export async function consumeQuota(user: AuthedUser): Promise<QuotaResult> {
       {
         ...profile,
         usage: {date: today, count: newCount},
-        hourlyUsage: {hour, count: newHourCount},
       },
       {merge: true}
     );

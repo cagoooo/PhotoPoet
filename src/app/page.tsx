@@ -37,7 +37,9 @@ import {NightSiteFooter} from '@/components/night/NightSiteFooter';
 import {ThemeToggle} from '@/components/night/ThemeToggle';
 import {useTheme} from '@/components/night/ThemeProvider';
 
-const DAILY_LIMIT_FALLBACK = 10;
+const DAILY_LIMIT_FALLBACK = 5;
+/** 與後端 auth-quota.ts 的 QUOTA_EXCEEDED_MESSAGE 一致 */
+const QUOTA_EXCEEDED_MSG = '今天的 5 次已用完，明天（台北時間午夜後）再來';
 /** 寫詩功能必須先用 Google 帳號登入（與後端 401 訊息一致） */
 const LOGIN_REQUIRED_MSG = '請先用 Google 帳號登入才能使用';
 
@@ -284,10 +286,12 @@ export default function Home() {
       if (!response.ok) {
         let errorMessage = `生成失敗（HTTP ${response.status}），請稍後再試。`;
         let bodyError: string | undefined;
+        let isDailyLimit = false;
         // 嘗試解析後端 JSON error，拿 message + 用量資訊
         try {
           const errBody = await response.json();
           if (errBody?.error) bodyError = String(errBody.error);
+          isDailyLimit = errBody?.code === 'quota/daily-limit';
           if (typeof errBody?.dailyLimit === 'number') setDailyLimit(errBody.dailyLimit);
           if (typeof errBody?.remaining === 'number') setRemaining(errBody.remaining);
         } catch {}
@@ -298,7 +302,10 @@ export default function Home() {
           /quota|RESOURCE_EXHAUSTED|Too Many Requests|rate ?limit/i.test(
             bodyError || '',
           );
-        if (looksLikeQuota) {
+        if (isDailyLimit) {
+          // 每人每天 5 首已用完（後端在呼叫 Gemini 前就擋下）
+          errorMessage = bodyError || QUOTA_EXCEEDED_MSG;
+        } else if (looksLikeQuota) {
           errorMessage =
             'AI 今日的免費額度暫時用完了 ⸺ 請稍後再試（通常隔日重置），或請站長升級付費方案。';
         } else if (response.status === 404) {

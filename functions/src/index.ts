@@ -19,7 +19,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {verifyTurnstile, getClientIp} from './turnstile';
-import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT, HOURLY_LIMIT} from './auth-quota';
+import {verifyIdToken, consumeQuota, savePoem, DAILY_LIMIT, QUOTA_EXCEEDED_MESSAGE} from './auth-quota';
 import {notifyAdmin, type AlertCard} from './notify-line';
 import {notifyGoogleChat} from './notify-google-chat';
 
@@ -200,7 +200,6 @@ export const generatePoem = onRequest(
     // 3️⃣ Per-user daily quota (transactional inc, no race)
     const quota = await consumeQuota(user);
     if (!quota.ok) {
-      const usedToday = DAILY_LIMIT - quota.remaining;
       notifyGoogleChat({
         status: 'warning',
         dedupeKey: `quota-blocked-${user.uid}-${todayKeyTaipei()}`,
@@ -208,13 +207,19 @@ export const generatePoem = onRequest(
         hero: user.name || user.email || user.uid,
         fields: [
           {icon: '👤', label: '使用者', value: user.name || user.email || user.uid},
-          {icon: '⏱️', label: '限制', value: `每日 ${DAILY_LIMIT} 首、每小時 ${HOURLY_LIMIT} 首`},
-          {icon: '📌', label: '原因', value: quota.reason || '已達使用上限'},
+          {icon: '⏱️', label: '限制', value: `每人每天 ${DAILY_LIMIT} 首（台北時間午夜重置）`},
+          {icon: '🔢', label: '今日剩餘', value: `${quota.remaining} 次`},
+          {icon: '📌', label: '原因', value: quota.reason || QUOTA_EXCEEDED_MESSAGE},
         ],
-        progress: {current: usedToday, total: DAILY_LIMIT, label: '今日用量'},
+        progress: {current: DAILY_LIMIT, total: DAILY_LIMIT, label: '今日用量'},
         footerNote: '已在 Gemini 呼叫前擋下，未消耗 API 額度。',
       }).catch(() => {});
-      res.status(429).json({error: quota.reason || '已達每日上限', remaining: 0, dailyLimit: DAILY_LIMIT});
+      res.status(429).json({
+        error: quota.reason || QUOTA_EXCEEDED_MESSAGE,
+        code: 'quota/daily-limit',
+        remaining: 0,
+        dailyLimit: DAILY_LIMIT,
+      });
       return;
     }
 
@@ -296,6 +301,7 @@ export const generatePoem = onRequest(
         fields: [
           {icon: '👤', label: '使用者', value: user.email || heroName},
           {icon: '🎨', label: '風格', value: STYLE_DISPLAY[style]},
+          {icon: '🔢', label: '今日剩餘', value: `${quota.remaining} 次`},
           {icon: '🌐', label: '版本', value: 'PhotoPoet Pro'},
         ],
         progress: {current: usedToday, total: DAILY_LIMIT, label: '今日進度'},
@@ -307,7 +313,6 @@ export const generatePoem = onRequest(
         style,
         remaining: quota.remaining,
         dailyLimit: DAILY_LIMIT,
-        hourlyLimit: HOURLY_LIMIT,
         poemId,
       });
     } catch (err: any) {
@@ -356,6 +361,7 @@ export const generatePoem = onRequest(
         fields: [
           {icon: '👤', label: '使用者', value: heroNameForErr},
           {icon: '🎨', label: '風格', value: STYLE_DISPLAY[style]},
+          {icon: '🔢', label: '今日剩餘', value: `${quota.remaining} 次`},
           {icon: '⚠️', label: '錯誤碼', value: String(errStatus)},
           {icon: '💬', label: '原因', value: errMsg.slice(0, 200)},
         ],

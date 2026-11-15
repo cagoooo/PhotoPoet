@@ -18,7 +18,7 @@ interface UseGuideDialogProps {
 const STEPS: {title: string; body: React.ReactNode}[] = [
   {
     title: '登入 Google 帳號',
-    body: <>用來計算生詩額度（每人每日 10 首、每小時最多 5 首），避免 AI API 額度被快速耗盡。</>,
+    body: <>用來計算生詩額度（每人每天 5 首，台北時間午夜重置），避免 AI API 額度被快速耗盡。</>,
   },
   {
     title: '上傳照片',
