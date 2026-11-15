@@ -1,7 +1,8 @@
 /**
  * Auth + per-user daily quota helper.
  *
- * Verifies the Firebase ID token from the Authorization: Bearer <token> header,
+ * Verifies the Firebase ID token from the Authorization: Bearer <token> header
+ * (must be a Google sign-in; anonymous / other providers are rejected),
  * then atomically checks/increments a per-day counter in Firestore.
  *
  * The counter lives at users/{uid}.usage = { date: "YYYY-MM-DD", count: N }.
@@ -50,6 +51,12 @@ export async function verifyIdToken(authHeader: string | undefined): Promise<Aut
   if (!token) return null;
   try {
     const decoded: DecodedIdToken = await getAuth().verifyIdToken(token);
+    // 只接受「用 Google 帳號登入」的使用者：匿名登入或其他登入方式一律拒絕
+    const provider = decoded.firebase?.sign_in_provider;
+    if (provider !== 'google.com') {
+      console.warn('[auth] rejected sign_in_provider:', provider);
+      return null;
+    }
     return {
       uid: decoded.uid,
       email: decoded.email,

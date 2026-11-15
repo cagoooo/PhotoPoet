@@ -38,6 +38,8 @@ import {ThemeToggle} from '@/components/night/ThemeToggle';
 import {useTheme} from '@/components/night/ThemeProvider';
 
 const DAILY_LIMIT_FALLBACK = 10;
+/** 寫詩功能必須先用 Google 帳號登入（與後端 401 訊息一致） */
+const LOGIN_REQUIRED_MSG = '請先用 Google 帳號登入才能使用';
 
 interface PoemStyleOption {
   value: string;
@@ -108,7 +110,26 @@ export default function Home() {
   const [welcomedUid, setWelcomedUid] = useState<string | null>(null);
   /** 上一次 submit 失敗的訊息（顯示在 home view CTA 上方 banner，比 toast 持久） */
   const [lastError, setLastError] = useState<string | null>(null);
-  const {user, configured: authConfigured, getIdToken, signIn} = useAuth();
+  const {user, getIdToken, signIn} = useAuth();
+
+  /** 觸發 Google 登入（需在使用者點擊的同步流程中呼叫，彈出視窗才不會被擋） */
+  const startGoogleSignIn = () => {
+    signIn()
+      .then(() => setLastError(null))
+      .catch(e => {
+        console.error('signIn failed', e);
+        toast({
+          title: '登入失敗',
+          description: e?.message || '請稍後再試。',
+        });
+      });
+  };
+
+  /** 未登入時的提示：畫面上顯示「請先用 Google 帳號登入才能使用」，並直接跳出 Google 登入視窗 */
+  const promptGoogleLogin = () => {
+    setLastError(LOGIN_REQUIRED_MSG);
+    startGoogleSignIn();
+  };
   const {usage} = useUsage(user?.uid);
 
   const router = useRouter();
@@ -217,8 +238,9 @@ export default function Home() {
       toast({title: '錯誤！', description: '請先上傳一張照片。'});
       return;
     }
-    if (authConfigured && !user) {
-      toast({title: '請先登入', description: '請使用上方按鈕以 Google 帳號登入後再試。'});
+    // 寫詩功能必須用 Google 帳號登入：沒登入（或匿名登入）就不送出請求，直接引導登入
+    if (!user || user.isAnonymous) {
+      promptGoogleLogin();
       return;
     }
     if (turnstileEnabled && !turnstileToken) {
@@ -228,12 +250,18 @@ export default function Home() {
     if (isRegen) setIsRegenerating(true);
     else setIsGenerating(true);
     setLastError(null);
-    const idToken = authConfigured ? await getIdToken() : null;
+    const idToken = await getIdToken().catch(() => null);
+    if (!idToken) {
+      if (isRegen) setIsRegenerating(false);
+      else setIsGenerating(false);
+      promptGoogleLogin();
+      return;
+    }
     const buildBody = () =>
       JSON.stringify({photo, turnstileToken, style: poemStyle, regenerate: isRegen, publishToWall});
     const buildHeaders = () => {
       const h: Record<string, string> = {'Content-Type': 'application/json', Accept: 'application/json'};
-      if (idToken) h.Authorization = `Bearer ${idToken}`;
+      h.Authorization = `Bearer ${idToken}`;
       return h;
     };
     try {
@@ -277,7 +305,9 @@ export default function Home() {
           errorMessage = '找不到生詩 API（可能後端尚未部署），請稍後再試。';
         } else if (response.status === 503) {
           errorMessage = 'AI 模型目前過載，已重試數次仍失敗。請稍後再試。';
-        } else if (response.status === 401 || response.status === 403) {
+        } else if (response.status === 401) {
+          errorMessage = bodyError || LOGIN_REQUIRED_MSG;
+        } else if (response.status === 403) {
           errorMessage =
             bodyError ||
             '登入狀態失效或權限不足。請重新登入後再試。';
@@ -434,7 +464,8 @@ export default function Home() {
   const showResult = !!poem && !isGenerating && !isRegenerating;
   const showOverlay = isGenerating || isRegenerating;
   const isBusy = isGenerating || isRegenerating;
-  const needsLogin = authConfigured && !user;
+  // 沒設定 Firebase 時也視為需要登入（後端一律要求 Google 登入）
+  const needsLogin = !user || user.isAnonymous;
   const canSubmit =
     !!photo &&
     !isBusy &&
@@ -444,13 +475,7 @@ export default function Home() {
   // 主 CTA：未登入時點下去觸發 Google 登入；登入後才走生詩流程
   const handleCtaClick = () => {
     if (needsLogin) {
-      signIn().catch(e => {
-        console.error('signIn failed', e);
-        toast({
-          title: '登入失敗',
-          description: e?.message || '請稍後再試。',
-        });
-      });
+      startGoogleSignIn();
       return;
     }
     handleSubmit();
@@ -749,6 +774,23 @@ function ErrorBanner({message, onDismiss}: {message: string; onDismiss: () => vo
   );
 }
 
+function LoginRequiredHint() {
+  return (
+    <div
+      role="note"
+      style={{
+        marginTop: 10,
+        fontSize: 12,
+        lineHeight: 1.6,
+        color: t.inkSoft,
+        textAlign: 'center',
+      }}
+    >
+      🔒 {LOGIN_REQUIRED_MSG}，按上方按鈕即可登入。
+    </div>
+  );
+}
+
 function ctaLabel(p: HomeViewProps): string {
   if (p.needsLogin) return '以 Google 登 入';
   if (!p.hasPhoto) return '先 選 一 張 照 片';
@@ -854,6 +896,7 @@ function HomeViewMobile(p: HomeViewProps) {
       <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 22}}>
         {ctaLabel(p)}
       </GoldButton>
+      {p.needsLogin && <LoginRequiredHint />}
 
       <NightSiteFooter />
     </div>
@@ -1018,6 +1061,7 @@ function HomeViewDesktop(p: HomeViewProps) {
           <GoldButton onClick={p.onCta} disabled={p.ctaDisabled} style={{marginTop: 6}}>
             {ctaLabel(p)}
           </GoldButton>
+          {p.needsLogin && <LoginRequiredHint />}
         </div>
       </div>
 

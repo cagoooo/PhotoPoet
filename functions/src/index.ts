@@ -157,7 +157,7 @@ export const generatePoem = onRequest(
     // 1️⃣ Auth — must be a real Google-signed-in user
     const user = await verifyIdToken(req.headers.authorization);
     if (!user) {
-      res.status(401).json({error: '請先用 Google 帳號登入後再試。'});
+      res.status(401).json({error: '請先用 Google 帳號登入才能使用', code: 'auth/google-login-required'});
       return;
     }
 
