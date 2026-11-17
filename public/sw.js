@@ -16,6 +16,9 @@
 const CACHE_VERSION = 'dev-fallback';
 const STATIC_CACHE = `photopoet-static-${CACHE_VERSION}`;
 const HTML_CACHE = `photopoet-html-${CACHE_VERSION}`;
+// 同網域（例如 cagoooo.github.io）其他工具也共用 Cache Storage，只能清除本工具自己的快取
+const OWN_CACHE_PREFIXES = ['photopoet-static-', 'photopoet-html-'];
+const isOwnCache = (k) => OWN_CACHE_PREFIXES.some((p) => k.startsWith(p));
 
 // 不在 install 時 skipWaiting — 改由前端 toast「重新載入」按鈕觸發。
 // 這樣使用者頁面正在用舊 cache 時不會被新版突襲取代。
@@ -35,7 +38,7 @@ self.addEventListener('activate', (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => !k.endsWith(CACHE_VERSION))
+          .filter((k) => isOwnCache(k) && k !== STATIC_CACHE && k !== HTML_CACHE)
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
