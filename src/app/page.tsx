@@ -157,14 +157,8 @@ export default function Home() {
     setWelcomedUid(user.uid);
   }, [user, usage, welcomedUid]);
 
-  // LINE in-app browser 跳外部 + 強制 viewport
+  // 強制 viewport（LINE／FB 內建瀏覽器防護已移到 layout.tsx 的 <head>）
   useEffect(() => {
-    if (
-      navigator.userAgent.indexOf('Line') > -1 &&
-      window.location.search.indexOf('openExternalBrowser=1') === -1
-    ) {
-      window.location.href = window.location.href + '?openExternalBrowser=1';
-    }
     const viewportMeta = document.querySelector('meta[name="viewport"]');
     if (viewportMeta) {
       viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
