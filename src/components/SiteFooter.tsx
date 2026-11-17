@@ -8,7 +8,7 @@ import Link from 'next/link';
 import {Heart} from 'lucide-react';
 import {ShareLinkButton} from '@/components/ShareLinkButton';
 
-const TEACHER_PAGE = 'https://www.smes.tyc.edu.tw/'; // 學校教師頁/校網入口
+const TEACHER_PAGE = 'https://cagoooo.github.io/Akai/'; // 阿凱老師教育科技創新專區
 const GITHUB_URL = 'https://github.com/cagoooo/PhotoPoet';
 
 export function SiteFooter() {
@@ -24,6 +24,7 @@ export function SiteFooter() {
             href={TEACHER_PAGE}
             target="_blank"
             rel="noopener noreferrer"
+            title="阿凱老師教育科技創新專區"
             className="font-semibold text-purple-700 hover:text-purple-900 hover:underline ml-1"
           >
             阿凱老師

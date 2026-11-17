@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import {nightTokens as t} from './atoms';
 
-const TEACHER_PAGE = 'https://www.smes.tyc.edu.tw/';
+const TEACHER_PAGE = 'https://cagoooo.github.io/Akai/'; // 阿凱老師教育科技創新專區
 const GITHUB_URL = 'https://github.com/cagoooo/PhotoPoet';
 
 export function NightSiteFooter() {
@@ -33,6 +33,7 @@ export function NightSiteFooter() {
           href={TEACHER_PAGE}
           target="_blank"
           rel="noopener noreferrer"
+          title="阿凱老師教育科技創新專區"
           style={{
             color: t.gold,
             fontFamily: t.serif,
