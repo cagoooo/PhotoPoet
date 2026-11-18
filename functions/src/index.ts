@@ -33,11 +33,15 @@ const GOOGLE_CHAT_WEBHOOK_URL = defineSecret('GOOGLE_CHAT_WEBHOOK_URL');
 
 /**
  * 站務通知：
- * - LINE：沿用 card.dedupeKey（同一人／同類錯誤每天一次，省 LINE 月額度）
+ * - LINE：只發「失敗／錯誤」（status 'failed'），沿用 card.dedupeKey（同類錯誤每天一次）。
+ *   所有網站共用同一個 LINE 官方帳號，免費方案每月只有 200 則，
+ *   「有人來寫詩了」這類每次使用的通知與 warning 一律只發 Google Chat。
  * - Google Chat：每次都通知（dedupeKey 加上時間戳＋亂數），回應前最多等 2.5 秒，失敗不影響主功能
  */
 async function notifyOps(card: AlertCard): Promise<void> {
-  notifyAdmin(card).catch(() => {});
+  if (card.status === 'failed') {
+    notifyAdmin(card).catch(() => {});
+  }
   const everyTimeKey = `${card.dedupeKey}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   let timer: NodeJS.Timeout | undefined;
   await Promise.race([
@@ -289,7 +293,7 @@ export const generatePoem = onRequest(
       }
 
       // 「使用者活躍」告警：Google Chat 每一首都通知（方便即時發現有沒有人亂刷額度）；
-      // LINE 仍是同 uid 每天第一首才推 → 一個活躍使用者最多耗 1 條 LINE 月額度/天
+      // LINE 不推（成功類只發 Chat，LINE 月額度留給錯誤告警）
       const todayKey = todayKeyTaipei();
       const usedToday = DAILY_LIMIT - quota.remaining; // 含本次
       const heroName = user.name || user.email?.split('@')[0] || '匿名詩人';
@@ -305,7 +309,7 @@ export const generatePoem = onRequest(
           {icon: '🌐', label: '版本', value: 'PhotoPoet Pro'},
         ],
         progress: {current: usedToday, total: DAILY_LIMIT, label: '今日進度'},
-        footerNote: 'Google Chat 每次寫詩都通知；LINE 同一人每天只通知一次 🌸',
+        footerNote: 'Google Chat 每次寫詩都通知；LINE 只在發生錯誤時通知 🌸',
       });
 
       res.status(200).json({
@@ -346,7 +350,7 @@ export const generatePoem = onRequest(
       const heroNameForErr =
         user.name || user.email?.split('@')[0] || '匿名詩人';
 
-      // Google Chat 每次失敗都通知；LINE 仍依下面的 dedupeKey 每天一次
+      // Google Chat 每次失敗都通知；LINE 只發 status failed（過載 warning 不發），依 dedupeKey 每天一次
       await notifyOps({
         status: looksLikeOverload ? 'warning' : 'failed',
         dedupeKey: looksLikeQuota
