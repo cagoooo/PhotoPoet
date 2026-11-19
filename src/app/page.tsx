@@ -37,9 +37,9 @@ import {NightSiteFooter} from '@/components/night/NightSiteFooter';
 import {ThemeToggle} from '@/components/night/ThemeToggle';
 import {useTheme} from '@/components/night/ThemeProvider';
 
-const DAILY_LIMIT_FALLBACK = 5;
+const DAILY_LIMIT_FALLBACK = 3;
 /** 與後端 auth-quota.ts 的 QUOTA_EXCEEDED_MESSAGE 一致 */
-const QUOTA_EXCEEDED_MSG = '今天的 5 次已用完，明天（台北時間午夜後）再來';
+const QUOTA_EXCEEDED_MSG = '今天的 3 次已用完，明天（台北時間午夜後）再來';
 /** 寫詩功能必須先用 Google 帳號登入（與後端 401 訊息一致） */
 const LOGIN_REQUIRED_MSG = '請先用 Google 帳號登入才能使用';
 
@@ -297,7 +297,7 @@ export default function Home() {
             bodyError || '',
           );
         if (isDailyLimit) {
-          // 每人每天 5 首已用完（後端在呼叫 Gemini 前就擋下）
+          // 每人每天 3 首已用完（後端在呼叫 Gemini 前就擋下）
           errorMessage = bodyError || QUOTA_EXCEEDED_MSG;
         } else if (looksLikeQuota) {
           errorMessage =

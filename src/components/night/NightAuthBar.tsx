@@ -68,7 +68,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
             未登入
           </div>
           <div style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
-            登入後每人每天可賦詩 {dailyLimit ?? 5} 首
+            登入後每人每天可賦詩 {dailyLimit ?? 3} 首
           </div>
         </div>
         <button
@@ -101,7 +101,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
   const name = user.displayName?.split(' ')[0] || user.email?.split('@')[0] || '詩人';
   const initial = name.charAt(0);
   const remainingNum = typeof remaining === 'number' ? remaining : null;
-  const limitNum = typeof dailyLimit === 'number' ? dailyLimit : 5;
+  const limitNum = typeof dailyLimit === 'number' ? dailyLimit : 3;
 
   return (
     <div

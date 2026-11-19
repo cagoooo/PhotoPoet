@@ -19,7 +19,8 @@ import {getFirestore, FieldValue, type Transaction} from 'firebase-admin/firesto
 if (getApps().length === 0) initializeApp();
 
 // 2026-11-15：改成每位 Google 登入使用者每天 5 首（台北時間午夜重置），拿掉每小時限制
-export const DAILY_LIMIT = 5;
+// 2026-11-19：每天 5 首下修為 3 首
+export const DAILY_LIMIT = 3;
 export const QUOTA_EXCEEDED_MESSAGE = `今天的 ${DAILY_LIMIT} 次已用完，明天（台北時間午夜後）再來`;
 
 export interface QuotaResult {

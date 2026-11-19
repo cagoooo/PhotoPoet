@@ -4,7 +4,7 @@
 
 🌐 **線上使用：[點亮詩意~『早安長輩圖產生器』](https://cagoooo.github.io/PhotoPoet/)**
 
-> 📌 **目前版本：v1.0.2**（版本管理自 2026-09-06 起，依據 `package.json`）
+> 📌 **目前版本：v1.0.3**（版本管理自 2026-09-06 起，依據 `package.json`）
 
 🌐 **線上版**：https://photopoet-ha364.web.app
 
@@ -14,7 +14,7 @@
 - Gemini API key 受限只能呼叫 `generativelanguage.googleapis.com`，存於 Firebase Secret Manager
 - `proxyImage` 配 SSRF 防護（私有 IP 黑名單、redirect 重檢、Content-Type 白名單、10MB / 8s 上限）
 - `generatePoem` 受 Cloudflare Turnstile 保護，無 token 直接 403
-- 生詩需 Google 登入，額度以 Firestore transaction 計算：**每人每日 10 首、每小時最多 5 首**（2026-10-23 由每日 20 首調降，設定在 `functions/src/auth-quota.ts`）
+- 生詩需 Google 登入，額度以 Firestore transaction 計算：**每人每天 3 首（台北時間午夜重置）**（2026-11-19 由每天 5 首下修；2026-11-15 由每日 10 首＋每小時 5 首改為每天 5 首；2026-10-23 由每日 20 首調降，設定在 `functions/src/auth-quota.ts`）
 
 **CI/CD**：push 到 `main` → GitHub Actions 自動 deploy 到 Firebase。
 
