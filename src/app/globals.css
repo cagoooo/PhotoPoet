@@ -631,19 +631,22 @@ html, body {
   gap: 10px;
 }
 .photopoet-card-grid--wall {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .photopoet-card-grid--list {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+.photopoet-card-grid > * {
+  min-width: 0;
 }
 @media (min-width: 1024px) {
   .photopoet-card-grid {
     gap: clamp(14px, 1.4vw, 24px);
   }
   .photopoet-card-grid--wall {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   }
   .photopoet-card-grid--list {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   }
 }
