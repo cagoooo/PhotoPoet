@@ -26,6 +26,7 @@ import {PoemTTSButton} from '@/components/PoemTTSButton';
 
 import {
   nightTokens as t,
+  fz,
   NightShell,
   TopBar,
   OutlineButton,
@@ -131,9 +132,9 @@ export default function HistoryPage() {
   }, [authLoading, configured, user, router]);
 
   return (
-    <div style={{padding: '24px 12px', minHeight: '100vh'}}>
-      <NightShell>
-        <div style={{position: 'relative', zIndex: 1, padding: '0 22px 24px'}}>
+    <div className="photopoet-page-wrap" style={{minHeight: '100vh'}}>
+      <NightShell wide>
+        <div style={{position: 'relative', zIndex: 1, padding: '0 var(--gut, 22px) 24px'}}>
           <TopBar
             onBack={() => (window.location.href = '/')}
             backLabel="回首頁"
@@ -146,7 +147,7 @@ export default function HistoryPage() {
               style={{
                 fontFamily: t.italic,
                 fontStyle: 'italic',
-                fontSize: 13,
+                fontSize: fz(13),
                 color: t.gold,
                 letterSpacing: 1,
               }}
@@ -157,10 +158,10 @@ export default function HistoryPage() {
               style={{
                 fontFamily: t.serif,
                 fontWeight: 300,
-                fontSize: 38,
+                fontSize: fz(38),
                 letterSpacing: 8,
                 margin: '4px 0 0',
-                color: '#f0e8c8',
+                color: 'var(--theme-hero-ink)',
               }}
             >
               我的詩
@@ -169,7 +170,7 @@ export default function HistoryPage() {
 
           <div
             style={{
-              fontSize: 11,
+              fontSize: fz(11),
               color: t.inkMute,
               letterSpacing: 1,
               marginBottom: 18,
@@ -199,7 +200,7 @@ export default function HistoryPage() {
               style={{
                 textAlign: 'center',
                 color: '#ef9b8a',
-                fontSize: 12,
+                fontSize: fz(12),
                 padding: '24px 0',
               }}
             >
@@ -226,7 +227,7 @@ export default function HistoryPage() {
           )}
 
           {configured && user && poems.length > 0 && (
-            <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+            <div className="photopoet-card-grid photopoet-card-grid--list">
               {poems.map(p => (
                 <PoemRow
                   key={p.id}
@@ -253,7 +254,7 @@ export default function HistoryPage() {
                 marginTop: 18,
                 padding: 12,
                 color: t.inkMute,
-                fontSize: 10,
+                fontSize: fz(10),
                 letterSpacing: 2,
               }}
             >
@@ -274,12 +275,12 @@ function EmptyState({children}: {children: React.ReactNode}) {
       style={{
         textAlign: 'center',
         color: t.inkMute,
-        fontSize: 12,
+        fontSize: fz(12),
         padding: '40px 0',
         lineHeight: 1.9,
       }}
     >
-      <div style={{fontSize: 32, color: t.gold, marginBottom: 10}}>✦</div>
+      <div style={{fontSize: fz(32), color: t.gold, marginBottom: 10}}>✦</div>
       {children}
     </div>
   );
@@ -323,22 +324,22 @@ function PoemRow({
           style={{
             fontFamily: t.italic,
             fontStyle: 'italic',
-            fontSize: 11,
+            fontSize: fz(11),
             color: t.gold,
             letterSpacing: 1,
           }}
         >
           {styleLabel}
         </span>
-        <span style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
+        <span style={{fontSize: fz(10), color: t.inkMute, letterSpacing: 1}}>
           {formatDate(poem.createdAt)}
         </span>
       </div>
       <div
         style={{
           fontFamily: t.serif,
-          fontSize: 13,
-          color: '#f0e8c8',
+          fontSize: fz(13),
+          color: t.ink,
           lineHeight: 1.8,
           letterSpacing: 1.5,
           whiteSpace: 'pre-wrap',
@@ -366,7 +367,7 @@ function PoemRow({
             padding: '7px 10px',
             fontFamily: t.italic,
             fontStyle: 'italic',
-            fontSize: 11,
+            fontSize: fz(11),
             letterSpacing: 1.5,
             cursor: 'pointer',
             transition: 'all .2s',

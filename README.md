@@ -4,7 +4,7 @@
 
 🌐 **線上使用：[點亮詩意~『早安長輩圖產生器』](https://cagoooo.github.io/PhotoPoet/)**
 
-> 📌 **目前版本：v1.0.4**（版本管理自 2026-09-06 起，依據 `package.json`）
+> 📌 **目前版本：v1.0.5**（版本管理自 2026-09-06 起，依據 `package.json`）
 
 🌐 **線上版**：https://photopoet-ha364.web.app
 

@@ -624,3 +624,26 @@ html, body {
   border-color: var(--theme-gold) !important;
   background: rgba(184, 154, 74, 0.06) !important;
 }
+
+/* 詩牆／我的詩卡片網格：手機維持原排版，桌機依寬度自動排 3~5 欄 */
+.photopoet-card-grid {
+  display: grid;
+  gap: 10px;
+}
+.photopoet-card-grid--wall {
+  grid-template-columns: 1fr 1fr;
+}
+.photopoet-card-grid--list {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .photopoet-card-grid {
+    gap: clamp(14px, 1.4vw, 24px);
+  }
+  .photopoet-card-grid--wall {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .photopoet-card-grid--list {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+}

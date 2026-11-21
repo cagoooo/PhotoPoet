@@ -24,6 +24,7 @@ import {PoemTTSButton} from '@/components/PoemTTSButton';
 
 import {
   nightTokens as t,
+  fz,
   NightShell,
   TopBar,
   OutlineButton,
@@ -148,9 +149,9 @@ export default function WallPage() {
   );
 
   return (
-    <div style={{padding: '24px 12px', minHeight: '100vh'}}>
-      <NightShell>
-        <div style={{position: 'relative', zIndex: 1, padding: '0 22px 24px'}}>
+    <div className="photopoet-page-wrap" style={{minHeight: '100vh'}}>
+      <NightShell wide>
+        <div style={{position: 'relative', zIndex: 1, padding: '0 var(--gut, 22px) 24px'}}>
           <TopBar
             onBack={() => (window.location.href = '/')}
             backLabel="回首頁"
@@ -163,7 +164,7 @@ export default function WallPage() {
               style={{
                 fontFamily: t.italic,
                 fontStyle: 'italic',
-                fontSize: 13,
+                fontSize: fz(13),
                 color: t.gold,
                 letterSpacing: 1,
               }}
@@ -174,10 +175,10 @@ export default function WallPage() {
               style={{
                 fontFamily: t.serif,
                 fontWeight: 300,
-                fontSize: 38,
+                fontSize: fz(38),
                 letterSpacing: 8,
                 margin: '4px 0 0',
-                color: '#f0e8c8',
+                color: 'var(--theme-hero-ink)',
               }}
             >
               詩牆
@@ -186,7 +187,7 @@ export default function WallPage() {
 
           <div
             style={{
-              fontSize: 11,
+              fontSize: fz(11),
               color: t.inkMute,
               letterSpacing: 1,
               marginBottom: 18,
@@ -224,7 +225,7 @@ export default function WallPage() {
                     background: active ? 'rgba(184,154,74,0.08)' : 'transparent',
                     color: active ? t.gold : t.inkSoft,
                     fontFamily: t.serif,
-                    fontSize: 11,
+                    fontSize: fz(11),
                     letterSpacing: 2,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -242,7 +243,7 @@ export default function WallPage() {
               style={{
                 textAlign: 'center',
                 color: '#ef9b8a',
-                fontSize: 12,
+                fontSize: fz(12),
                 padding: '24px 0',
               }}
             >
@@ -255,12 +256,12 @@ export default function WallPage() {
               style={{
                 textAlign: 'center',
                 color: t.inkMute,
-                fontSize: 12,
+                fontSize: fz(12),
                 padding: '40px 0',
                 lineHeight: 1.9,
               }}
             >
-              <div style={{fontSize: 32, color: t.gold, marginBottom: 10}}>✦</div>
+              <div style={{fontSize: fz(32), color: t.gold, marginBottom: 10}}>✦</div>
               {activeFilter ? (
                 <>
                   「{STYLE_LABEL[activeFilter] || activeFilter}」還沒有詩。
@@ -298,7 +299,7 @@ export default function WallPage() {
           )}
 
           {visible.length > 0 && (
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10}}>
+            <div className="photopoet-card-grid photopoet-card-grid--wall">
               {visible.map(p => (
                 <WallCard
                   key={p.id}
@@ -325,7 +326,7 @@ export default function WallPage() {
                 marginTop: 18,
                 padding: 12,
                 color: t.inkMute,
-                fontSize: 10,
+                fontSize: fz(10),
                 letterSpacing: 2,
               }}
             >
@@ -384,21 +385,21 @@ function WallCard({
             style={{
               fontFamily: t.italic,
               fontStyle: 'italic',
-              fontSize: 10,
+              fontSize: fz(10),
               color: t.gold,
               letterSpacing: 1,
             }}
           >
             {styleLabel}
           </div>
-          <div style={{fontSize: 9, color: t.inkMute, letterSpacing: 1}}>
+          <div style={{fontSize: fz(9), color: t.inkMute, letterSpacing: 1}}>
             {formatDate(poem.createdAt)}
           </div>
         </div>
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 13,
+            fontSize: fz(13),
             color: '#f0e8c8',
             lineHeight: 1.7,
             letterSpacing: 2,
@@ -418,7 +419,7 @@ function WallCard({
           borderTop: `1px solid ${t.divider}`,
         }}
       >
-        <span style={{fontSize: 10, color: t.inkSoft, letterSpacing: 1}}>
+        <span style={{fontSize: fz(10), color: t.inkSoft, letterSpacing: 1}}>
           —— {poem.displayName || '匿名'}
         </span>
         <div style={{display: 'flex', gap: 6, alignItems: 'center'}}>
@@ -430,7 +431,7 @@ function WallCard({
               background: 'transparent',
               border: 0,
               color: copied ? t.gold : t.inkMute,
-              fontSize: 12,
+              fontSize: fz(12),
               cursor: 'pointer',
               padding: '0 4px',
               fontFamily: t.italic,
