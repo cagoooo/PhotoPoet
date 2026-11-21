@@ -430,7 +430,7 @@ function WallCard({
         <span style={{fontSize: fz(10), color: CARD_SOFT, letterSpacing: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
           —— {poem.displayName || '匿名'}
         </span>
-        <div style={{display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0}}>
+        <div style={{display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%'}}>
           <button
             type="button"
             onClick={onCopy}
@@ -451,7 +451,7 @@ function WallCard({
           </button>
           <PoemTTSButton
             poem={poem.poem}
-            className="!h-7 !min-h-0 !text-xs !px-2 !py-0 !bg-transparent !border-amber-500/30 !text-amber-300/80 hover:!bg-amber-900/20"
+            className="!h-7 !min-h-0 !max-w-full !text-xs !px-2 !py-0 !bg-transparent !border-amber-500/30 !text-amber-300/80 hover:!bg-amber-900/20"
           />
         </div>
       </div>
