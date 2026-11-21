@@ -341,6 +341,11 @@ export default function WallPage() {
   );
 }
 
+// 詩牆卡片永遠是深色漸層底：卡片內文字用固定淺色，不跟主題走（月白主題下才看得清楚）
+const CARD_GOLD = '#e0c27a';
+const CARD_SOFT = 'rgba(240,232,200,0.85)';
+const CARD_MUTE = 'rgba(240,232,200,0.62)';
+
 function WallCard({
   poem,
   copied,
@@ -386,13 +391,13 @@ function WallCard({
               fontFamily: t.italic,
               fontStyle: 'italic',
               fontSize: fz(10),
-              color: t.gold,
+              color: CARD_GOLD,
               letterSpacing: 1,
             }}
           >
             {styleLabel}
           </div>
-          <div style={{fontSize: fz(9), color: t.inkMute, letterSpacing: 1}}>
+          <div style={{fontSize: fz(9), color: CARD_MUTE, letterSpacing: 1}}>
             {formatDate(poem.createdAt)}
           </div>
         </div>
@@ -416,10 +421,10 @@ function WallCard({
           alignItems: 'center',
           marginTop: 10,
           paddingTop: 8,
-          borderTop: `1px solid ${t.divider}`,
+          borderTop: '1px solid rgba(240,232,200,0.16)',
         }}
       >
-        <span style={{fontSize: fz(10), color: t.inkSoft, letterSpacing: 1}}>
+        <span style={{fontSize: fz(10), color: CARD_SOFT, letterSpacing: 1}}>
           —— {poem.displayName || '匿名'}
         </span>
         <div style={{display: 'flex', gap: 6, alignItems: 'center'}}>
@@ -430,7 +435,7 @@ function WallCard({
             style={{
               background: 'transparent',
               border: 0,
-              color: copied ? t.gold : t.inkMute,
+              color: copied ? CARD_GOLD : CARD_MUTE,
               fontSize: fz(12),
               cursor: 'pointer',
               padding: '0 4px',
@@ -442,7 +447,7 @@ function WallCard({
           </button>
           <PoemTTSButton
             poem={poem.poem}
-            className="!h-7 !min-h-0 !text-[10px] !px-2 !py-0 !bg-transparent !border-amber-500/30 !text-amber-300/80 hover:!bg-amber-900/20"
+            className="!h-7 !min-h-0 !text-xs !px-2 !py-0 !bg-transparent !border-amber-500/30 !text-amber-300/80 hover:!bg-amber-900/20"
           />
         </div>
       </div>
