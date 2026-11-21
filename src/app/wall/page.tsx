@@ -424,10 +424,10 @@ function WallCard({
           borderTop: '1px solid rgba(240,232,200,0.16)',
         }}
       >
-        <span style={{fontSize: fz(10), color: CARD_SOFT, letterSpacing: 1}}>
+        <span style={{fontSize: fz(10), color: CARD_SOFT, letterSpacing: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
           —— {poem.displayName || '匿名'}
         </span>
-        <div style={{display: 'flex', gap: 6, alignItems: 'center'}}>
+        <div style={{display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0}}>
           <button
             type="button"
             onClick={onCopy}
@@ -436,6 +436,7 @@ function WallCard({
               background: 'transparent',
               border: 0,
               color: copied ? CARD_GOLD : CARD_MUTE,
+              whiteSpace: 'nowrap',
               fontSize: fz(12),
               cursor: 'pointer',
               padding: '0 4px',
