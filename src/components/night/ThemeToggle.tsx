@@ -4,7 +4,7 @@
  * ☾ / ☀ 主題切換鍵 — 放在 TopBar rightSlot
  */
 import {useTheme} from './ThemeProvider';
-import {nightTokens as t} from './atoms';
+import {nightTokens as t, fz} from './atoms';
 
 export function ThemeToggle() {
   const {theme, toggleTheme} = useTheme();
@@ -19,7 +19,7 @@ export function ThemeToggle() {
         background: 'transparent',
         border: 0,
         color: t.gold,
-        fontSize: 14,
+        fontSize: fz(14),
         cursor: 'pointer',
         padding: '2px 4px',
         lineHeight: 1,

@@ -31,10 +31,17 @@ export const nightTokens = {
 } as const;
 
 /**
+ * 可隨螢幕放大的字級：手機/平板維持原本 px；桌機寬幅外殼（.night-shell--wide）
+ * 由 globals.css 設定 --ui（倍率）與 --ui-add（基本加量），整頁字級一起長大。
+ * 不在寬幅外殼內（詩牆、我的詩、全屏 overlay）時 fallback 為原尺寸。
+ */
+export const fz = (n: number) => `calc(${n}px * var(--ui, 1) + var(--ui-add, 0px))`;
+
+/**
  * 響應式 max-width 外殼，取代 prototype 的 420×920 phone frame。
  *
  * - 預設 (`wide=false`)：手機/平板/桌面都鎖 480px 居中（適合詩牆 / 我的詩 這種 feed 型頁面）。
- * - `wide=true`：>=1024px 改用 1180px 廣域佈局，留給首頁 / 結果頁這種需要兩欄編輯式排版的場景。
+ * - `wide=true`：>=1024px 改用 min(1600px, 94vw) 廣域佈局，留給首頁 / 結果頁這種需要兩欄編輯式排版的場景。
  *   className 內含 `night-shell--wide`，可在 globals.css 加 media query 細部微調。
  */
 export function NightShell({
@@ -136,7 +143,7 @@ export function TopBar({
         padding: '18px 22px 0',
         position: 'relative',
         zIndex: 5,
-        fontSize: 11,
+        fontSize: fz(11),
         color: nightTokens.inkMute,
         letterSpacing: 3,
       }}
@@ -156,7 +163,7 @@ export function TopBar({
               color: nightTokens.gold,
               fontFamily: nightTokens.italic,
               fontStyle: 'italic',
-              fontSize: 14,
+              fontSize: fz(14),
               letterSpacing: 1,
               whiteSpace: 'nowrap',
             }}
@@ -177,7 +184,7 @@ export function TopBar({
             <span
               style={{
                 fontFamily: nightTokens.serif,
-                fontSize: 12,
+                fontSize: fz(12),
                 color: nightTokens.ink,
                 letterSpacing: 2,
               }}
@@ -191,7 +198,7 @@ export function TopBar({
         style={{
           display: 'flex',
           gap: 18,
-          fontSize: 10.5,
+          fontSize: fz(10.5),
           letterSpacing: 2,
           alignItems: 'center',
         }}
@@ -230,7 +237,7 @@ export function GoldButton({
         border: 0,
         padding: '15px 18px',
         fontFamily: nightTokens.serif,
-        fontSize: 16,
+        fontSize: fz(16),
         letterSpacing: 8,
         fontWeight: 600,
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -271,7 +278,7 @@ export function OutlineButton({
         color: disabled ? nightTokens.inkMute : nightTokens.ink,
         padding: '11px 16px',
         fontFamily: nightTokens.serif,
-        fontSize: 12,
+        fontSize: fz(12),
         letterSpacing: 2.2,
         minHeight: 42,
         display: 'inline-flex',
@@ -329,7 +336,7 @@ export function Panel({
             padding: '0 8px',
             fontFamily: nightTokens.italic,
             fontStyle: 'italic',
-            fontSize: 11,
+            fontSize: fz(11),
             color: nightTokens.gold,
             letterSpacing: 2,
           }}

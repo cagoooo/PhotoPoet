@@ -5,7 +5,7 @@
  * Made with ❤️ by 阿凱老師（觸發 skill: akai-author-footer）
  */
 import Link from 'next/link';
-import {nightTokens as t} from './atoms';
+import {nightTokens as t, fz} from './atoms';
 
 const TEACHER_PAGE = 'https://cagoooo.github.io/Akai/'; // 阿凱老師教育科技創新專區
 const GITHUB_URL = 'https://github.com/cagoooo/PhotoPoet';
@@ -17,7 +17,7 @@ export function NightSiteFooter() {
     <footer
       style={{
         textAlign: 'center',
-        fontSize: 10,
+        fontSize: fz(10),
         color: t.inkFaint,
         marginTop: 28,
         padding: '0 12px 24px',

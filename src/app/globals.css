@@ -181,7 +181,25 @@ html, body {
 }
 @media (min-width: 1024px) {
   .night-shell--wide {
-    --shell-max-w: 1180px;
+    /* 桌機善用寬度：大螢幕每側留白控制在 ~8%，不再擠在中間一條 1180px 窄欄 */
+    --shell-max-w: min(1600px, 94vw);
+    /* 字級倍率（搭配 atoms.tsx 的 fz()）：螢幕越寬字越大 */
+    --ui: 1.06;
+    --ui-add: 1px;
+    /* 桌機左右內距隨螢幕放大 */
+    --gut: clamp(24px, 3.2vw, 64px);
+  }
+}
+@media (min-width: 1280px) {
+  .night-shell--wide {
+    --ui: 1.14;
+    --ui-add: 2px;
+  }
+}
+@media (min-width: 1600px) {
+  .night-shell--wide {
+    --ui: 1.24;
+    --ui-add: 2px;
   }
 }
 
@@ -599,4 +617,10 @@ html, body {
 }
 .animate-slide-down {
   animation: slide-down 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 桌機上傳拖放區：hover 時金色描邊 */
+.photopoet-dropzone:hover {
+  border-color: var(--theme-gold) !important;
+  background: rgba(184, 154, 74, 0.06) !important;
 }

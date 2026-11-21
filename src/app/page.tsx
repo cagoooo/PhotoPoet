@@ -25,6 +25,7 @@ import {
 
 import {
   nightTokens as t,
+  fz,
   NightShell,
   TopBar,
   GoldButton,
@@ -661,10 +662,10 @@ function FormGrid({
               boxShadow: active ? '0 0 18px rgba(184,154,74,0.18) inset' : 'none',
             }}
           >
-            <span style={{fontFamily: t.serif, fontSize: columns === 3 ? 14 : 13, color: t.ink, letterSpacing: 2}}>
+            <span style={{fontFamily: t.serif, fontSize: fz(columns === 3 ? 14 : 13), color: t.ink, letterSpacing: 2}}>
               {s.zh}
             </span>
-            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 10, color: t.inkMute, marginTop: 2}}>
+            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: fz(10), color: t.inkMute, marginTop: 2}}>
               {s.en}
             </span>
           </div>
@@ -688,8 +689,8 @@ function PublishToggle({value, onChange}: {value: boolean; onChange: (v: boolean
       }}
     >
       <div>
-        <div style={{fontSize: 11.5, color: t.ink}}>分享至詩牆</div>
-        <div style={{fontSize: 10, color: t.inkMute, marginTop: 2}}>以暱稱公開展示，其他人看得到</div>
+        <div style={{fontSize: fz(11.5), color: t.ink}}>分享至詩牆</div>
+        <div style={{fontSize: fz(10), color: t.inkMute, marginTop: 2}}>以暱稱公開展示，其他人看得到</div>
       </div>
       <div
         style={{
@@ -731,19 +732,19 @@ function ErrorBanner({message, onDismiss}: {message: string; onDismiss: () => vo
         display: 'flex',
         alignItems: 'flex-start',
         gap: 10,
-        fontSize: 12,
+        fontSize: fz(12),
         color: t.ink,
         lineHeight: 1.7,
       }}
     >
-      <span style={{fontFamily: t.serif, fontSize: 18, color: 'var(--theme-gold-bright)', lineHeight: 1, flexShrink: 0}}>
+      <span style={{fontFamily: t.serif, fontSize: fz(18), color: 'var(--theme-gold-bright)', lineHeight: 1, flexShrink: 0}}>
         ✦
       </span>
       <div style={{flex: 1}}>
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 12,
+            fontSize: fz(12),
             color: 'var(--theme-gold-bright)',
             letterSpacing: 2,
             marginBottom: 4,
@@ -762,7 +763,7 @@ function ErrorBanner({message, onDismiss}: {message: string; onDismiss: () => vo
           background: 'transparent',
           border: 0,
           color: t.inkMute,
-          fontSize: 14,
+          fontSize: fz(14),
           cursor: 'pointer',
           padding: '0 4px',
           lineHeight: 1,
@@ -781,7 +782,7 @@ function LoginRequiredHint() {
       role="note"
       style={{
         marginTop: 10,
-        fontSize: 12,
+        fontSize: fz(12),
         lineHeight: 1.6,
         color: t.inkSoft,
         textAlign: 'center',
@@ -820,13 +821,13 @@ function HomeViewMobile(p: HomeViewProps) {
 
       {/* Hero */}
       <div style={{marginTop: 36, position: 'relative', zIndex: 2}}>
-        <div style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 14, color: t.gold, letterSpacing: 1, marginBottom: 4}}>
+        <div style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: fz(14), color: t.gold, letterSpacing: 1, marginBottom: 4}}>
           by night, a verse
         </div>
         <h1
           style={{
             fontFamily: t.serif,
-            fontSize: 46,
+            fontSize: fz(46),
             fontWeight: 300,
             lineHeight: 1.05,
             letterSpacing: 6,
@@ -842,7 +843,7 @@ function HomeViewMobile(p: HomeViewProps) {
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 12.5,
+            fontSize: fz(12.5),
             fontWeight: 300,
             color: t.inkSoft,
             lineHeight: 1.9,
@@ -910,7 +911,7 @@ function HomeViewMobile(p: HomeViewProps) {
 // ────────────────────────────────────────────────────────────────────
 function HomeViewDesktop(p: HomeViewProps) {
   return (
-    <div style={{position: 'relative', zIndex: 1, padding: '0 56px 32px'}}>
+    <div style={{position: 'relative', zIndex: 1, padding: '0 var(--gut, 56px) 32px'}}>
       <TopBar
         rightSlot={
           <>
@@ -943,7 +944,7 @@ function HomeViewDesktop(p: HomeViewProps) {
             style={{
               fontFamily: t.italic,
               fontStyle: 'italic',
-              fontSize: 18,
+              fontSize: fz(18),
               color: t.gold,
               letterSpacing: 5,
               marginBottom: 14,
@@ -954,7 +955,7 @@ function HomeViewDesktop(p: HomeViewProps) {
           <h1
             style={{
               fontFamily: t.serif,
-              fontSize: 116,
+              fontSize: fz(116),
               fontWeight: 300,
               lineHeight: 1,
               letterSpacing: 22,
@@ -973,7 +974,7 @@ function HomeViewDesktop(p: HomeViewProps) {
             style={{
               fontFamily: t.italic,
               fontStyle: 'italic',
-              fontSize: 13,
+              fontSize: fz(13),
               color: t.gold,
               letterSpacing: 3,
               marginBottom: 16,
@@ -985,7 +986,7 @@ function HomeViewDesktop(p: HomeViewProps) {
           <div
             style={{
               fontFamily: t.serif,
-              fontSize: 18,
+              fontSize: fz(18),
               fontWeight: 300,
               color: t.ink,
               lineHeight: 2.0,
@@ -1000,7 +1001,7 @@ function HomeViewDesktop(p: HomeViewProps) {
           <div
             style={{
               fontFamily: t.serif,
-              fontSize: 14,
+              fontSize: fz(14),
               fontWeight: 300,
               color: t.inkSoft,
               lineHeight: 2.0,
@@ -1041,6 +1042,7 @@ function HomeViewDesktop(p: HomeViewProps) {
               setUrl={p.setUrl}
               onUrlSubmit={p.onUrlSubmit}
               isGenerating={p.isGenerating}
+              large
             />
           )}
         </Panel>
@@ -1082,12 +1084,16 @@ function UploadEmpty(props: {
   setUrl: (v: string) => void;
   onUrlSubmit: () => void;
   isGenerating: boolean;
+  /** 桌機版：改成大型拖放區（可直接把照片拖進來） */
+  large?: boolean;
 }) {
+  const [dragOver, setDragOver] = useState(false);
+  const large = !!props.large;
   return (
     <>
       <div
         style={{
-          fontSize: 10,
+          fontSize: fz(10),
           letterSpacing: 5,
           textTransform: 'uppercase',
           color: t.inkMute,
@@ -1097,34 +1103,80 @@ function UploadEmpty(props: {
       >
         upload
       </div>
-      <button
-        type="button"
-        onClick={props.onUploadClick}
-        style={{
-          width: '100%',
-          background: 'transparent',
-          border: `1px solid ${t.panelBorder}`,
-          color: t.ink,
-          padding: '14px 16px',
-          fontFamily: t.serif,
-          fontSize: 13,
-          letterSpacing: 4,
-          cursor: 'pointer',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          transition: 'all .2s',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = t.gold;
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = t.panelBorder;
-        }}
-      >
-        <span>從相簿選擇照片</span>
-        <span style={{color: t.gold}}>↗</span>
-      </button>
+      {large ? (
+        <button
+          type="button"
+          onClick={props.onUploadClick}
+          onDragOver={e => {
+            e.preventDefault();
+            if (!dragOver) setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={e => {
+            e.preventDefault();
+            setDragOver(false);
+            const files = e.dataTransfer?.files;
+            if (files && files.length) {
+              props.onFileChange({target: {files}} as unknown as React.ChangeEvent<HTMLInputElement>);
+            }
+          }}
+          className="photopoet-dropzone"
+          data-drag={dragOver ? 'on' : 'off'}
+          style={{
+            width: '100%',
+            minHeight: 'clamp(200px, 22vw, 320px)',
+            background: dragOver ? 'rgba(184,154,74,0.10)' : 'transparent',
+            border: `1.5px dashed ${dragOver ? t.gold : t.panelBorder}`,
+            color: t.ink,
+            padding: '28px 20px',
+            fontFamily: t.serif,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 14,
+            transition: 'all .2s',
+          }}
+        >
+          <span style={{fontSize: fz(34), color: t.gold, lineHeight: 1}} aria-hidden="true">
+            ☾
+          </span>
+          <span style={{fontSize: fz(17), letterSpacing: 4}}>從相簿選擇照片</span>
+          <span style={{fontSize: fz(12), color: t.inkMute, letterSpacing: 1.5}}>
+            或直接把照片拖曳到這裡 · JPG / PNG
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={props.onUploadClick}
+          style={{
+            width: '100%',
+            background: 'transparent',
+            border: `1px solid ${t.panelBorder}`,
+            color: t.ink,
+            padding: '14px 16px',
+            fontFamily: t.serif,
+            fontSize: fz(13),
+            letterSpacing: 4,
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            transition: 'all .2s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = t.gold;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = t.panelBorder;
+          }}
+        >
+          <span>從相簿選擇照片</span>
+          <span style={{color: t.gold}}>↗</span>
+        </button>
+      )}
       <input
         ref={props.fileInputRef}
         type="file"
@@ -1139,7 +1191,7 @@ function UploadEmpty(props: {
           alignItems: 'center',
           gap: 8,
           margin: '12px 0',
-          fontSize: 10,
+          fontSize: fz(10),
           color: t.inkFaint,
           letterSpacing: 3,
         }}
@@ -1164,7 +1216,7 @@ function UploadEmpty(props: {
             padding: '8px 0',
             color: t.ink,
             fontFamily: t.serif,
-            fontSize: 12,
+            fontSize: fz(12),
             outline: 'none',
           }}
           placeholder="貼上圖片網址"
@@ -1177,7 +1229,7 @@ function UploadEmpty(props: {
             background: 'transparent',
             border: 0,
             color: t.gold,
-            fontSize: 11.5,
+            fontSize: fz(11.5),
             padding: '8px 4px',
             cursor: props.isGenerating ? 'wait' : 'pointer',
             fontFamily: t.italic,
@@ -1196,7 +1248,7 @@ function PhotoPreview({photo, onClear}: {photo: string; onClear: () => void}) {
     <div style={{position: 'relative'}}>
       <div
         style={{
-          fontSize: 10,
+          fontSize: fz(10),
           letterSpacing: 5,
           textTransform: 'uppercase',
           color: t.inkMute,
@@ -1217,7 +1269,7 @@ function PhotoPreview({photo, onClear}: {photo: string; onClear: () => void}) {
             textTransform: 'none',
             fontFamily: t.italic,
             fontStyle: 'italic',
-            fontSize: 11,
+            fontSize: fz(11),
           }}
         >
           再換一張 ↻
@@ -1329,7 +1381,7 @@ function PoemPhotoFrame({
           boxShadow: '0 8px 22px rgba(0,0,0,0.28)',
           fontFamily: t.italic,
           fontStyle: 'italic',
-          fontSize: 12,
+          fontSize: fz(12),
           color: '#fff8dc',
           letterSpacing: 1.5,
           minWidth: 68,
@@ -1360,7 +1412,7 @@ function DownloadCard({
         style={{
           fontFamily: t.italic,
           fontStyle: 'italic',
-          fontSize: 11,
+          fontSize: fz(11),
           color: t.gold,
           letterSpacing: 1.5,
           marginBottom: 8,
@@ -1378,7 +1430,7 @@ function DownloadCard({
           border: `1px solid ${t.panelBorder}`,
           padding: '10px 12px',
           fontFamily: t.serif,
-          fontSize: 13,
+          fontSize: fz(13),
           letterSpacing: 1,
           cursor: 'pointer',
           outline: 'none',
@@ -1406,14 +1458,14 @@ function TipBox() {
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        fontSize: 11,
+        fontSize: fz(11),
         color: t.inkSoft,
       }}
     >
-      <span style={{fontSize: 18, fontFamily: t.serif}}>✦</span>
+      <span style={{fontSize: fz(18), fontFamily: t.serif}}>✦</span>
       <div style={{flex: 1, lineHeight: 1.6}}>
         <div style={{color: t.ink, marginBottom: 2}}>喜歡這首詩？</div>
-        <div style={{fontSize: 10, color: t.inkMute}}>更換詩體、再寫一首，會有不同感覺的版本。</div>
+        <div style={{fontSize: fz(10), color: t.inkMute}}>更換詩體、再寫一首，會有不同感覺的版本。</div>
       </div>
     </div>
   );
@@ -1425,7 +1477,7 @@ function ResultMetaRow({dateStr, publish}: {dateStr: string; publish: boolean}) 
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        fontSize: 10,
+        fontSize: fz(10),
         color: t.inkMute,
         letterSpacing: 2,
         paddingBottom: 10,
@@ -1521,7 +1573,7 @@ function ResultViewDesktop(p: ResultViewProps) {
   ).padStart(2, '0')} · ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
 
   return (
-    <div style={{position: 'relative', zIndex: 1, padding: '0 56px 32px'}}>
+    <div style={{position: 'relative', zIndex: 1, padding: '0 var(--gut, 56px) 32px'}}>
       <TopBar onBack={p.onBack} backLabel="另作" rightSlot={<ThemeToggle />} />
 
       {/* Editorial header — 詩體標 + 詩牆狀態 */}
@@ -1540,7 +1592,7 @@ function ResultViewDesktop(p: ResultViewProps) {
             style={{
               fontFamily: t.italic,
               fontStyle: 'italic',
-              fontSize: 14,
+              fontSize: fz(14),
               color: t.gold,
               letterSpacing: 4,
               marginBottom: 6,
@@ -1551,7 +1603,7 @@ function ResultViewDesktop(p: ResultViewProps) {
           <h2
             style={{
               fontFamily: t.serif,
-              fontSize: 38,
+              fontSize: fz(38),
               fontWeight: 300,
               letterSpacing: 8,
               color: 'var(--theme-hero-ink)',
@@ -1560,12 +1612,12 @@ function ResultViewDesktop(p: ResultViewProps) {
             }}
           >
             {p.styleMeta.zh} ·{' '}
-            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: 26, color: t.gold, letterSpacing: 2}}>
+            <span style={{fontFamily: t.italic, fontStyle: 'italic', fontSize: fz(26), color: t.gold, letterSpacing: 2}}>
               一帖月光
             </span>
           </h2>
         </div>
-        <div style={{textAlign: 'right', fontSize: 11, color: t.inkMute, letterSpacing: 2, lineHeight: 1.8}}>
+        <div style={{textAlign: 'right', fontSize: fz(11), color: t.inkMute, letterSpacing: 2, lineHeight: 1.8}}>
           <div>{dateStr}</div>
           <div style={{marginTop: 2, color: p.publish ? t.gold : t.inkMute}}>
             {p.publish ? '已分享至詩牆 ✦' : '私人收藏'}
@@ -1584,7 +1636,7 @@ function ResultViewDesktop(p: ResultViewProps) {
         }}
       >
         {/* 左欄：照片 + 詩（aspect 4/5，大尺寸） */}
-        <div style={{maxWidth: 620}}>
+        <div style={{maxWidth: 'calc(620px * var(--ui, 1))'}}>
           <PoemPhotoFrame
             photo={p.photo}
             lines={lines}
@@ -1600,7 +1652,7 @@ function ResultViewDesktop(p: ResultViewProps) {
             style={{
               fontFamily: t.italic,
               fontStyle: 'italic',
-              fontSize: 12,
+              fontSize: fz(12),
               color: t.gold,
               letterSpacing: 3,
             }}
@@ -1679,7 +1731,7 @@ function PoemReveal({lines, vertical}: {lines: string[]; vertical: boolean}) {
         const lineStyle: CSSProperties = {
           writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
           fontFamily: t.serif,
-          fontSize: vertical ? 21 : 17,
+          fontSize: fz(vertical ? 21 : 17),
           fontWeight: 400,
           color: '#f0e8c8',
           letterSpacing: vertical ? 8 : 3,
@@ -1842,7 +1894,7 @@ function GeneratingOverlay({
           style={{
             fontFamily: t.italic,
             fontStyle: 'italic',
-            fontSize: 14,
+            fontSize: fz(14),
             color: isLight ? '#7a4c24' : t.gold,
             letterSpacing: 2,
             marginBottom: 14,
@@ -1856,7 +1908,7 @@ function GeneratingOverlay({
           className="shimmer-text"
           style={{
             fontFamily: t.serif,
-            fontSize: 24,
+            fontSize: fz(24),
             letterSpacing: 4,
             fontWeight: 500,
             textAlign: 'center',
@@ -1875,7 +1927,7 @@ function GeneratingOverlay({
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 13,
+            fontSize: fz(13),
             color: isLight ? '#5a3a20' : t.inkMute,
             letterSpacing: 1.2,
             marginTop: 34,

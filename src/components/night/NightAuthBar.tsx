@@ -6,7 +6,7 @@
  */
 import Link from 'next/link';
 import {useAuth} from '@/hooks/useAuth';
-import {nightTokens as t} from './atoms';
+import {nightTokens as t, fz} from './atoms';
 
 interface NightAuthBarProps {
   remaining?: number | null;
@@ -24,7 +24,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
         style={{
           fontFamily: t.italic,
           fontStyle: 'italic',
-          fontSize: 11,
+          fontSize: fz(11),
           color: t.inkMute,
           letterSpacing: 1,
           padding: '10px 0',
@@ -42,7 +42,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          fontSize: 11.5,
+          fontSize: fz(11.5),
           marginBottom: 18,
         }}
       >
@@ -58,16 +58,16 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: t.serif,
-            fontSize: 14,
+            fontSize: fz(14),
           }}
         >
           ☾
         </div>
         <div style={{flex: 1, minWidth: 0}}>
-          <div style={{fontFamily: t.serif, fontSize: 13, color: t.ink}}>
+          <div style={{fontFamily: t.serif, fontSize: fz(13), color: t.ink}}>
             未登入
           </div>
-          <div style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
+          <div style={{fontSize: fz(10), color: t.inkMute, letterSpacing: 1}}>
             登入後每人每天可賦詩 {dailyLimit ?? 3} 首
           </div>
         </div>
@@ -80,7 +80,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
             padding: '7px 14px',
             fontFamily: t.italic,
             fontStyle: 'italic',
-            fontSize: 11,
+            fontSize: fz(11),
             letterSpacing: 1.5,
             cursor: 'pointer',
             transition: 'all .2s',
@@ -109,7 +109,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        fontSize: 11.5,
+        fontSize: fz(11.5),
         marginBottom: 18,
       }}
     >
@@ -139,7 +139,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: t.serif,
-            fontSize: 14,
+            fontSize: fz(14),
           }}
         >
           {initial}
@@ -149,7 +149,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
         <div
           style={{
             fontFamily: t.serif,
-            fontSize: 13,
+            fontSize: fz(13),
             color: t.ink,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -158,14 +158,14 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
         >
           {name}
         </div>
-        <div style={{fontSize: 10, color: t.inkMute, letterSpacing: 1}}>
+        <div style={{fontSize: fz(10), color: t.inkMute, letterSpacing: 1}}>
           tonight · {remainingNum ?? '—'} of {limitNum}
         </div>
       </div>
       <Link
         href="/history"
         style={{
-          fontSize: 11,
+          fontSize: fz(11),
           color: t.gold,
           fontFamily: t.italic,
           fontStyle: 'italic',
@@ -182,7 +182,7 @@ export function NightAuthBar({remaining, dailyLimit}: NightAuthBarProps) {
           background: 'transparent',
           border: 0,
           color: t.inkMute,
-          fontSize: 14,
+          fontSize: fz(14),
           marginLeft: 4,
           cursor: 'pointer',
           padding: 0,
