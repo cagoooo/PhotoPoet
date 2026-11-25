@@ -61,6 +61,14 @@ jobs:
       - name: Build Cloud Functions
         run: npm run build --prefix functions
 
+      - name: List functions to deploy (named deploy only)
+        id: fns
+        working-directory: functions
+        run: |
+          FNS=$(node -e 'const m=require("./"+(require("./package.json").main||"index.js"));const k=Object.keys(m);if(!k.length)process.exit(1);console.log(k.map(f=>"functions:"+f).join(","));process.exit(0)')
+          echo "list=$FNS" >> "$GITHUB_OUTPUT"
+          echo "將點名部署：$FNS"
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -69,13 +77,14 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@latest
 
+      # 函式一律點名部署（名單由上一步從建置後的程式產生），不加 --force：
+      # 萬一這個專案以後放進別的系統的函式，也不會被比對成「多餘」而刪掉
       - name: Deploy hosting + functions + firestore
         run: |
           firebase deploy \
-            --only hosting,functions,firestore \
+            --only "hosting,${{ steps.fns.outputs.list }},firestore" \
             --project=photopoet-ha364 \
-            --non-interactive \
-            --force
+            --non-interactive
 
       - name: Print live URL
         run: echo "🌐 Live → https://photopoet-ha364.web.app"
